@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Banknote, CircleDot, Globe, TrendingUp } from "lucide-react";
+import { ArrowLeft, Banknote, CircleDot, ExternalLink, Globe, TrendingUp } from "lucide-react";
 import { AuthPanel } from "@/components/AuthPanel";
 import { ApplicationActions } from "@/components/ApplicationActions";
 import { JobDescriptionEditor } from "@/components/JobDescriptionEditor";
@@ -96,6 +96,17 @@ export default async function ApplicationDetailPage({ params }: Props) {
             <p className="mt-1 text-sm text-stone-500">
               {job.company}{job.location ? ` · ${job.location}` : ""}
             </p>
+            {job.job_url && (
+              <a
+                href={job.job_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 hover:underline"
+              >
+                View job ad
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            )}
           </div>
           <ApplicationActions applicationId={application.id} hasDocuments={hasDocuments} />
         </div>
