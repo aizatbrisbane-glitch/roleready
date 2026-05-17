@@ -1,0 +1,74 @@
+export type ApplicationStatus = "New" | "Reviewed" | "Ready" | "Applied" | "Interview" | "Rejected";
+export type JobSource = "Manual" | "SEEK" | "LinkedIn" | "Adzuna" | "Other";
+export type GeneratedDocumentType = "tailored_resume" | "cover_letter";
+export type GeneratedDocumentFormat = "markdown" | "docx" | "pdf";
+
+export type Profile = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  location: string;
+  linkedin_url: string;
+  target_job_titles: string[];
+  preferred_industries: string[];
+  salary_range: string;
+  preferred_locations: string[];
+  created_at: string;
+  updated_at: string;
+};
+
+export type MasterResume = {
+  id: string;
+  user_id: string;
+  file_name: string | null;
+  storage_path: string | null;
+  resume_text: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MasterCoverLetter = {
+  id: string;
+  user_id: string;
+  file_name: string | null;
+  storage_path: string | null;
+  cover_letter_text: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Job = {
+  id: string;
+  user_id: string;
+  title: string;
+  company: string;
+  location: string;
+  salary: string;
+  job_url: string;
+  description: string;
+  source: JobSource;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Application = {
+  id: string;
+  user_id: string;
+  job_id: string;
+  status: ApplicationStatus;
+  match_score: number | null;
+  match_explanation: string | null;
+  missing_keywords: string[];
+  tailored_resume: string | null;
+  cover_letter: string | null;
+  generated_by: string | null;
+  generated_at: string | null;
+  applied_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ApplicationWithJob = Application & {
+  jobs: Job | null;
+};
