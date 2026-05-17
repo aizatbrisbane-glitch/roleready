@@ -94,10 +94,20 @@ async function scoreJobs(
   provider: "anthropic" | "openai"
 ) {
   const jobList = jobs
-    .map((j) => `ID:${j.id}\nTitle: ${j.title} at ${j.company}\n${j.description.slice(0, 300)}`)
+    .map((j) => `ID:${j.id}\nTitle: ${j.title} at ${j.company}\n${j.description.slice(0, 400)}`)
     .join("\n---\n");
 
-  const userMsg = `Score each job listing against the resume from 0–100. Give a one-sentence reason for each score.\n\nResume (first 4000 chars):\n${resumeText.slice(0, 4000)}\n\nJobs:\n${jobList}`;
+  const userMsg = `You are a strict recruiter scoring job-resume fit from 0–100.
+
+Scoring guide:
+- 80–100: Strong match — title aligns, most key skills present, right seniority level
+- 60–79: Reasonable match — related field, some gaps in skills or level
+- 40–59: Partial match — different specialisation or seniority, some transferable skills
+- 0–39: Weak match — different field, missing core requirements
+
+Be conservative. These are short job snippets so do not assume missing details are a match. Most scores should fall in the 40–70 range. Only award 80+ when there is clear evidence across title, experience level, AND key skills.
+
+Resume (summary):\n${resumeText.slice(0, 5000)}\n\nJobs to score:\n${jobList}`;
 
   if (provider === "anthropic") {
     if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured.");
