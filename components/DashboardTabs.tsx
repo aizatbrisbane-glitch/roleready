@@ -78,18 +78,6 @@ export function DashboardTabs({ applications, resumeFileName, coverLetterFileNam
       {/* On mobile: only active tab is visible.
           On desktop: all sections visible, stacked. */}
 
-      {/* Apply — Quick Apply form only */}
-      <div className={activeTab === "apply" ? "block" : "hidden md:block"}>
-        <QuickApplyForm resumeFileName={resumeFileName} coverLetterFileName={coverLetterFileName} />
-      </div>
-
-      {/* Grab — job search + AI matching */}
-      <div className={activeTab === "grab" ? "block" : "hidden md:block"}>
-        <div className="md:mt-4">
-          <GrabPanel hasResume={Boolean(resumeFileName)} />
-        </div>
-      </div>
-
       {/* Applications — pipeline counts + full list */}
       <div className={activeTab === "apps" ? "block" : "hidden md:block"}>
         <div className="space-y-4 md:mt-8">
@@ -138,6 +126,20 @@ export function DashboardTabs({ applications, resumeFileName, coverLetterFileNam
               ))
             )}
           </section>
+        </div>
+      </div>
+
+      {/* Apply — Quick Apply form only */}
+      <div className={activeTab === "apply" ? "block" : "hidden md:block"}>
+        <div className="md:mt-6">
+          <QuickApplyForm resumeFileName={resumeFileName} coverLetterFileName={coverLetterFileName} />
+        </div>
+      </div>
+
+      {/* Grab — job search + AI matching */}
+      <div className={activeTab === "grab" ? "block" : "hidden md:block"}>
+        <div className="md:mt-4">
+          <GrabPanel hasResume={Boolean(resumeFileName)} />
         </div>
       </div>
 
