@@ -22,9 +22,9 @@ const STATUS_META: Record<ApplicationStatus, { color: string; dot: string }> = {
 };
 
 const TABS: { id: Tab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { id: "apps",  label: "Applications", icon: Briefcase },
   { id: "apply", label: "Apply",        icon: Sparkles },
   { id: "grab",  label: "Grab",         icon: Zap },
-  { id: "apps",  label: "Applications", icon: Briefcase },
 ];
 
 type Props = {
@@ -34,7 +34,7 @@ type Props = {
 };
 
 export function DashboardTabs({ applications, resumeFileName, coverLetterFileName }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab>("apply");
+  const [activeTab, setActiveTab] = useState<Tab>("apps");
 
   return (
     <>
