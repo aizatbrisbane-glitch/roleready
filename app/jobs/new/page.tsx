@@ -28,7 +28,7 @@ export default async function NewJobPage() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8">
+    <main className="mx-auto max-w-4xl overflow-x-clip px-4 py-8 pb-36 md:pb-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-stone-950">Add Job</h1>
         <p className="mt-2 text-sm text-stone-600">Paste the full ad so matching and tailoring have enough signal.</p>

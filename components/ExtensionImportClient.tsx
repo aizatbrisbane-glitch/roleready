@@ -91,8 +91,8 @@ export function ExtensionImportClient() {
   }, []);
 
   return (
-    <main className="mx-auto flex min-h-[70vh] max-w-xl items-center px-4 py-12">
-      <section className="w-full rounded-md border border-stone-200 bg-white p-6 shadow-sm">
+    <main className="mx-auto flex min-h-[70vh] max-w-xl overflow-x-clip px-4 py-12">
+      <section className="w-full max-w-full rounded-md border border-stone-200 bg-white p-6 shadow-sm">
         <h1 className="text-xl font-bold text-stone-950">Importing Job Ad</h1>
         <p className="mt-3 text-sm leading-6 text-stone-700">{status}</p>
       </section>

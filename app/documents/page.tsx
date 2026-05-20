@@ -1,12 +1,12 @@
-import { Settings } from "lucide-react";
+import { FileText } from "lucide-react";
 import { AuthPanel } from "@/components/AuthPanel";
-import { ProfileSettingsForm } from "@/components/ProfileSettingsForm";
+import { DocumentsForm } from "@/components/DocumentsForm";
 import { SetupNotice } from "@/components/SetupNotice";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Profile } from "@/types/database";
+import type { MasterCoverLetter, MasterResume } from "@/types/database";
 
-export default async function ProfilePage() {
+export default async function DocumentsPage() {
   const configured = isSupabaseConfigured();
   const supabase = await createSupabaseServerClient();
   const {
@@ -29,37 +29,28 @@ export default async function ProfilePage() {
     );
   }
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+  const [{ data: masterResume }, { data: masterCoverLetter }] = await Promise.all([
+    supabase.from("master_resumes").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+    supabase.from("master_cover_letters").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+  ]);
 
   return (
     <main className="min-h-screen bg-[#fffaf4] px-4 py-5 pb-36 md:px-8 md:py-10 md:pb-10 xl:px-10">
       <div className="mx-auto max-w-[1520px] overflow-x-clip">
         <div className="mb-6 max-w-4xl md:mb-8">
           <p className="mb-3 inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1.5 text-sm font-semibold text-[#0f8f83] md:text-xs">
-            <Settings className="h-4 w-4" />
-            Profile settings
+            <FileText className="h-4 w-4" />
+            Documents
           </p>
           <h1 className="font-serif text-3xl font-semibold tracking-tight text-[#14213d] md:text-5xl">
-            Tell ApplyHQ what you&apos;re aiming for.
+            Keep your master documents ready.
           </h1>
           <p className="mt-2 max-w-2xl text-base leading-7 text-slate-600 md:mt-3 md:text-lg md:leading-8">
-            Your details and preferences help shape better matches and stronger applications.
+            ApplyHQ uses these as the source material for tailored resumes and cover letters.
           </p>
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <ProfileSettingsForm profile={profile as Profile | null} userEmail={user.email} />
-
-          <aside className="rounded-[1.8rem] bg-gradient-to-br from-teal-50/90 via-white/78 to-amber-50/70 p-6 shadow-[0_18px_60px_rgba(20,33,61,0.05)]">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#0f8f83]">Profile signal</p>
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[#14213d]">
-              Better details, better matches.
-            </h2>
-            <p className="mt-3 text-sm leading-7 text-slate-600">
-              Keep your target roles, locations, and industries current so ApplyHQ can find fresher opportunities and tailor with more context.
-            </p>
-          </aside>
-        </div>
+        <DocumentsForm masterResume={masterResume as MasterResume | null} masterCoverLetter={masterCoverLetter as MasterCoverLetter | null} />
       </div>
     </main>
   );

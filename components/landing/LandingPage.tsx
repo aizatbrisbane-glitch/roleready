@@ -2,203 +2,309 @@
 
 import Link from "next/link";
 import {
-  BriefcaseBusiness,
-  CheckCircle2,
+  ArrowRight,
+  Check,
+  CircleDot,
+  Download,
   FileText,
+  Gauge,
   Search,
   Sparkles,
-  TrendingUp,
+  UploadCloud,
   Zap,
 } from "lucide-react";
 
-const features = [
-  {
-    icon: Zap,
-    title: "Paste a link. Done.",
-    body: "Drop in any job ad URL and JobPilot fetches the full description automatically — even from SEEK.",
-  },
-  {
-    icon: Sparkles,
-    title: "AI-tailored documents",
-    body: "Claude or GPT rewrites your master resume and cover letter to match each specific role in under a minute.",
-  },
-  {
-    icon: Search,
-    title: "Grab matching jobs",
-    body: "Search Australian job boards instantly and get AI-ranked matches against your resume — all in one click.",
-  },
-  {
-    icon: TrendingUp,
-    title: "Track your pipeline",
-    body: "Move applications through New → Applied → Interview and always know where every role stands.",
-  },
-  {
-    icon: FileText,
-    title: "Download DOCX & PDF",
-    body: "Export professional Word and PDF documents ready to attach to any application portal.",
-  },
-  {
-    icon: CheckCircle2,
-    title: "Match scoring",
-    body: "Every application gets a 0–100 match score and a list of missing keywords so you know your odds.",
-  },
+const proofChips = [
+  { icon: Zap, label: "Tailored in under 60s" },
+  { icon: CircleDot, label: "AI Match Score" },
+  { icon: FileText, label: "DOCX & PDF export" },
+  { icon: Check, label: "Track your progress" },
 ];
 
 const steps = [
   {
-    n: "1",
+    icon: UploadCloud,
     title: "Upload your master resume",
-    body: "Add your best, most complete resume once. JobPilot uses it as the foundation for every tailored application.",
+    body: "Add your best version once.",
+    color: "bg-teal-50 text-teal-700",
+    badge: "bg-teal-100 text-teal-800",
   },
   {
-    n: "2",
+    icon: Search,
     title: "Find or paste a job ad",
-    body: "Paste a job URL or click Grab to auto-search and score matching Australian roles against your profile.",
+    body: "Use a role you love.",
+    color: "bg-rose-50 text-rose-600",
+    badge: "bg-rose-100 text-rose-800",
   },
   {
-    n: "3",
-    title: "Generate tailored documents",
-    body: "AI rewrites your resume and cover letter to match the job ad — no invented details, just smart emphasis.",
+    icon: Sparkles,
+    title: "AI tailors your documents",
+    body: "Resume and cover letter, matched.",
+    color: "bg-violet-50 text-violet-600",
+    badge: "bg-violet-100 text-violet-800",
   },
   {
-    n: "4",
-    title: "Download and apply",
-    body: "Export DOCX or PDF and attach directly to the application. Track the status right here as you go.",
+    icon: Download,
+    title: "Download & apply",
+    body: "Export, send, and track.",
+    color: "bg-amber-50 text-amber-700",
+    badge: "bg-amber-100 text-amber-900",
   },
 ];
 
+const trustLabels = ["SEEK", "Indeed", "LinkedIn", "Glassdoor", "Jora"];
+
+function ImageFallback({ className }: { className?: string }) {
+  return (
+    <div
+      className={`absolute inset-0 bg-[radial-gradient(circle_at_35%_30%,#fde68a_0,#fde68a_18%,transparent_19%),radial-gradient(circle_at_70%_35%,#99f6e4_0,#99f6e4_20%,transparent_21%),linear-gradient(135deg,#fff7ed,#f0fdfa_48%,#fdf2f8)] ${className ?? ""}`}
+    />
+  );
+}
+
 export function LandingPage() {
   return (
-    <div className="overflow-x-hidden">
-      {/* ── Hero ─────────────────────────────────────────────────── */}
-      <section className="bg-slate-900 px-4 pb-24 pt-20 text-center">
-        <div className="mx-auto max-w-3xl">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-4 py-1.5 text-sm font-medium text-teal-400">
-            <BriefcaseBusiness className="h-4 w-4" />
-            AI-powered job applications
-          </div>
+    <div className="min-h-screen overflow-x-hidden bg-[#fffaf4] text-[#14213d]">
+      <style jsx global>{`
+        html {
+          scroll-behavior: smooth;
+        }
 
-          <h1 className="text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Land your next role,{" "}
-            <span className="bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
-              faster.
-            </span>
-          </h1>
+        @keyframes applyhq-float {
+          0%,
+          100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
 
-          <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-400">
-            Paste a job link and JobPilot generates a tailored resume and cover letter in seconds — powered by Claude AI and built around your master resume.
-          </p>
+        @keyframes applyhq-fade-up {
+          from {
+            opacity: 0;
+            transform: translateY(18px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
 
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 rounded-xl bg-teal-500 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-teal-500/25 transition hover:bg-teal-400"
-            >
-              <Sparkles className="h-5 w-5" />
-              Get started free
-            </Link>
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-700 px-6 py-3 text-base font-semibold text-slate-300 transition hover:border-slate-500 hover:text-white"
-            >
-              Sign in
-            </Link>
-          </div>
-        </div>
-      </section>
+        .applyhq-fade-up {
+          animation: applyhq-fade-up 760ms ease-out both;
+        }
 
-      {/* ── Stats strip ──────────────────────────────────────────── */}
-      <section className="border-b border-stone-200 bg-white">
-        <div className="mx-auto grid max-w-4xl grid-cols-3 divide-x divide-stone-200">
-          {[
-            { value: "< 60s", label: "To generate tailored docs" },
-            { value: "SEEK + more", label: "Australian job boards" },
-            { value: "DOCX & PDF", label: "Export formats" },
-          ].map(({ value, label }) => (
-            <div key={label} className="px-3 py-6 text-center sm:px-8 sm:py-8">
-              <p className="text-lg font-bold text-teal-700 sm:text-2xl">{value}</p>
-              <p className="mt-1 text-xs text-stone-500 sm:text-sm">{label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+        .applyhq-float {
+          animation: applyhq-float 5.5s ease-in-out infinite;
+        }
+      `}</style>
 
-      {/* ── Features ─────────────────────────────────────────────── */}
-      <section className="bg-stone-50 px-4 py-20">
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-stone-900">
-              Everything you need to apply smarter
-            </h2>
-            <p className="mt-3 text-stone-500">
-              Stop rewriting your resume for every job. Let the AI do the heavy lifting.
-            </p>
-          </div>
+      <header className="mx-auto flex max-w-7xl items-center justify-between px-5 py-6 sm:px-8 lg:px-10">
+        <Link href="/" className="inline-flex items-center">
+          <img src="/brand/applyhq-logo-transparent.png" alt="ApplyHQ" className="h-12 w-auto mix-blend-multiply sm:h-14" />
+        </Link>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map(({ icon: Icon, title, body }) => (
-              <div
-                key={title}
-                className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm transition hover:shadow-md"
-              >
-                <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50">
-                  <Icon className="h-5 w-5 text-teal-600" />
-                </div>
-                <h3 className="font-semibold text-stone-900">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-stone-500">{body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        <nav className="hidden items-center gap-9 text-sm font-medium text-slate-700 md:flex">
+          <a href="#how-it-works" className="transition hover:text-[#0f9f92]">
+            How it works
+          </a>
+          <a href="#features" className="transition hover:text-[#0f9f92]">
+            Features
+          </a>
+          <a href="#pricing" className="transition hover:text-[#0f9f92]">
+            Pricing
+          </a>
+          <a href="#blog" className="transition hover:text-[#0f9f92]">
+            Blog
+          </a>
+        </nav>
 
-      {/* ── How it works ─────────────────────────────────────────── */}
-      <section className="bg-white px-4 py-20">
-        <div className="mx-auto max-w-4xl">
-          <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-stone-900">How it works</h2>
-            <p className="mt-3 text-stone-500">Four steps from job ad to ready-to-send application.</p>
-          </div>
-
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {steps.map(({ n, title, body }) => (
-              <div key={n} className="relative">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-sm font-bold text-white">
-                  {n}
-                </div>
-                <h3 className="font-semibold text-stone-900">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-stone-500">{body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── CTA ──────────────────────────────────────────────────── */}
-      <section className="bg-slate-900 px-4 py-20 text-center">
-        <div className="mx-auto max-w-xl">
-          <h2 className="text-3xl font-bold text-white">Ready to apply smarter?</h2>
-          <p className="mt-4 text-slate-400">
-            Create your account and start generating tailored applications today.
-          </p>
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link
             href="/login"
-            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-teal-500 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-teal-500/25 transition hover:bg-teal-400"
+            className="inline-flex min-h-10 items-center justify-center rounded-full bg-white/70 px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-white hover:text-[#0f9f92]"
           >
-            <Sparkles className="h-5 w-5" />
-            Get started — it&apos;s free
+            Log in
+          </Link>
+          <Link
+            href="/login"
+            className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#0f9f92] px-4 text-sm font-semibold text-white shadow-[0_18px_45px_rgba(15,159,146,0.22)] transition hover:-translate-y-0.5 hover:bg-[#0b8f83] sm:min-h-12 sm:px-6"
+          >
+            <span className="sm:hidden">Start free</span>
+            <span className="hidden sm:inline">Get started free</span>
           </Link>
         </div>
-      </section>
+      </header>
 
-      {/* ── Footer ───────────────────────────────────────────────── */}
-      <footer className="border-t border-stone-200 bg-white px-4 py-6 text-center">
-        <div className="inline-flex items-center gap-2 text-sm text-stone-400">
-          <BriefcaseBusiness className="h-4 w-4 text-teal-600" />
-          <span className="font-semibold text-stone-600">JobPilot</span>
-          <span>· Built with Claude AI</span>
-        </div>
-      </footer>
+      <main>
+        <section className="relative mx-auto grid max-w-7xl gap-14 px-5 pb-20 pt-14 sm:px-8 md:grid-cols-[0.9fr_1.1fr] md:items-center lg:gap-16 lg:px-10 lg:pb-32 lg:pt-24">
+          <div className="pointer-events-none absolute left-0 top-24 h-80 w-80 rounded-full bg-teal-100/45 blur-3xl" />
+          <div className="pointer-events-none absolute bottom-16 right-12 h-96 w-96 rounded-full bg-rose-100/60 blur-3xl" />
+          <div className="pointer-events-none absolute left-[42%] top-24 hidden text-5xl font-serif italic text-[#ff9d8d]/45 md:block">
+            ~
+          </div>
+
+          <div className="applyhq-fade-up relative z-10 max-w-2xl">
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full bg-white/75 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#0f9f92] shadow-[0_12px_36px_rgba(20,33,61,0.06)]">
+              <Sparkles className="h-4 w-4" />
+              AI-powered job applications
+            </div>
+
+            <h1 className="text-5xl font-extrabold leading-[1.12] tracking-tight text-[#14213d] sm:text-6xl lg:text-[5.35rem]">
+              Your dream job is out there.
+              <span className="mt-5 block">
+                We&apos;ll help you{" "}
+                <span className="relative inline-block font-serif italic font-normal text-[#0f9f92]">
+                  get it
+                  <span className="absolute -bottom-2 left-1 h-1.5 w-[92%] rounded-full bg-[#ff9d8d]" />
+                </span>
+                .
+              </span>
+            </h1>
+
+            <p className="mt-10 max-w-xl text-lg leading-9 text-slate-600 sm:text-xl sm:leading-10">
+              Tailored resumes, cover letters and match scores in seconds - so you can apply smarter and land interviews faster.
+            </p>
+
+            <div className="mt-12 flex flex-col gap-4 sm:flex-row">
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#0f9f92] px-8 py-4 text-base font-semibold text-white shadow-[0_22px_55px_rgba(15,159,146,0.24)] transition duration-300 hover:-translate-y-1 hover:bg-[#0b8f83] hover:shadow-[0_28px_65px_rgba(15,159,146,0.28)]"
+              >
+                Get started free <ArrowRight className="h-5 w-5" />
+              </Link>
+              <a
+                href="#how-it-works"
+                className="inline-flex items-center justify-center rounded-full bg-white/75 px-8 py-4 text-base font-semibold text-[#14213d] shadow-[0_14px_38px_rgba(20,33,61,0.07)] transition duration-300 hover:-translate-y-1 hover:text-[#0f9f92] hover:shadow-[0_20px_48px_rgba(20,33,61,0.09)]"
+              >
+                See how it works
+              </a>
+            </div>
+          </div>
+
+          <div className="applyhq-fade-up relative min-h-[500px] [animation-delay:120ms] md:-mr-12 md:min-h-[700px] lg:-mr-28">
+            <div className="absolute -inset-8 rounded-[3rem] bg-gradient-to-br from-teal-100/65 via-white/20 to-rose-100/75 blur-2xl" />
+            <ImageFallback className="rounded-[2.75rem] opacity-70" />
+            <img
+              src="/landing/job-seeker-laptop.jpg"
+              alt="Smiling job seeker with a coffee beside a laptop"
+              className="absolute inset-0 h-full w-full rounded-[3rem] object-cover object-center shadow-[0_36px_110px_rgba(20,33,61,0.14)]"
+              onError={(event) => {
+                event.currentTarget.style.display = "none";
+              }}
+            />
+            <div className="absolute inset-x-0 bottom-0 h-1/3 rounded-b-[3rem] bg-gradient-to-t from-[#fffaf4] via-[#fffaf4]/60 to-transparent" />
+            <div className="pointer-events-none absolute right-8 top-12 hidden text-6xl font-serif italic text-teal-200/80 sm:block">
+              //
+            </div>
+
+            <div className="applyhq-float absolute -bottom-4 left-4 w-52 rounded-[2.25rem] bg-white/92 p-6 shadow-[0_30px_90px_rgba(20,33,61,0.16)] backdrop-blur-xl sm:bottom-14 sm:left-8 sm:w-60 md:-left-8">
+              <div className="mb-5 flex items-center justify-between">
+                <p className="text-base font-medium text-slate-700">Match Score</p>
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-teal-50 text-[#0f9f92]">
+                  <Gauge className="h-5 w-5" />
+                </span>
+              </div>
+              <div className="relative mx-auto flex h-36 w-36 items-center justify-center rounded-full bg-[conic-gradient(#0f9f92_0_82%,#d7f4ef_82%_100%)] shadow-inner">
+                <div className="flex h-[6.5rem] w-[6.5rem] items-center justify-center rounded-full bg-white text-4xl font-extrabold text-[#14213d]">
+                  92%
+                </div>
+              </div>
+              <p className="mt-5 text-center text-base font-medium text-slate-700">Excellent match!</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="features" className="applyhq-fade-up mx-auto max-w-6xl px-5 pb-24 sm:px-8 lg:px-10">
+          <div className="flex flex-wrap justify-center gap-x-8 gap-y-5">
+            {proofChips.map(({ icon: Icon, label }) => (
+              <div key={label} className="flex items-center gap-3 rounded-full bg-white/60 px-4 py-3 shadow-[0_12px_34px_rgba(20,33,61,0.05)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:bg-white/85 hover:shadow-[0_18px_46px_rgba(20,33,61,0.08)]">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal-50 text-[#0f9f92]">
+                  <Icon className="h-4 w-4" />
+                </span>
+                <span className="text-sm font-medium leading-snug text-slate-700">{label}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="applyhq-fade-up bg-[#fffaf4] px-5 py-20 sm:px-8 lg:px-10">
+          <div className="mx-auto max-w-5xl text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Trusted by job seekers across Australia</p>
+            <div className="mt-9 flex flex-wrap items-center justify-center gap-x-12 gap-y-6">
+              {trustLabels.map((label) => (
+                <span key={label} className="text-xl font-extrabold tracking-tight text-slate-300 sm:text-2xl">
+                  {label}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="how-it-works" className="applyhq-fade-up bg-[#fff7ef] px-5 py-28 sm:px-8 lg:px-10 lg:py-36">
+          <div className="mx-auto max-w-6xl">
+            <h2 className="mx-auto max-w-3xl text-center text-4xl font-extrabold leading-tight tracking-tight text-[#14213d] sm:text-5xl">
+              A calmer way to send stronger applications
+            </h2>
+            <p className="mx-auto mt-5 max-w-2xl text-center text-lg leading-8 text-slate-600">
+              Bring your resume, choose a role, and let ApplyHQ help shape the next version with care.
+            </p>
+
+            <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {steps.map(({ icon: Icon, title, body, color, badge }, index) => (
+                <div key={title} className="relative rounded-[1.75rem] bg-white/45 px-5 py-7 text-center transition duration-300 hover:-translate-y-1 hover:bg-white/70 hover:shadow-[0_18px_55px_rgba(20,33,61,0.06)]">
+                  <div className={`mx-auto flex h-20 w-20 items-center justify-center rounded-[1.7rem] ${color} shadow-[0_20px_55px_rgba(20,33,61,0.07)]`}>
+                    <Icon className="h-9 w-9" />
+                  </div>
+                  <div className={`mx-auto mt-5 flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold ${badge}`}>
+                    {index + 1}
+                  </div>
+                  <h3 className="mt-5 text-xl font-semibold leading-snug text-[#14213d]">{title}</h3>
+                  <p className="mx-auto mt-4 max-w-48 text-base leading-7 text-slate-600">{body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="pricing" className="applyhq-fade-up bg-[#fffaf4] px-5 py-24 sm:px-8 lg:px-10 lg:py-32">
+          <div className="mx-auto grid max-w-7xl items-center gap-10 overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#e8fbf7] via-white to-[#fff0ea] shadow-[0_30px_100px_rgba(20,33,61,0.07)] md:grid-cols-[0.95fr_1.05fr]">
+            <div className="p-8 sm:p-12 lg:p-16">
+              <h2 className="text-4xl font-extrabold leading-tight tracking-tight text-[#14213d] sm:text-5xl">
+                Apply smarter.
+                <span className="block text-[#0f9f92]">Get better results.</span>
+              </h2>
+              <p className="mt-6 max-w-md text-lg leading-8 text-slate-700">
+                Save time, stay organised and send stronger applications.
+              </p>
+              <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[#0f9f92] px-8 py-4 text-base font-semibold text-white shadow-[0_22px_55px_rgba(15,159,146,0.24)] transition duration-300 hover:-translate-y-1 hover:bg-[#0b8f83] hover:shadow-[0_28px_65px_rgba(15,159,146,0.28)]"
+                >
+                  Get started free <ArrowRight className="h-5 w-5" />
+                </Link>
+                <p className="text-sm font-medium text-slate-600">No credit card required</p>
+              </div>
+            </div>
+
+            <div className="relative min-h-[280px] md:mr-8 md:min-h-[410px] lg:mr-12">
+              <ImageFallback className="opacity-80" />
+              <img
+                src="/landing/team-laptop.jpg"
+                alt="People reviewing an application together on a laptop"
+                className="absolute inset-0 h-full w-full object-cover object-center shadow-[0_24px_80px_rgba(20,33,61,0.1)] md:rounded-[2rem]"
+                onError={(event) => {
+                  event.currentTarget.style.display = "none";
+                }}
+              />
+            </div>
+          </div>
+        </section>
+
+        <div id="blog" className="sr-only" />
+      </main>
     </div>
   );
 }

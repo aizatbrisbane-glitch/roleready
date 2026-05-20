@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { CachedGrabbedJob } from "@/types/database";
 
 type AdzunaJob = {
   id: string;
@@ -27,7 +28,39 @@ export type GrabResult = {
   matchScore: number;
   matchReason: string;
   postedAt: string;
+  fetchedAt?: string;
 };
+
+function formatSalary(min?: number, max?: number): string {
+  if (!min && !max) return "";
+  const fmt = (n: number) => `$${Math.round(n / 1000)}k`;
+  if (min && max) return `${fmt(min)} - ${fmt(max)}`;
+  if (min) return `From ${fmt(min)}`;
+  return `Up to ${fmt(max!)}`;
+}
+
+function startOfToday() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+}
+
+function cachedRowToResult(row: CachedGrabbedJob): GrabResult {
+  return {
+    id: row.external_id,
+    title: row.title,
+    company: row.company,
+    location: row.location,
+    salaryMin: row.salary_min ?? undefined,
+    salaryMax: row.salary_max ?? undefined,
+    description: row.description,
+    jobUrl: row.job_url,
+    matchScore: row.match_score,
+    matchReason: row.match_reason,
+    postedAt: row.posted_at ?? row.created_at,
+    fetchedAt: row.fetched_at
+  };
+}
 
 const keywordSchema = {
   type: "object" as const,
@@ -134,6 +167,38 @@ Resume (summary):\n${resumeText.slice(0, 5000)}\n\nJobs to score:\n${jobList}`;
   return (JSON.parse(response.output_text) as { scores: { id: string; score: number; reason: string }[] }).scores;
 }
 
+async function fetchAdzunaJobs({
+  appId,
+  appKey,
+  query,
+  maxDaysOld,
+  resultsPerPage,
+}: {
+  appId: string;
+  appKey: string;
+  query: string;
+  maxDaysOld: number;
+  resultsPerPage: number;
+}) {
+  const params = new URLSearchParams({
+    app_id: appId,
+    app_key: appKey,
+    results_per_page: String(resultsPerPage),
+    what: query,
+    where: "australia",
+    max_days_old: String(maxDaysOld),
+    sort_by: "date"
+  });
+
+  const res = await fetch(`https://api.adzuna.com/v1/api/jobs/au/search/1?${params}`, {
+    headers: { Accept: "application/json" },
+    cache: "no-store"
+  });
+  if (!res.ok) throw new Error(`Adzuna returned HTTP ${res.status}`);
+  const data = (await res.json()) as { results?: AdzunaJob[] };
+  return data.results ?? [];
+}
+
 export async function GET(request: Request) {
   const supabase = await createSupabaseServerClient();
 
@@ -176,6 +241,28 @@ export async function GET(request: Request) {
   // Use manually supplied query if provided, otherwise extract from resume
   const url = new URL(request.url);
   const manualQuery = url.searchParams.get("q")?.trim();
+  const forceRefresh = url.searchParams.get("refresh") === "true" || Boolean(manualQuery);
+
+  if (!forceRefresh) {
+    const { data: cachedRows } = await supabase
+      .from("cached_grabbed_jobs")
+      .select("*")
+      .eq("user_id", user.id)
+      .gte("fetched_at", startOfToday().toISOString())
+      .order("match_score", { ascending: false })
+      .limit(15);
+
+    if (cachedRows?.length) {
+      const rows = cachedRows as CachedGrabbedJob[];
+      return NextResponse.json({
+        jobs: rows.map(cachedRowToResult),
+        searchQuery: rows[0]?.search_query ?? "",
+        jobTitle: "",
+        cached: true,
+        fetchedAt: rows[0]?.fetched_at,
+      });
+    }
+  }
 
   let keywords: { jobTitle: string; searchQuery: string };
   if (manualQuery) {
@@ -189,32 +276,40 @@ export async function GET(request: Request) {
     }
   }
 
-  // Step 2: Search Adzuna for Australian jobs
-  const params = new URLSearchParams({
-    app_id: appId,
-    app_key: appKey,
-    results_per_page: "20",
-    what: keywords.searchQuery,
-    where: "australia",
-    max_days_old: "7",
-    sort_by: "date"
-  });
-
   let adzunaJobs: AdzunaJob[] = [];
+  let actualSearchQuery = keywords.searchQuery;
   try {
-    const res = await fetch(`https://api.adzuna.com/v1/api/jobs/au/search/1?${params}`, {
-      headers: { Accept: "application/json" },
-      cache: "no-store"
+    adzunaJobs = await fetchAdzunaJobs({
+      appId,
+      appKey,
+      query: actualSearchQuery,
+      maxDaysOld: 14,
+      resultsPerPage: 50
     });
-    if (!res.ok) throw new Error(`Adzuna returned HTTP ${res.status}`);
-    const data = (await res.json()) as { results?: AdzunaJob[] };
-    adzunaJobs = data.results ?? [];
+
+    if (adzunaJobs.length === 0 && !manualQuery && keywords.jobTitle.trim()) {
+      actualSearchQuery = keywords.jobTitle.trim();
+      adzunaJobs = await fetchAdzunaJobs({
+        appId,
+        appKey,
+        query: actualSearchQuery,
+        maxDaysOld: 30,
+        resultsPerPage: 50
+      });
+    }
   } catch (e) {
     return NextResponse.json({ error: `Job search failed: ${e instanceof Error ? e.message : "Unknown error"}` }, { status: 500 });
   }
 
   if (adzunaJobs.length === 0) {
-    return NextResponse.json({ jobs: [], searchQuery: keywords.searchQuery, jobTitle: keywords.jobTitle });
+    await supabase.from("cached_grabbed_jobs").delete().eq("user_id", user.id);
+    return NextResponse.json({
+      jobs: [],
+      searchQuery: actualSearchQuery,
+      jobTitle: keywords.jobTitle,
+      cached: false,
+      fetchedAt: new Date().toISOString()
+    });
   }
 
   // Step 3: AI batch scoring
@@ -253,9 +348,49 @@ export async function GET(request: Request) {
 
   results.sort((a, b) => b.matchScore - a.matchScore);
 
+  const topResults = results.slice(0, 15);
+  const fetchedAt = new Date().toISOString();
+
+  const { error: deleteError } = await supabase
+    .from("cached_grabbed_jobs")
+    .delete()
+    .eq("user_id", user.id);
+
+  if (deleteError) {
+    return NextResponse.json({ error: deleteError.message }, { status: 500 });
+  }
+
+  if (topResults.length > 0) {
+    const { error: insertError } = await supabase.from("cached_grabbed_jobs").insert(
+      topResults.map((job) => ({
+        user_id: user.id,
+        external_id: job.id,
+        title: job.title,
+        company: job.company,
+        location: job.location,
+        salary: formatSalary(job.salaryMin, job.salaryMax),
+        salary_min: job.salaryMin ?? null,
+        salary_max: job.salaryMax ?? null,
+        job_url: job.jobUrl,
+        description: job.description,
+        match_score: job.matchScore,
+        match_reason: job.matchReason,
+        posted_at: job.postedAt ? new Date(job.postedAt).toISOString() : null,
+        search_query: actualSearchQuery,
+        fetched_at: fetchedAt,
+      }))
+    );
+
+    if (insertError) {
+      return NextResponse.json({ error: insertError.message }, { status: 500 });
+    }
+  }
+
   return NextResponse.json({
-    jobs: results.slice(0, 15),
-    searchQuery: keywords.searchQuery,
-    jobTitle: keywords.jobTitle
+    jobs: topResults.map((job) => ({ ...job, fetchedAt })),
+    searchQuery: actualSearchQuery,
+    jobTitle: keywords.jobTitle,
+    cached: false,
+    fetchedAt
   });
 }

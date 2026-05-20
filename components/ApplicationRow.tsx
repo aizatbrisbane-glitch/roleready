@@ -1,44 +1,83 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Trash2 } from "lucide-react";
+import { ArrowRight, Bookmark, CalendarCheck, ChevronDown, Clock3, MapPin, Trash2, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { formatDate } from "@/lib/format";
-import type { ApplicationStatus, ApplicationWithJob } from "@/types/database";
+import type { ApplicationWithJob } from "@/types/database";
 
 type Props = {
   application: ApplicationWithJob;
+  matchLabel?: string;
+  ctaLabel?: string;
 };
 
-const statusClass: Record<ApplicationStatus, string> = {
-  New:       "badge badge-new",
-  Reviewed:  "badge badge-reviewed",
-  Ready:     "badge badge-ready",
-  Applied:   "badge badge-applied",
-  Interview: "badge badge-interview",
-  Rejected:  "badge badge-rejected",
-};
-
-function scoreColor(score: number): string {
-  if (score >= 80) return "text-teal-700 font-bold";
-  if (score >= 60) return "text-amber-600 font-bold";
-  return "text-rose-600 font-bold";
+function scoreClass(score: number | null) {
+  if (score === null) return "bg-slate-100 text-slate-600";
+  if (score >= 85) return "bg-teal-100 text-[#0f8f83]";
+  if (score >= 70) return "bg-amber-100 text-amber-700";
+  if (score >= 50) return "bg-violet-100 text-violet-700";
+  return "bg-rose-50 text-rose-600";
 }
 
-function providerLabel(provider: string | null) {
-  if (provider === "anthropic") return "Anthropic";
-  if (provider === "openai") return "OpenAI";
-  return null;
+function companyInitial(company?: string | null) {
+  return (company?.trim()?.[0] ?? "A").toUpperCase();
 }
 
-export function ApplicationRow({ application }: Props) {
+function statusTone(application: ApplicationWithJob) {
+  if (application.status === "Rejected") {
+    return {
+      label: "Rejected",
+      detail: "Closed outcome",
+      className: "bg-rose-50 text-rose-700",
+      icon: XCircle,
+    };
+  }
+
+  if (application.status === "Interview") {
+    return {
+      label: "Interview",
+      detail: "Next step active",
+      className: "bg-orange-50 text-orange-700",
+      icon: CalendarCheck,
+    };
+  }
+
+  if (application.applied_at || application.status === "Applied") {
+    return {
+      label: "Applied",
+      detail: application.applied_at ? formatDate(application.applied_at) : "Sent",
+      className: "bg-teal-50 text-[#0f8f83]",
+      icon: CalendarCheck,
+    };
+  }
+
+  if (application.status === "Ready") {
+    return {
+      label: "Ready to send",
+      detail: "Download and apply",
+      className: "bg-teal-50 text-[#0f8f83]",
+      icon: Clock3,
+    };
+  }
+
+  return {
+    label: "Not applied yet",
+    detail: "Ready when you are",
+    className: "bg-amber-50 text-amber-700",
+    icon: Clock3,
+  };
+}
+
+export function ApplicationRow({ application, matchLabel = "Worth reviewing", ctaLabel = "Tailor & Apply" }: Props) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
-  const generated = Boolean(application.tailored_resume && application.cover_letter);
-  const provider = providerLabel(application.generated_by);
-  const status = (application.status ?? "New") as ApplicationStatus;
+  const [expanded, setExpanded] = useState(false);
   const job = application.jobs;
+  const score = application.match_score;
+  const status = statusTone(application);
+  const StatusIcon = status.icon;
 
   async function deleteApplication() {
     const confirmed = window.confirm(`Delete ${job?.title ?? "this application"}?`);
@@ -58,125 +97,153 @@ export function ApplicationRow({ application }: Props) {
   }
 
   return (
-    <div className="border-b border-stone-100 last:border-0 transition-colors hover:bg-stone-50/50">
-
-      {/* ── Mobile card (< md) ─────────────────────────────────── */}
-      <div className="md:hidden px-4 py-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={statusClass[status]}>{status}</span>
-            {application.match_score !== null && (
-              <span className={`text-sm tabular-nums ${scoreColor(application.match_score)}`}>
-                {application.match_score}%
-              </span>
-            )}
+    <article className="group max-w-full overflow-hidden rounded-[1.6rem] bg-white/82 p-4 shadow-[0_16px_54px_rgba(20,33,61,0.055)] transition duration-300 hover:bg-white md:p-5 md:hover:-translate-y-1 md:hover:shadow-[0_24px_70px_rgba(20,33,61,0.08)]">
+      <div className="md:hidden">
+        <div className="flex items-start gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-100 to-amber-50 text-base font-semibold text-[#0f8f83]">
+            {companyInitial(job?.company)}
           </div>
-          <Link
-            href={`/applications/${application.id}`}
-            className="shrink-0 flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-600 hover:border-teal-300 hover:bg-teal-50 hover:text-teal-700"
-          >
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          <div className="min-w-0 flex-1">
+            <Link href={`/applications/${application.id}`} className="block">
+              <h3 className="line-clamp-2 text-lg font-semibold leading-6 text-[#14213d]">
+                {job?.title ?? "Untitled role"}
+              </h3>
+            </Link>
+            <p className="mt-1 truncate text-base text-slate-600">{job?.company ?? "Company"}</p>
+          </div>
         </div>
 
-        <Link href={`/applications/${application.id}`} className="mt-2 block">
-          <p className="font-semibold leading-snug text-stone-900">
-            {job?.title ?? "Untitled role"}
-          </p>
-          <p className="mt-0.5 text-sm text-stone-500">
-            {job?.company}
-            {job?.location ? ` · ${job.location}` : ""}
-          </p>
-        </Link>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <span className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-semibold ${status.className}`}>
+            <StatusIcon className="h-4 w-4" />
+            {status.label}
+          </span>
+          <span className={`inline-flex rounded-full px-3.5 py-2 text-sm font-semibold ${scoreClass(score)}`}>
+            {score === null ? "Match pending" : matchLabel}
+          </span>
+        </div>
 
-        <div className="mt-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {generated ? (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-teal-700">
-                <span className="h-1.5 w-1.5 rounded-full bg-teal-500" />
-                {provider ? `${provider}` : "Docs ready"}
-              </span>
-            ) : (
-              <span className="text-xs text-stone-400">No docs yet</span>
-            )}
-            <span className="text-xs text-stone-400">{formatDate(application.created_at)}</span>
+        {expanded ? (
+          <div className="mt-4 rounded-2xl bg-[#fffaf4] p-4 text-sm leading-6 text-slate-600">
+            {job?.location ? (
+              <p className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-slate-400" />
+                {job.location}
+              </p>
+            ) : null}
+            <p className="mt-2 flex items-center gap-2">
+              <StatusIcon className="h-4 w-4 text-slate-400" />
+              {status.detail}
+            </p>
+            {score !== null ? <p className="mt-2">{score}% match score</p> : null}
+            <div className="mt-4 flex gap-2">
+              <Link href={`/applications/${application.id}`} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-white px-4 py-2 font-semibold text-[#0f8f83]">
+                View details
+              </Link>
+              <button
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white text-slate-400 transition hover:text-rose-500 disabled:opacity-50"
+                disabled={deleting}
+                onClick={deleteApplication}
+                title="Delete application"
+                type="button"
+              >
+                <Trash2 className="h-4.5 w-4.5" />
+              </button>
+            </div>
           </div>
-          <button
-            className="text-xs text-stone-400 transition hover:text-red-600 disabled:opacity-50"
-            disabled={deleting}
-            onClick={deleteApplication}
-            type="button"
+        ) : null}
+
+        <div className="mt-4 flex items-center gap-2">
+          <Link
+            href={`/applications/${application.id}`}
+            className="inline-flex min-h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-[#0f9f92] px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_42px_rgba(15,159,146,0.2)]"
           >
-            {deleting ? "Deleting…" : "Delete"}
+            {ctaLabel} <ArrowRight className="h-4 w-4" />
+          </Link>
+          <button
+            className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm"
+            onClick={() => setExpanded((current) => !current)}
+            type="button"
+            aria-expanded={expanded}
+          >
+            <ChevronDown className={`h-5 w-5 transition ${expanded ? "rotate-180" : ""}`} />
           </button>
         </div>
       </div>
 
-      {/* ── Desktop table row (≥ md) ───────────────────────────── */}
-      <div className="hidden md:grid grid-cols-12 items-center px-5 py-3.5 text-sm">
-        {/* Role */}
-        <Link href={`/applications/${application.id}`} className="col-span-3 min-w-0 pr-3">
-          <span className="block truncate font-semibold text-stone-900">
-            {job?.title ?? "Untitled role"}
-          </span>
-          <span className="block truncate text-xs text-stone-500">{job?.company}</span>
-        </Link>
+      <div className="hidden flex-col gap-4 md:flex lg:flex-row lg:items-center">
+        <div className="flex min-w-0 flex-1 gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-100 to-amber-50 text-lg font-semibold text-[#0f8f83]">
+            {companyInitial(job?.company)}
+          </div>
 
-        {/* Status */}
-        <span className="col-span-2">
-          <span className={statusClass[status]}>{status}</span>
-        </span>
+          <div className="min-w-0">
+            <Link href={`/applications/${application.id}`} className="block">
+              <h3 className="truncate text-lg font-semibold text-[#14213d] transition group-hover:text-[#0f8f83]">
+                {job?.title ?? "Untitled role"}
+              </h3>
+            </Link>
+            <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm leading-6 text-slate-600">
+              <span>{job?.company ?? "Company"}</span>
+              {job?.location ? (
+                <>
+                  <span className="text-slate-300">•</span>
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5 text-slate-400" />
+                    {job.location}
+                  </span>
+                </>
+              ) : null}
+              <span className="text-slate-300">•</span>
+              <span>Hybrid</span>
+            </p>
+          </div>
+        </div>
 
-        {/* Match score */}
-        <span className="col-span-1 tabular-nums">
-          {application.match_score === null ? (
-            <span className="text-stone-400">—</span>
-          ) : (
-            <span className={scoreColor(application.match_score)}>{application.match_score}%</span>
-          )}
-        </span>
-
-        {/* Documents */}
-        <span className="col-span-2">
-          {generated ? (
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-teal-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-teal-500" />
-              Ready{provider ? ` · ${provider}` : ""}
+        <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+          <div className={`flex min-w-44 items-center gap-3 rounded-2xl px-4 py-3 ${status.className}`}>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/80">
+              <StatusIcon className="h-4.5 w-4.5" />
             </span>
-          ) : (
-            <span className="text-xs text-stone-400">Not generated</span>
-          )}
-        </span>
+            <span>
+              <span className="block text-sm font-semibold">{status.label}</span>
+              <span className="block text-xs opacity-75">{status.detail}</span>
+            </span>
+          </div>
 
-        {/* Created */}
-        <span className="col-span-1 text-xs text-stone-400">{formatDate(application.created_at)}</span>
+          <div className="min-w-32">
+            <span className={`inline-flex rounded-full px-4 py-2 text-sm font-semibold tabular-nums ${scoreClass(score)}`}>
+              {score === null ? "Match pending" : `${score}% Match`}
+            </span>
+            <p className="mt-1 text-sm text-slate-600">{matchLabel}</p>
+          </div>
 
-        {/* Applied */}
-        <span className="col-span-1 text-xs text-stone-400">
-          {application.applied_at ? formatDate(application.applied_at) : <span className="text-stone-300">—</span>}
-        </span>
+          <Link
+            href={`/applications/${application.id}`}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#0f9f92] px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_42px_rgba(15,159,146,0.22)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#0b8f83]"
+          >
+            {ctaLabel} <ArrowRight className="h-4 w-4" />
+          </Link>
 
-        {/* Actions */}
-        <span className="col-span-2 flex justify-end gap-1.5">
+          <Link
+            href={`/applications/${application.id}`}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#14213d] shadow-[0_10px_30px_rgba(20,33,61,0.08)] transition hover:-translate-y-0.5 hover:text-[#0f8f83]"
+            title="View application"
+          >
+            <Bookmark className="h-4.5 w-4.5" />
+          </Link>
+
           <button
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-400 transition hover:border-red-200 hover:text-red-600"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-slate-300 shadow-[0_10px_30px_rgba(20,33,61,0.06)] transition hover:-translate-y-0.5 hover:text-rose-500 disabled:opacity-50"
             disabled={deleting}
             onClick={deleteApplication}
             title="Delete application"
             type="button"
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            <Trash2 className="h-4.5 w-4.5" />
           </button>
-          <Link
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-600 transition hover:border-teal-300 hover:bg-teal-50 hover:text-teal-700"
-            href={`/applications/${application.id}`}
-            title="Open application"
-          >
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </span>
+        </div>
       </div>
-
-    </div>
+    </article>
   );
 }

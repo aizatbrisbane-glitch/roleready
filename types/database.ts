@@ -14,6 +14,8 @@ export type Profile = {
   preferred_industries: string[];
   salary_range: string;
   preferred_locations: string[];
+  avatar_url: string;
+  avatar_storage_path: string;
   created_at: string;
   updated_at: string;
 };
@@ -48,6 +50,27 @@ export type Job = {
   job_url: string;
   description: string;
   source: JobSource;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CachedGrabbedJob = {
+  id: string;
+  user_id: string;
+  external_id: string;
+  title: string;
+  company: string;
+  location: string;
+  salary: string;
+  salary_min: number | null;
+  salary_max: number | null;
+  job_url: string;
+  description: string;
+  match_score: number;
+  match_reason: string;
+  posted_at: string | null;
+  search_query: string;
+  fetched_at: string;
   created_at: string;
   updated_at: string;
 };

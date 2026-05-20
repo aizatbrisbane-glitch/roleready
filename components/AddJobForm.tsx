@@ -33,7 +33,7 @@ export function AddJobForm() {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-6">
+    <form onSubmit={submit} className="max-w-full space-y-6 overflow-x-clip">
       <div className="grid gap-4 md:grid-cols-2">
         <label className="space-y-2">
           <span className="label">Job title</span>
@@ -70,8 +70,8 @@ export function AddJobForm() {
         <span className="label">Job description</span>
         <textarea name="description" className="field min-h-96" required />
       </label>
-      <div className="flex items-center gap-3">
-        <button className="btn-primary" disabled={loading} type="submit">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <button className="btn-primary min-h-11 w-full sm:w-auto" disabled={loading} type="submit">
           {loading ? "Adding..." : "Add Job"}
         </button>
         {message ? <p className="text-sm text-red-700">{message}</p> : null}
