@@ -70,6 +70,7 @@ export type CachedGrabbedJob = {
   match_reason: string;
   posted_at: string | null;
   search_query: string;
+  source: string;
   fetched_at: string;
   created_at: string;
   updated_at: string;

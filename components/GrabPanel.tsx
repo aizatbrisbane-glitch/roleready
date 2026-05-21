@@ -146,7 +146,7 @@ export function GrabPanel({ hasResume }: Props) {
         <div className="mt-4">
           {searchQuery && (
             <p className="mb-3 text-xs text-stone-400">
-              Searched Adzuna for: <span className="font-medium text-stone-600">"{searchQuery}"</span>
+              Searched job boards for: <span className="font-medium text-stone-600">"{searchQuery}"</span>
             </p>
           )}
 
@@ -186,7 +186,13 @@ export function GrabPanel({ hasResume }: Props) {
                         <p className="text-sm text-stone-600">
                           {job.company} · {job.location}
                           {salary ? ` · ${salary}` : ""}
+                          {job.salary && !salary ? ` · ${job.salary}` : ""}
                         </p>
+                        {job.source && (
+                          <span className="mt-1 inline-block rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-stone-500">
+                            {job.source}
+                          </span>
+                        )}
 
                         {job.matchReason && <p className="mt-1 text-sm text-stone-500">{job.matchReason}</p>}
                       </div>
