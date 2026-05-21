@@ -142,7 +142,21 @@ function markdownToDocxParagraphs(md: string): Paragraph[] {
   return out;
 }
 
+function cleanMarkdown(text: string): string {
+  return text
+    .split("\n")
+    .map((l) => l.trimEnd())
+    .filter((l, i, arr) => {
+      if (/^[-*_]{3,}\s*$/.test(l)) return false;
+      if (l === "" && arr[i - 1] === "") return false;
+      return true;
+    })
+    .join("\n")
+    .trim();
+}
+
 export async function createDocxBuffer(_title: string, markdown: string): Promise<Buffer> {
+  markdown = cleanMarkdown(markdown);
   const doc = new Document({
     styles: {
       default: {
@@ -173,6 +187,7 @@ const PDF_DARK: [number, number, number] = [33, 33, 33];
 const PDF_RULE: [number, number, number] = [176, 190, 197];
 
 export function createPdfArrayBuffer(_title: string, markdown: string): ArrayBuffer {
+  markdown = cleanMarkdown(markdown);
   const pdf = new jsPDF({ unit: "pt", format: "a4" });
 
   const ML = 72;
