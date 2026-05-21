@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { AuthPanel } from "@/components/AuthPanel";
 import { ApplicationActions } from "@/components/ApplicationActions";
+import { GenerateButton } from "@/components/GenerateButton";
 import { JobDescriptionEditor } from "@/components/JobDescriptionEditor";
 import { SetupNotice } from "@/components/SetupNotice";
 import { StatusSelector } from "@/components/StatusSelector";
@@ -274,9 +275,7 @@ export default async function ApplicationDetailPage({ params }: Props) {
                       </a>
                     </>
                   ) : (
-                    <a href="#quick-actions" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#0f9f92] px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_42px_rgba(15,159,146,0.2)] transition hover:-translate-y-0.5 hover:bg-[#0b8f83] sm:px-5">
-                      Generate documents <ArrowRight className="h-4 w-4" />
-                    </a>
+                    <GenerateButton applicationId={application.id} hasDocuments={hasDocuments} />
                   )}
                 </div>
               </div>
