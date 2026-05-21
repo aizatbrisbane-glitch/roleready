@@ -420,7 +420,7 @@ export function DashboardTabs({
       <div className="mb-5 flex flex-col gap-3 md:mb-10 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="font-serif text-3xl font-semibold tracking-tight text-[#14213d] md:text-5xl">
-            {getGreeting()}{name ? `, ${name}` : ""} ðŸ'‹
+            {getGreeting()}{name ? `, ${name}` : ""} 👋
           </h1>
           <p className="mt-2 text-base leading-7 text-slate-600 md:mt-3 md:text-lg md:leading-8">
             Let&apos;s get you closer to your next opportunity.
@@ -453,7 +453,7 @@ export function DashboardTabs({
 
               <div>
                 <h2 className="text-2xl font-semibold tracking-tight text-[#14213d]">
-                  You&apos;re making great progress ðŸŒ±
+                  You&apos;re making great progress 🌱
                 </h2>
                 <div className="mt-6 grid gap-4 sm:grid-cols-3">
                   <div className="flex items-center gap-3">
@@ -589,7 +589,7 @@ export function DashboardTabs({
 
         <aside className="min-w-0 space-y-5">
           <section className="rounded-[1.75rem] bg-white/78 p-6 shadow-[0_20px_70px_rgba(20,33,61,0.07)]">
-            <h2 className="text-xl font-semibold text-[#14213d]">Your confidence is building ðŸ'ª</h2>
+            <h2 className="text-xl font-semibold text-[#14213d]">Your confidence is building 💪</h2>
             <div className="mt-6 flex items-center gap-5">
               <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-full bg-[conic-gradient(#0f9f92_0_var(--strength),#d7f4ef_var(--strength)_100%)] p-3" style={{ "--strength": `${strength}%` } as React.CSSProperties}>
                 <div className="flex h-full w-full items-center justify-center rounded-full bg-white text-2xl font-semibold text-[#14213d]">
