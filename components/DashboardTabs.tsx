@@ -289,6 +289,13 @@ function GrabbedMatchCard({
   );
 }
 
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
 export function DashboardTabs({
   applications,
   resumeFileName,
@@ -412,7 +419,7 @@ export function DashboardTabs({
       <div className="mb-5 flex flex-col gap-3 md:mb-10 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="font-serif text-3xl font-semibold tracking-tight text-[#14213d] md:text-5xl">
-            Good morning{name ? `, ${name}` : ""} 👋
+            {getGreeting()}{name ? `, ${name}` : ""} 👋
           </h1>
           <p className="mt-2 text-base leading-7 text-slate-600 md:mt-3 md:text-lg md:leading-8">
             Let&apos;s get you closer to your next opportunity.
