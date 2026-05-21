@@ -23,7 +23,22 @@ function parseSegs(text: string): Seg[] {
 }
 
 function stripMarkers(s: string): string {
-  return s.replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1");
+  return s
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")  // [text](url) → text
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF}]/gu, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function sanitizeLine(s: string): string {
+  return s
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF}]/gu, "")
+    .replace(/\s{2,}/g, " ");
 }
 
 /**
@@ -77,18 +92,15 @@ function markdownToDocxParagraphs(md: string): Paragraph[] {
   const BODY = 21; // 10.5 pt in half-points
 
   for (const raw of md.split("\n")) {
-    const t = raw.trim();
+    const t = sanitizeLine(raw.trim());
 
     if (!t) {
       out.push(new Paragraph({ children: [], spacing: { before: 0, after: 80 } }));
       continue;
     }
 
-    // Markdown horizontal rule — render as a thin divider
-    if (t === "---" || t === "***" || t === "___") {
-      out.push(hrParagraph());
-      continue;
-    }
+    // Markdown horizontal rule — skip (already stripped by cleanMarkdown but be safe)
+    if (/^[-*_]{3,}\s*$/.test(t)) continue;
 
     if (t.startsWith("# ")) {
       out.push(
@@ -108,12 +120,11 @@ function markdownToDocxParagraphs(md: string): Paragraph[] {
     } else if (t.startsWith("### ")) {
       out.push(
         new Paragraph({
-          children: docxRuns(t.slice(4).trim(), 22, DOCX_DARK, true),
+          children: docxRuns(sanitizeLine(t.slice(4).trim()), 22, DOCX_DARK, true),
           spacing: { before: 120, after: 40 }
         })
       );
     } else if (looksLikePlainHeader(t)) {
-      // Backward-compat: plain all-caps section header (no ## prefix)
       out.push(
         new Paragraph({
           children: [new TextRun({ text: t.toUpperCase(), bold: true, size: 24, color: DOCX_NAVY })],
@@ -124,7 +135,7 @@ function markdownToDocxParagraphs(md: string): Paragraph[] {
     } else if (/^[*-] /.test(t)) {
       out.push(
         new Paragraph({
-          children: docxRuns(t.slice(2).trim(), BODY),
+          children: docxRuns(sanitizeLine(t.slice(2).trim()), BODY),
           bullet: { level: 0 },
           spacing: { before: 0, after: 60 }
         })
@@ -277,26 +288,22 @@ export function createPdfArrayBuffer(_title: string, markdown: string): ArrayBuf
   }
 
   for (const raw of markdown.split("\n")) {
-    const t = raw.trim();
+    const t = sanitizeLine(raw.trim());
 
     if (!t) {
       y += 4;
       continue;
     }
 
-    // Markdown horizontal rule
-    if (t === "---" || t === "***" || t === "___") {
-      drawHRule();
-      continue;
-    }
+    // Skip horizontal rules (already stripped but be safe)
+    if (/^[-*_]{3,}\s*$/.test(t)) continue;
 
     if (t.startsWith("# ")) {
       guard(28);
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(20);
       pdf.setTextColor(...PDF_NAVY);
-      pdf.text(stripMarkers(t.slice(2)).trim(), ML, y);
-      y += 26;
+      renderMixed(stripMarkers(t.slice(2)).trim(), 20, 26, ML);
       pdf.setTextColor(...PDF_DARK);
     } else if (t.startsWith("## ") || looksLikePlainHeader(t)) {
       const label = t.startsWith("## ")
@@ -320,8 +327,7 @@ export function createPdfArrayBuffer(_title: string, markdown: string): ArrayBuf
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(BODY_PT);
       pdf.setTextColor(...PDF_DARK);
-      pdf.text(stripMarkers(t.slice(4)).trim(), ML, y);
-      y += BODY_LH;
+      renderMixed(stripMarkers(t.slice(4)).trim(), BODY_PT, BODY_LH, ML);
     } else if (/^[*-] /.test(t)) {
       guard(BODY_LH);
       pdf.setFontSize(BODY_PT);

@@ -75,7 +75,7 @@ function buildPrompt({
       "Cover letter must sound natural, specific to this company and role, and be under 350 words.",
       "Avoid generic phrases like 'I am excited to apply' unless followed by a specific reason from the job ad.",
       "Match explanation must cite evidence from the resume and the job ad.",
-      "Format tailoredResume in markdown: use # for the candidate name, ## for every section heading (e.g. ## EXPERIENCE), ### for each job title / employer / date line, - for every bullet point, and **text** for bold emphasis. Do NOT use ---, <hr>, horizontal rules, extra blank lines between bullets, or any other visual separators. One blank line between sections only.",
+      "Format tailoredResume in markdown: use # for the candidate name, ## for every section heading (e.g. ## EXPERIENCE), ### for each job title / employer / date line, - for every bullet point, and **text** for bold emphasis. Do NOT use ---, <hr>, horizontal rules, extra blank lines between bullets, or any other visual separators. One blank line between sections only. Do NOT use emoji or markdown links — write contact details as plain text only (e.g. 'Phone: 0422 178 121 | Email: user@example.com | LinkedIn: linkedin.com/in/username').",
       "Format coverLetter in markdown: use # for the candidate name header, then plain paragraphs separated by a single blank line. No bullet points, no section headings, no horizontal rules."
     ],
     profile,
