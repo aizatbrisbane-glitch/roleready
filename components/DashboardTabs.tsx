@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -112,13 +112,13 @@ function matchPillClass(score: number) {
 }
 
 const dailyTips = [
-  "Customise your cover letter opening to match the company’s mission.",
+  "Customise your cover letter opening to match the companyâ€™s mission.",
   "Add measurable outcomes to your resume bullets wherever possible.",
-  "Mirror 3–5 important keywords from the job ad in your resume.",
-  "Keep your resume summary specific to the role you’re applying for.",
+  "Mirror 3â€“5 important keywords from the job ad in your resume.",
+  "Keep your resume summary specific to the role youâ€™re applying for.",
   "Send fewer applications, but make each one sharper.",
   "Check the first 6 seconds of your resume: title, summary, and top skills.",
-  "Use the hiring manager’s language, not generic career buzzwords.",
+  "Use the hiring managerâ€™s language, not generic career buzzwords.",
   "Save a short story for interviews that shows how you solved a real problem.",
   "Before applying, check whether your top skills match the first half of the job ad.",
   "Replace vague words like responsible for with action verbs and outcomes.",
@@ -231,7 +231,7 @@ function GrabbedMatchCard({
               <span>{job.company}</span>
               {job.location ? (
                 <>
-                  <span className="text-slate-300">•</span>
+                  <span className="text-slate-300">â€¢</span>
                   <span className="inline-flex items-center gap-1">
                     <MapPin className="h-3.5 w-3.5 text-slate-400" />
                     {job.location}
@@ -240,7 +240,7 @@ function GrabbedMatchCard({
               ) : null}
               {salary ? (
                 <>
-                  <span className="text-slate-300">•</span>
+                  <span className="text-slate-300">â€¢</span>
                   <span>{salary}</span>
                 </>
               ) : null}
@@ -340,7 +340,7 @@ export function DashboardTabs({
     if (!resumeFileName) return;
     setLoadingMatches(true);
     setMatchError("");
-    setMatchNotice(force ? "Searching Adzuna again..." : "Checking today’s matches...");
+    setMatchNotice(force ? "Searching Adzuna again..." : "Checking todayâ€™s matches...");
 
     try {
       const params = new URLSearchParams();
@@ -351,7 +351,7 @@ export function DashboardTabs({
       const payload = await response.json();
 
       if (!response.ok) {
-        setMatchError(payload.error ?? "Couldn’t refresh matches just now.");
+        setMatchError(payload.error ?? "Couldnâ€™t refresh matches just now.");
         return;
       }
 
@@ -363,11 +363,11 @@ export function DashboardTabs({
       setShowAllMatches(false);
       setMatchNotice(
         nextMatches.length > 0
-          ? `Found ${nextMatches.length} fresh ${nextMatches.length === 1 ? "match" : "matches"}${payload.searchQuery ? ` for “${payload.searchQuery}”` : ""}.`
-          : `Checked Adzuna${payload.searchQuery ? ` for “${payload.searchQuery}”` : “”}, but didn’t find fresh matches yet.`
+          ? `Found ${nextMatches.length} fresh ${nextMatches.length === 1 ? "match" : "matches"}${payload.searchQuery ? ` for â€œ${payload.searchQuery}â€` : ""}.`
+          : `Checked Adzuna${payload.searchQuery ? ` for â€œ${payload.searchQuery}â€` : â€œâ€}, but didnâ€™t find fresh matches yet.`
       );
     } catch {
-      setMatchError("Couldn’t refresh matches just now.");
+      setMatchError("Couldnâ€™t refresh matches just now.");
     } finally {
       setLoadingMatches(false);
     }
@@ -394,7 +394,7 @@ export function DashboardTabs({
       const payload = await response.json();
 
       if (!response.ok || !payload.applicationId) {
-        setMatchError(payload.error ?? "Couldn’t start that application.");
+        setMatchError(payload.error ?? "Couldnâ€™t start that application.");
         return;
       }
 
@@ -402,7 +402,7 @@ export function DashboardTabs({
       router.push(`/applications/${payload.applicationId}`);
       router.refresh();
     } catch {
-      setMatchError("Couldn’t start that application.");
+      setMatchError("Couldnâ€™t start that application.");
     } finally {
       setImporting((prev) => ({ ...prev, [job.id]: false }));
     }
@@ -420,7 +420,7 @@ export function DashboardTabs({
       <div className="mb-5 flex flex-col gap-3 md:mb-10 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="font-serif text-3xl font-semibold tracking-tight text-[#14213d] md:text-5xl">
-            {getGreeting()}{name ? `, ${name}` : ""} 👋
+            {getGreeting()}{name ? `, ${name}` : ""} ðŸ‘‹
           </h1>
           <p className="mt-2 text-base leading-7 text-slate-600 md:mt-3 md:text-lg md:leading-8">
             Let&apos;s get you closer to your next opportunity.
@@ -453,7 +453,7 @@ export function DashboardTabs({
 
               <div>
                 <h2 className="text-2xl font-semibold tracking-tight text-[#14213d]">
-                  You&apos;re making great progress 🌱
+                  You&apos;re making great progress ðŸŒ±
                 </h2>
                 <div className="mt-6 grid gap-4 sm:grid-cols-3">
                   <div className="flex items-center gap-3">
@@ -556,7 +556,7 @@ export function DashboardTabs({
                   <h3 className="mt-4 text-xl font-semibold text-[#14213d]">No fresh matches just yet.</h3>
                   <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">
                     {lastSearchQuery
-                      ? `We checked for “${lastSearchQuery}”. Try refreshing later, or add more target keywords to your resume.`
+                      ? `We checked for â€œ${lastSearchQuery}â€. Try refreshing later, or add more target keywords to your resume.`
                       : "Try refreshing, or add more keywords to your resume so the search has a clearer signal."}
                   </p>
                 </div>
@@ -589,7 +589,7 @@ export function DashboardTabs({
 
         <aside className="min-w-0 space-y-5">
           <section className="rounded-[1.75rem] bg-white/78 p-6 shadow-[0_20px_70px_rgba(20,33,61,0.07)]">
-            <h2 className="text-xl font-semibold text-[#14213d]">Your confidence is building 💪</h2>
+            <h2 className="text-xl font-semibold text-[#14213d]">Your confidence is building ðŸ'ª</h2>
             <div className="mt-6 flex items-center gap-5">
               <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-full bg-[conic-gradient(#0f9f92_0_var(--strength),#d7f4ef_var(--strength)_100%)] p-3" style={{ "--strength": `${strength}%` } as React.CSSProperties}>
                 <div className="flex h-full w-full items-center justify-center rounded-full bg-white text-2xl font-semibold text-[#14213d]">
@@ -623,11 +623,11 @@ export function DashboardTabs({
           </section>
 
           <section className="rounded-[1.75rem] bg-gradient-to-br from-white to-amber-50 p-6 shadow-[0_18px_60px_rgba(20,33,61,0.05)]">
-            <p className="text-4xl font-serif text-amber-400">“</p>
+            <p className="text-4xl font-serif text-amber-400">â€œ</p>
             <p className="mt-2 text-sm leading-7 text-slate-700">
               Every application is a step closer to the right opportunity.
             </p>
-            <p className="mt-4 font-semibold text-[#14213d]">You&apos;ve got this! ✨</p>
+            <p className="mt-4 font-semibold text-[#14213d]">You&apos;ve got this! âœ¨</p>
           </section>
 
           <section className="rounded-[1.75rem] bg-teal-50/80 p-6 shadow-[0_18px_60px_rgba(20,33,61,0.05)]">
@@ -651,3 +651,4 @@ export function DashboardTabs({
     </div>
   );
 }
+
