@@ -20,6 +20,7 @@ import {
   Target,
 } from "lucide-react";
 import { QuickApplyForm } from "@/components/QuickApplyForm";
+import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import type { GrabResult } from "@/app/api/grab/route";
 import type { ApplicationWithJob, CachedGrabbedJob } from "@/types/database";
 
@@ -435,6 +436,11 @@ export function DashboardTabs({
 
       <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0 space-y-6 md:space-y-8">
+          <OnboardingChecklist
+            hasResume={!!resumeFileName}
+            hasApplication={applications.length > 0}
+            hasGeneratedDoc={applications.some((app) => !!(app.tailored_resume && app.cover_letter))}
+          />
           <QuickApplyForm resumeFileName={resumeFileName} coverLetterFileName={coverLetterFileName} />
 
           <section className="hidden overflow-hidden rounded-[2rem] bg-white/78 p-5 shadow-[0_24px_80px_rgba(20,33,61,0.07)] backdrop-blur md:block md:p-8">

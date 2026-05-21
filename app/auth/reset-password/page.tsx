@@ -5,6 +5,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 export default function ResetPasswordPage() {
   const [ready, setReady] = useState(false);
+  const [expired, setExpired] = useState(false);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [message, setMessage] = useState("");
@@ -13,21 +14,56 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
-    if (!supabase) return;
+    if (!supabase) {
+      setExpired(true);
+      return;
+    }
 
-    // Check for an existing session (set by the callback route via PKCE exchange)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setReady(true);
-    });
+    let resolved = false;
+    let fallback: ReturnType<typeof setTimeout> | undefined;
 
-    // Also handle the implicit flow where the token arrives as a URL hash
+    function resolve() {
+      if (resolved) return;
+      resolved = true;
+      clearTimeout(fallback);
+      setReady(true);
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
-        setReady(true);
+        resolve();
       }
     });
 
-    return () => subscription.unsubscribe();
+    // PKCE flow: Supabase puts the code in the URL query string.
+    // Exchange it in-browser so no server-side cookie handoff is needed.
+    const code = new URLSearchParams(window.location.search).get("code");
+
+    if (code) {
+      // Remove the code from the URL so a refresh doesn't re-use it
+      window.history.replaceState({}, "", window.location.pathname);
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) setExpired(true);
+        // onAuthStateChange fires SIGNED_IN / PASSWORD_RECOVERY → resolve()
+      });
+    } else {
+      // No code — check for an existing session (e.g. user already went through callback)
+      // or wait briefly for the hash-based implicit flow
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          resolve();
+        } else {
+          fallback = setTimeout(() => {
+            if (!resolved) setExpired(true);
+          }, 5000);
+        }
+      });
+    }
+
+    return () => {
+      clearTimeout(fallback);
+      subscription.unsubscribe();
+    };
   }, []);
 
   async function updatePassword(event: React.FormEvent<HTMLFormElement>) {
@@ -68,6 +104,13 @@ export default function ResetPasswordPage() {
 
         {done ? (
           <p className="mt-5 text-sm font-semibold text-teal-700">Password updated! Redirecting…</p>
+        ) : expired ? (
+          <div className="mt-5 space-y-3">
+            <p className="text-sm text-red-700">This reset link has expired or is invalid.</p>
+            <a href="/" className="inline-block text-sm font-semibold text-teal-700 hover:underline">
+              Request a new reset link →
+            </a>
+          </div>
         ) : !ready ? (
           <p className="mt-5 text-sm text-stone-500 animate-pulse">Verifying reset link…</p>
         ) : (
