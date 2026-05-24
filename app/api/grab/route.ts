@@ -24,7 +24,20 @@ type JoobleJob = {
   snippet: string;
   link: string;
   updated: string;
+  source?: string;
 };
+
+function normaliseJoobleSource(raw?: string): string {
+  if (!raw) return "Jooble";
+  const s = raw.toLowerCase();
+  if (s.includes("seek")) return "Seek";
+  if (s.includes("linkedin")) return "LinkedIn";
+  if (s.includes("indeed")) return "Indeed";
+  if (s.includes("adzuna")) return "Adzuna";
+  if (s.includes("ethicaljobs")) return "Ethical Jobs";
+  // Capitalise whatever Jooble gives us
+  return raw.charAt(0).toUpperCase() + raw.slice(1);
+}
 
 export type GrabResult = {
   id: string;
@@ -266,13 +279,13 @@ async function fetchJoobleJobs({
       title: j.title,
       company: j.company ?? "",
       location: j.location ?? "",
-      description: j.snippet ?? "",
+      description: [j.title, j.company, j.snippet].filter(Boolean).join(" — "),
       jobUrl: j.link,
       salary: j.salary || undefined,
       matchScore: 0,
       matchReason: "",
       postedAt: j.updated,
-      source: "Jooble",
+      source: normaliseJoobleSource(j.source),
     }));
 }
 
