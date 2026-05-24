@@ -369,6 +369,8 @@ export async function GET(request: Request) {
   let joobleJobs: GrabResult[] = joobleSettled.status === "fulfilled" ? joobleSettled.value : [];
   if (adzunaSettled.status === "rejected") console.error("[grab] Adzuna primary fetch failed:", adzunaSettled.reason);
   if (joobleSettled.status === "rejected") console.error("[grab] Jooble fetch failed:", joobleSettled.reason);
+  console.log(`[grab] query="${actualSearchQuery}" adzuna=${adzunaJobs.length} jooble=${joobleJobs.length} joobleKeyConfigured=${Boolean(joobleApiKey)}`);
+  if (joobleJobs.length > 0) console.log("[grab] Jooble sample URLs:", joobleJobs.slice(0, 3).map(j => j.jobUrl));
 
   // Fallback: if both returned nothing, retry Adzuna with just job title and a wider window
   if (adzunaJobs.length === 0 && joobleJobs.length === 0 && keywords.jobTitle.trim()) {
