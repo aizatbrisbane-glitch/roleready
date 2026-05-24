@@ -383,7 +383,7 @@ export function DashboardTabs({
               {/* More preferences + refresh */}
               <div>
                 <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">More preferences</p>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                <div className="flex flex-col gap-y-1.5">
                   {WORK_TYPE_OPTIONS.map(({ value, label }) => (
                     <label key={value} className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
                       <input
