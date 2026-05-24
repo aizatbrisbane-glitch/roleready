@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ApplicationStatus } from "@/types/database";
 
-const VALID_STATUSES: ApplicationStatus[] = ["New", "Reviewed", "Ready", "Applied", "Interview", "Rejected"];
+const VALID_STATUSES: ApplicationStatus[] = ["New", "Ready", "Applied", "Interview", "Rejected"];
 
 type Props = { params: Promise<{ id: string }> };
 

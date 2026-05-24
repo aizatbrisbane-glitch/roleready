@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import type { ApplicationStatus, ApplicationWithJob } from "@/types/database";
 
 type Filter = "All" | ApplicationStatus;
-const STATUSES: ApplicationStatus[] = ["New", "Reviewed", "Ready", "Applied", "Interview", "Rejected"];
+const STATUSES: ApplicationStatus[] = ["New", "Ready", "Applied", "Interview", "Rejected"];
 
 function scoreStyle(score: number | null) {
   if (score === null) return "bg-slate-100 text-slate-500";
@@ -71,7 +71,6 @@ function MobileCard({ application }: { application: ApplicationWithJob }) {
 
 const statusPill: Record<string, string> = {
   New:       "bg-sky-50 text-sky-700",
-  Reviewed:  "bg-violet-50 text-violet-700",
   Ready:     "bg-teal-50 text-teal-700",
   Applied:   "bg-amber-50 text-amber-700",
   Interview: "bg-orange-50 text-orange-700",

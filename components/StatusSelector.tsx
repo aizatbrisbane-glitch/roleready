@@ -5,11 +5,10 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { ApplicationStatus } from "@/types/database";
 
-const STATUSES: ApplicationStatus[] = ["New", "Reviewed", "Ready", "Applied", "Interview", "Rejected"];
+const STATUSES: ApplicationStatus[] = ["New", "Ready", "Applied", "Interview", "Rejected"];
 
 const statusStyle: Record<ApplicationStatus, { select: string; dot: string; label: string }> = {
-  New:       { select: "bg-sky-50      text-sky-800      ring-sky-200",      dot: "bg-sky-400",      label: "Move to next stage once reviewed" },
-  Reviewed:  { select: "bg-violet-50   text-violet-800   ring-violet-200",   dot: "bg-violet-400",   label: "Documents ready to generate" },
+  New:       { select: "bg-sky-50      text-sky-800      ring-sky-200",      dot: "bg-sky-400",      label: "Generate your tailored resume and cover letter" },
   Ready:     { select: "bg-teal-50     text-teal-800     ring-teal-200",     dot: "bg-teal-500",     label: "Download, submit, then mark as Applied" },
   Applied:   { select: "bg-amber-50    text-amber-800    ring-amber-200",    dot: "bg-amber-400",    label: "Keep it here while you wait for a response" },
   Interview: { select: "bg-orange-50   text-orange-800   ring-orange-200",   dot: "bg-orange-400",   label: "Review the role and prepare your talking points" },
