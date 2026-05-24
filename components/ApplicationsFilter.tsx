@@ -108,7 +108,7 @@ function DesktopRow({ application }: { application: ApplicationWithJob }) {
             {companyInitial(job?.company)}
           </div>
           <div className="min-w-0">
-            <Link href={`/applications/${application.id}`} className="block truncate font-semibold text-[#14213d] transition group-hover:text-[#0f8f83]">
+            <Link href={`/applications/${application.id}`} className="block line-clamp-2 font-semibold text-[#14213d] transition group-hover:text-[#0f8f83]">
               {job?.title ?? "Untitled role"}
             </Link>
             <p className="flex items-center gap-1.5 truncate text-xs text-slate-500">

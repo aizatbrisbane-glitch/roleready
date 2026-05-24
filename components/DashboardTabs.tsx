@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -6,15 +6,10 @@ import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   Bookmark,
-  ChevronDown,
-  CheckCircle2,
   ExternalLink,
   Loader2,
   MapPin,
   RefreshCw,
-  Sparkles,
-  Sprout,
-  Target,
 } from "lucide-react";
 import { QuickApplyForm } from "@/components/QuickApplyForm";
 import type { GrabResult } from "@/app/api/grab/route";
@@ -30,6 +25,15 @@ type Props = {
   grabbedMatchesStale: boolean;
 };
 
+const WORK_TYPE_OPTIONS = [
+  { value: "full_time",  label: "Full-time" },
+  { value: "part_time",  label: "Part-time" },
+  { value: "hybrid",     label: "Hybrid" },
+  { value: "onsite",     label: "Onsite" },
+  { value: "permanent",  label: "Permanent" },
+  { value: "contract",   label: "Contract" },
+];
+
 function firstName(name?: string | null) {
   const clean = name?.split("@")[0]?.trim();
   if (!clean) return null;
@@ -43,7 +47,6 @@ function matchLabel(score: number | null) {
   if (score >= 50) return "Worth reviewing";
   return "Needs tailoring";
 }
-
 
 function cachedMatchToGrabResult(row: CachedGrabbedJob): GrabResult {
   return {
@@ -65,23 +68,9 @@ function cachedMatchToGrabResult(row: CachedGrabbedJob): GrabResult {
 function formatSalary(min?: number, max?: number) {
   if (!min && !max) return "";
   const fmt = (n: number) => `$${Math.round(n / 1000)}k`;
-  if (min && max) return `${fmt(min)} - ${fmt(max)}`;
+  if (min && max) return `${fmt(min)} – ${fmt(max)}`;
   if (min) return `From ${fmt(min)}`;
   return `Up to ${fmt(max!)}`;
-}
-
-function freshnessLabel(fetchedAt?: string) {
-  if (!fetchedAt) return "Ready to refresh";
-  const fetched = new Date(fetchedAt);
-  const today = new Date();
-  if (
-    fetched.getDate() === today.getDate() &&
-    fetched.getMonth() === today.getMonth() &&
-    fetched.getFullYear() === today.getFullYear()
-  ) {
-    return "Updated today";
-  }
-  return "Ready for a fresh scan";
 }
 
 function matchPillClass(score: number) {
@@ -91,7 +80,12 @@ function matchPillClass(score: number) {
   return "bg-rose-50 text-rose-600";
 }
 
-
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
 
 function GrabbedMatchCard({
   job,
@@ -104,157 +98,86 @@ function GrabbedMatchCard({
   importing: boolean;
   onImport: (job: GrabResult) => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
-  const salary = formatSalary(job.salaryMin, job.salaryMax);
+  const salary = job.salary || formatSalary(job.salaryMin, job.salaryMax);
   const label = matchLabel(job.matchScore);
 
   return (
-    <article className="group max-w-full overflow-hidden rounded-[1.6rem] bg-white/82 p-4 shadow-[0_16px_54px_rgba(20,33,61,0.055)] transition duration-300 hover:bg-white md:p-5 md:hover:-translate-y-1 md:hover:shadow-[0_24px_70px_rgba(20,33,61,0.08)]">
-      <div className="md:hidden">
-        <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-100 to-amber-50 text-base font-semibold text-[#0f8f83]">
-            {(job.company?.trim()?.[0] ?? "A").toUpperCase()}
-          </div>
-          <div className="min-w-0 flex-1">
-            <h3 className="line-clamp-2 text-lg font-semibold leading-6 text-[#14213d]">{job.title}</h3>
-            <p className="mt-1 truncate text-base text-slate-600">{job.company}</p>
-          </div>
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          <span className={`inline-flex rounded-full px-3.5 py-2 text-sm font-semibold ${matchPillClass(job.matchScore)}`}>
-            {label}
-          </span>
-          <span className="inline-flex rounded-full bg-teal-50 px-3.5 py-2 text-sm font-semibold text-[#0f8f83]">
-            {job.matchScore}% match
-          </span>
-        </div>
-
-        {expanded ? (
-          <div className="mt-4 rounded-2xl bg-[#fffaf4] p-4 text-sm leading-6 text-slate-600">
-            {job.location ? (
-              <p className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-slate-400" />
-                {job.location}
-              </p>
-            ) : null}
-            {salary ? <p className="mt-2">{salary}</p> : null}
-            {job.matchReason ? <p className="mt-3">{job.matchReason}</p> : null}
-            <a href={job.jobUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-2 font-semibold text-[#0f8f83]">
-              View original job <ExternalLink className="h-4 w-4" />
-            </a>
-          </div>
-        ) : null}
-
-        <div className="mt-4 flex items-center gap-2">
-          {importedApplicationId ? (
-            <Link
-              href={`/applications/${importedApplicationId}`}
-              className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[#0f9f92] px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_42px_rgba(15,159,146,0.2)]"
-            >
-              Open application <ArrowRight className="h-4 w-4" />
-            </Link>
-          ) : (
-            <button
-              className="inline-flex min-h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-[#0f9f92] px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_42px_rgba(15,159,146,0.2)] disabled:cursor-not-allowed disabled:opacity-70"
-              disabled={importing}
-              onClick={() => onImport(job)}
-              type="button"
-            >
-              {importing ? "Starting..." : "Tailor & Apply"} <ArrowRight className="h-4 w-4" />
-            </button>
-          )}
-          <button
-            className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm"
-            onClick={() => setExpanded((current) => !current)}
-            type="button"
-            aria-expanded={expanded}
-          >
-            <ChevronDown className={`h-5 w-5 transition ${expanded ? "rotate-180" : ""}`} />
-          </button>
-        </div>
+    <article className="group flex items-center gap-3 rounded-[1.6rem] bg-white/82 p-4 shadow-[0_8px_30px_rgba(20,33,61,0.055)] transition duration-200 hover:bg-white hover:shadow-[0_16px_48px_rgba(20,33,61,0.08)] md:gap-4 md:p-5">
+      {/* Avatar */}
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-100 to-amber-50 text-base font-bold text-[#0f8f83] md:h-12 md:w-12">
+        {(job.company?.trim()?.[0] ?? "A").toUpperCase()}
       </div>
 
-      <div className="hidden flex-col gap-4 md:flex lg:flex-row lg:items-center">
-        <div className="flex min-w-0 flex-1 gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-100 to-amber-50 text-lg font-semibold text-[#0f8f83]">
-            {(job.company?.trim()?.[0] ?? "A").toUpperCase()}
-          </div>
-          <div className="min-w-0">
-            <a href={job.jobUrl} target="_blank" rel="noopener noreferrer" className="group/link inline-flex max-w-full items-center gap-2">
-              <h3 className="truncate text-lg font-semibold text-[#14213d] transition group-hover:text-[#0f8f83]">
-                {job.title}
-              </h3>
-              <ExternalLink className="h-4 w-4 shrink-0 text-slate-300 transition group-hover/link:text-[#0f8f83]" />
-            </a>
-            <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm leading-6 text-slate-600">
-              <span>{job.company}</span>
-              {job.location ? (
-                <>
-                  <span className="text-slate-300">*</span>
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin className="h-3.5 w-3.5 text-slate-400" />
-                    {job.location}
-                  </span>
-                </>
-              ) : null}
-              {salary ? (
-                <>
-                  <span className="text-slate-300">*</span>
-                  <span>{salary}</span>
-                </>
-              ) : null}
-            </p>
-            {job.matchReason ? <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-500">{job.matchReason}</p> : null}
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3 lg:justify-end">
-          <div className="min-w-32">
-            <span className={`inline-flex rounded-full px-4 py-2 text-sm font-semibold tabular-nums ${matchPillClass(job.matchScore)}`}>
-              {job.matchScore}% Match
-            </span>
-            <p className="mt-1 text-sm text-slate-600">{label}</p>
-          </div>
-
-          {importedApplicationId ? (
-            <Link
-              href={`/applications/${importedApplicationId}`}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#0f9f92] px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_42px_rgba(15,159,146,0.22)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#0b8f83]"
-            >
-              Open application <ArrowRight className="h-4 w-4" />
-            </Link>
-          ) : (
-            <button
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#0f9f92] px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_42px_rgba(15,159,146,0.22)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#0b8f83] disabled:cursor-not-allowed disabled:opacity-70"
-              disabled={importing}
-              onClick={() => onImport(job)}
-              type="button"
-            >
-              {importing ? "Starting..." : "Tailor & Apply"} <ArrowRight className="h-4 w-4" />
-            </button>
-          )}
-
+      {/* Main content */}
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
           <a
             href={job.jobUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#14213d] shadow-[0_10px_30px_rgba(20,33,61,0.08)] transition hover:-translate-y-0.5 hover:text-[#0f8f83]"
-            title="View original job"
+            className="truncate font-semibold text-[#14213d] transition hover:text-[#0f8f83]"
           >
-            <Bookmark className="h-4.5 w-4.5" />
+            {job.title}
           </a>
+          <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slate-300" />
         </div>
+        <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-sm text-slate-500">
+          <span>{job.company}</span>
+          {job.location && (
+            <>
+              <span className="text-slate-300">•</span>
+              <MapPin className="h-3 w-3 text-slate-400" />
+              <span>{job.location}</span>
+            </>
+          )}
+        </p>
+        {salary && (
+          <p className="mt-0.5 text-sm font-medium text-slate-700">{salary}</p>
+        )}
+      </div>
+
+      {/* Right side */}
+      <div className="flex shrink-0 items-center gap-2 md:gap-3">
+        {/* Score */}
+        <div className="hidden text-right sm:block">
+          <span className={`inline-block rounded-full px-3 py-1 text-sm font-bold tabular-nums ${matchPillClass(job.matchScore)}`}>
+            {job.matchScore}% Match
+          </span>
+          <p className="mt-0.5 text-xs text-slate-500">{label}</p>
+        </div>
+
+        {/* Action button */}
+        {importedApplicationId ? (
+          <Link
+            href={`/applications/${importedApplicationId}`}
+            className="inline-flex items-center gap-1.5 rounded-full bg-[#0f9f92] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#0b8f83]"
+          >
+            Open <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        ) : (
+          <button
+            type="button"
+            disabled={importing}
+            onClick={() => onImport(job)}
+            className="inline-flex items-center gap-1.5 rounded-full bg-[#0f9f92] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#0b8f83] disabled:opacity-70"
+          >
+            {importing ? "Starting…" : "Tailor & Apply"} <ArrowRight className="h-3.5 w-3.5" />
+          </button>
+        )}
+
+        {/* Bookmark */}
+        <a
+          href={job.jobUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="View original job"
+          className="hidden h-9 w-9 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm transition hover:text-[#0f8f83] sm:inline-flex"
+        >
+          <Bookmark className="h-4 w-4" />
+        </a>
       </div>
     </article>
   );
-}
-
-function getGreeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
 }
 
 export function DashboardTabs({
@@ -272,25 +195,14 @@ export function DashboardTabs({
   const [loadingMatches, setLoadingMatches] = useState(false);
   const [matchError, setMatchError] = useState("");
   const [matchNotice, setMatchNotice] = useState("");
-  const [lastSearchQuery, setLastSearchQuery] = useState(grabbedMatches[0]?.search_query ?? "");
   const [keywordQuery, setKeywordQuery] = useState(grabbedMatches[0]?.search_query ?? "");
   const [locationQuery, setLocationQuery] = useState(profileLocation ?? "");
-  const [workType, setWorkType] = useState("");
+  const [workTypes, setWorkTypes] = useState<Set<string>>(new Set());
   const [salaryMin, setSalaryMin] = useState("");
-  const [remoteOnly, setRemoteOnly] = useState(false);
-  const [lastFetchedAt, setLastFetchedAt] = useState<string | undefined>(grabbedMatches[0]?.fetched_at);
   const [importing, setImporting] = useState<Record<string, boolean>>({});
   const [imported, setImported] = useState<Record<string, string>>({});
   const [showAllMatches, setShowAllMatches] = useState(false);
 
-  const readyCount = applications.filter((app) => app.tailored_resume && app.cover_letter).length;
-  const sentThisMonth = applications.filter((app) => {
-    if (!app.applied_at) return false;
-    const applied = new Date(app.applied_at);
-    const now = new Date();
-    return applied.getMonth() === now.getMonth() && applied.getFullYear() === now.getFullYear();
-  }).length;
-  const strongMatches = matches.filter((job) => job.matchScore >= 80).length;
   const importedByUrl = useMemo(() => {
     const map: Record<string, string> = {};
     for (const app of applications) {
@@ -299,22 +211,43 @@ export function DashboardTabs({
     return map;
   }, [applications]);
 
+  function toggleWorkType(value: string) {
+    setWorkTypes((prev) => {
+      const next = new Set(prev);
+      next.has(value) ? next.delete(value) : next.add(value);
+      return next;
+    });
+  }
+
   async function refreshMatches(force = false) {
     if (!resumeFileName) return;
     setLoadingMatches(true);
     setMatchError("");
-    setMatchNotice(force ? "Searching Adzuna again..." : "Checking today's matches...");
+    setMatchNotice(force ? "Searching…" : "Checking today's matches…");
 
     try {
       const params = new URLSearchParams();
       if (force) params.set("refresh", "true");
-      const effectiveKeyword = remoteOnly ? `${keywordQuery.trim()} remote`.trim() : keywordQuery.trim();
+
+      // Keyword-based work types (hybrid, onsite) get appended to the query
+      const kwWorkTypes = [...workTypes]
+        .filter((wt) => ["hybrid", "onsite"].includes(wt))
+        .join(" ");
+      const effectiveKeyword = [keywordQuery.trim(), kwWorkTypes].filter(Boolean).join(" ");
       if (effectiveKeyword) params.set("q", effectiveKeyword);
+
       if (locationQuery.trim()) params.set("location", locationQuery.trim());
-      if (workType) params.set("work_type", workType);
+
+      // Adzuna-native work types
+      const adzunaWorkTypes = [...workTypes]
+        .filter((wt) => ["full_time", "part_time", "contract", "permanent"].includes(wt))
+        .join(",");
+      if (adzunaWorkTypes) params.set("work_type", adzunaWorkTypes);
+
       if (salaryMin) params.set("salary_min", salaryMin);
-      const queryString = params.toString();
-      const response = await fetch(`/api/grab${queryString ? `?${queryString}` : ""}`);
+
+      const qs = params.toString();
+      const response = await fetch(`/api/grab${qs ? `?${qs}` : ""}`);
       const payload = await response.json();
 
       if (!response.ok) {
@@ -324,14 +257,12 @@ export function DashboardTabs({
 
       const nextMatches = payload.jobs ?? [];
       setMatches(nextMatches);
-      setLastFetchedAt(payload.fetchedAt ?? payload.jobs?.[0]?.fetchedAt);
-      setLastSearchQuery(payload.searchQuery ?? "");
       setKeywordQuery(payload.searchQuery ?? keywordQuery);
       setShowAllMatches(false);
       setMatchNotice(
         nextMatches.length > 0
-          ? `Found ${nextMatches.length} fresh ${nextMatches.length === 1 ? "match" : "matches"}${payload.searchQuery ? ` for "${payload.searchQuery}"` : ""}.`
-          : `Checked Adzuna${payload.searchQuery ? ` for "${payload.searchQuery}"` : ""}, but didn't find fresh matches yet.`
+          ? `Found ${nextMatches.length} fresh ${nextMatches.length === 1 ? "match" : "matches"} for "${payload.searchQuery}".`
+          : `No fresh matches found${payload.searchQuery ? ` for "${payload.searchQuery}"` : ""}. Try different keywords.`
       );
     } catch {
       setMatchError("Couldn't refresh matches just now.");
@@ -342,7 +273,6 @@ export function DashboardTabs({
 
   async function importJob(job: GrabResult) {
     setImporting((prev) => ({ ...prev, [job.id]: true }));
-
     try {
       const response = await fetch("/api/grab/import", {
         method: "POST",
@@ -351,7 +281,7 @@ export function DashboardTabs({
           title: job.title,
           company: job.company,
           location: job.location,
-          salary: formatSalary(job.salaryMin, job.salaryMax),
+          salary: job.salary || formatSalary(job.salaryMin, job.salaryMax),
           jobUrl: job.jobUrl,
           description: job.description,
           matchScore: job.matchScore,
@@ -359,12 +289,10 @@ export function DashboardTabs({
         }),
       });
       const payload = await response.json();
-
       if (!response.ok || !payload.applicationId) {
         setMatchError(payload.error ?? "Couldn't start that application.");
         return;
       }
-
       setImported((prev) => ({ ...prev, [job.id]: payload.applicationId }));
       router.push(`/applications/${payload.applicationId}`);
       router.refresh();
@@ -382,227 +310,167 @@ export function DashboardTabs({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resumeFileName, grabbedMatchesStale]);
 
+  const onEnter = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !loadingMatches && resumeFileName) void refreshMatches(true);
+  };
+
   return (
     <div className="mx-auto max-w-[1520px] overflow-x-clip">
-      <div className="mb-5 flex flex-col gap-3 md:mb-10 md:flex-row md:items-start md:justify-between">
-        <div>
-          <h1 className="font-serif text-3xl font-semibold tracking-tight text-[#14213d] md:text-5xl">
-            {getGreeting()}{name ? `, ${name}` : ""} 👋
-          </h1>
-          <p className="mt-2 text-base leading-7 text-slate-600 md:mt-3 md:text-lg md:leading-8">
-            Let&apos;s get you closer to your next opportunity.
-          </p>
-        </div>
-        <Link
-          href="/profile"
-          className="hidden w-fit items-center gap-2 rounded-full bg-white/75 px-5 py-3 text-sm font-semibold text-[#0f8f83] shadow-[0_16px_42px_rgba(20,33,61,0.07)] transition duration-300 hover:-translate-y-1 hover:bg-white md:inline-flex"
-        >
-          Improve profile <ArrowRight className="h-4 w-4" />
-        </Link>
+      {/* Greeting */}
+      <div className="mb-6 md:mb-10">
+        <h1 className="font-serif text-3xl font-semibold tracking-tight text-[#14213d] md:text-5xl">
+          {getGreeting()}{name ? `, ${name}` : ""} 👋
+        </h1>
       </div>
 
       <div className="min-w-0 space-y-6 md:space-y-8">
-          <QuickApplyForm resumeFileName={resumeFileName} coverLetterFileName={coverLetterFileName} />
+        <QuickApplyForm resumeFileName={resumeFileName} coverLetterFileName={coverLetterFileName} />
 
-          <section className="hidden overflow-hidden rounded-[2rem] bg-white/78 p-5 shadow-[0_24px_80px_rgba(20,33,61,0.07)] backdrop-blur md:block md:p-8">
-            <div className="grid gap-7 md:grid-cols-[150px_minmax(0,1fr)] md:items-center">
-              <div className="relative mx-auto flex h-32 w-32 items-end justify-center overflow-hidden rounded-full bg-gradient-to-b from-amber-50 to-teal-50">
-                <div className="absolute bottom-0 h-14 w-28 rounded-t-full bg-teal-200/80" />
-                <Sprout className="relative mb-8 h-12 w-12 text-[#0f9f92]" />
-                <div className="absolute right-8 top-7 h-4 w-4 rounded-full bg-amber-200" />
-              </div>
+        {/* Fresh opportunities */}
+        <section>
+          {/* Section header */}
+          <div className="mb-4 px-1">
+            <h2 className="text-2xl font-semibold tracking-tight text-[#14213d]">
+              Find jobs that match your resume ✨
+            </h2>
+            <p className="mt-1 text-sm leading-6 text-slate-500">
+              Top matches discovered from live job boards and scored against your resume.
+            </p>
 
+            {/* Filter bar */}
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto]">
+              {/* Keywords */}
               <div>
-                <h2 className="text-2xl font-semibold tracking-tight text-[#14213d]">
-                  You&apos;re making great progress 🌱
-                </h2>
-                <div className="mt-6 grid gap-4 sm:grid-cols-3">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-teal-50 text-[#0f9f92]">
-                      <Target className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <p className="text-2xl font-semibold text-[#14213d]">{strongMatches}</p>
-                      <p className="text-sm leading-5 text-slate-600">strong matches today</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-violet-50 text-violet-600">
-                      <CheckCircle2 className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <p className="text-2xl font-semibold text-[#14213d]">{readyCount}</p>
-                      <p className="text-sm leading-5 text-slate-600">applications ready to send</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600">
-                      <Sparkles className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <p className="text-2xl font-semibold text-[#14213d]">{sentThisMonth}</p>
-                      <p className="text-sm leading-5 text-slate-600">applications sent this month</p>
-                    </div>
-                  </div>
-                </div>
+                <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Search keywords</p>
+                <input
+                  className="w-full rounded-2xl bg-white/90 px-4 py-2.5 text-sm text-[#14213d] shadow-sm outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-teal-100"
+                  placeholder="e.g. Communications Manager"
+                  value={keywordQuery}
+                  onChange={(e) => setKeywordQuery(e.target.value)}
+                  onKeyDown={onEnter}
+                />
               </div>
-            </div>
-          </section>
 
-          <section>
-            <div className="mb-4 flex flex-col gap-4 px-1 sm:flex-row sm:items-end sm:justify-between">
+              {/* Location */}
               <div>
-                <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1.5 text-sm font-semibold text-[#0f8f83] md:text-xs">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  {freshnessLabel(lastFetchedAt)}
-                </div>
-                <h2 className="text-2xl font-semibold tracking-tight text-[#14213d]">Fresh opportunities for you</h2>
-                <p className="mt-1 text-base leading-7 text-slate-600 md:text-sm md:leading-normal">Top matches discovered from live job boards and scored against your resume.</p>
+                <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Job location</p>
+                <input
+                  className="w-full rounded-2xl bg-white/90 px-4 py-2.5 text-sm text-[#14213d] shadow-sm outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-teal-100"
+                  placeholder="e.g. Sydney"
+                  value={locationQuery}
+                  onChange={(e) => setLocationQuery(e.target.value)}
+                  onKeyDown={onEnter}
+                />
               </div>
-              <div className="min-w-0 flex flex-col gap-3 sm:items-end">
-                <div className="flex w-full gap-2 sm:w-auto">
-                  <label className="flex-1 sm:w-72">
-                    <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Search keywords</span>
-                    <input
-                      className="w-full rounded-full bg-white/80 px-4 py-3 text-sm text-[#14213d] shadow-[0_12px_34px_rgba(20,33,61,0.05)] outline-none placeholder:text-slate-400 focus:ring-3 focus:ring-teal-100"
-                      placeholder="e.g. governance risk manager"
-                      value={keywordQuery}
-                      onChange={(event) => setKeywordQuery(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" && !loadingMatches && resumeFileName) {
-                          void refreshMatches(true);
-                        }
-                      }}
-                    />
-                  </label>
-                  <label className="flex-1 sm:w-40">
-                    <span className="mb-1 flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                      <MapPin className="h-3 w-3" />
-                      Location
-                    </span>
-                    <input
-                      className="w-full rounded-full bg-white/80 px-4 py-3 text-sm text-[#14213d] shadow-[0_12px_34px_rgba(20,33,61,0.05)] outline-none placeholder:text-slate-400 focus:ring-3 focus:ring-teal-100"
-                      placeholder="e.g. Brisbane"
-                      value={locationQuery}
-                      onChange={(event) => setLocationQuery(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" && !loadingMatches && resumeFileName) {
-                          void refreshMatches(true);
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
-                {/* Work type + salary + remote */}
-                <div className="flex w-full flex-wrap items-center gap-1.5 sm:w-auto sm:justify-end">
-                  {(["", "full_time", "part_time", "contract", "permanent"] as const).map((val) => {
-                    const label = val === "" ? "All" : val === "full_time" ? "Full-time" : val === "part_time" ? "Part-time" : val === "contract" ? "Contract" : "Permanent";
-                    return (
-                      <button
-                        key={val}
-                        type="button"
-                        onClick={() => setWorkType(val)}
-                        className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${workType === val ? "bg-[#0f9f92] text-white shadow-sm" : "bg-white/80 text-slate-500 shadow-sm hover:text-[#0f8f83]"}`}
-                      >
-                        {label}
-                      </button>
-                    );
-                  })}
-                  <select
+
+              {/* Salary */}
+              <div>
+                <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Min. salary expectation per annum</p>
+                <div className="flex items-center gap-0 overflow-hidden rounded-2xl bg-white/90 shadow-sm focus-within:ring-2 focus-within:ring-teal-100">
+                  <span className="pl-4 text-sm font-medium text-slate-400">$</span>
+                  <input
+                    type="number"
+                    className="min-w-0 flex-1 bg-transparent px-2 py-2.5 text-sm text-[#14213d] outline-none placeholder:text-slate-400"
+                    placeholder="e.g. 100000"
                     value={salaryMin}
                     onChange={(e) => setSalaryMin(e.target.value)}
-                    className="rounded-full bg-white/80 px-3 py-1.5 text-xs font-semibold text-slate-500 shadow-sm outline-none"
-                  >
-                    <option value="">Any salary</option>
-                    <option value="60000">$60k+</option>
-                    <option value="80000">$80k+</option>
-                    <option value="100000">$100k+</option>
-                    <option value="120000">$120k+</option>
-                    <option value="150000">$150k+</option>
-                  </select>
-                  <button
-                    type="button"
-                    onClick={() => setRemoteOnly((v) => !v)}
-                    className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${remoteOnly ? "bg-[#0f9f92] text-white shadow-sm" : "bg-white/80 text-slate-500 shadow-sm hover:text-[#0f8f83]"}`}
-                  >
-                    Remote
-                  </button>
+                    onKeyDown={onEnter}
+                    min={0}
+                  />
                 </div>
+              </div>
 
-                <button
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-white/75 px-5 py-3 text-sm font-semibold text-[#0f8f83] shadow-[0_16px_42px_rgba(20,33,61,0.07)] transition duration-300 hover:-translate-y-1 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 sm:w-fit"
-                  disabled={loadingMatches || !resumeFileName}
-                  onClick={() => refreshMatches(true)}
-                  type="button"
-                >
-                  {loadingMatches ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                  {loadingMatches ? "Searching..." : "Refresh matches"}
-                </button>
+              {/* More preferences + refresh */}
+              <div>
+                <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">More preferences</p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                  {WORK_TYPE_OPTIONS.map(({ value, label }) => (
+                    <label key={value} className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+                      <input
+                        type="checkbox"
+                        checked={workTypes.has(value)}
+                        onChange={() => toggleWorkType(value)}
+                        className="h-4 w-4 rounded accent-[#0f9f92]"
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {matchError ? (
-              <p className="mb-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800">{matchError}</p>
-            ) : null}
-            {!matchError && matchNotice ? (
-              <p className="mb-4 rounded-2xl bg-teal-50 px-4 py-3 text-sm text-[#0f8f83]">{matchNotice}</p>
-            ) : null}
-
-            <div className="space-y-3">
-              {!resumeFileName ? (
-                <div className="rounded-[1.75rem] bg-white/78 px-6 py-12 text-center shadow-[0_18px_60px_rgba(20,33,61,0.06)]">
-                  <Target className="mx-auto h-10 w-10 text-teal-500" />
-                  <h3 className="mt-4 text-xl font-semibold text-[#14213d]">Add your resume to unlock matches.</h3>
-                  <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">
-                    Once your master resume is saved, ApplyHQ can refresh your best job matches automatically.
-                  </p>
-                  <Link href="/documents" className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#0f9f92] px-5 py-3 text-sm font-semibold text-white">
-                    Add documents <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </div>
-              ) : loadingMatches && matches.length === 0 ? (
-                <>
-                  {[0, 1, 2].map((item) => (
-                    <div key={item} className="h-32 animate-pulse rounded-[1.6rem] bg-white/70 shadow-[0_16px_54px_rgba(20,33,61,0.04)]" />
-                  ))}
-                </>
-              ) : matches.length === 0 ? (
-                <div className="rounded-[1.75rem] bg-white/78 px-6 py-12 text-center shadow-[0_18px_60px_rgba(20,33,61,0.06)]">
-                  <Sparkles className="mx-auto h-10 w-10 text-teal-500" />
-                  <h3 className="mt-4 text-xl font-semibold text-[#14213d]">No fresh matches just yet.</h3>
-                  <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">
-                    {lastSearchQuery
-                      ? `We checked for "${lastSearchQuery}". Try refreshing later, or add more target keywords to your resume.`
-                      : "Try refreshing, or add more keywords to your resume so the search has a clearer signal."}
-                  </p>
-                </div>
-              ) : (
-                <>
-                  {(showAllMatches ? matches : matches.slice(0, 3)).map((job) => (
-                    <GrabbedMatchCard
-                      key={job.id}
-                      job={job}
-                      importedApplicationId={imported[job.id] ?? importedByUrl[job.jobUrl]}
-                      importing={Boolean(importing[job.id])}
-                      onImport={importJob}
-                    />
-                  ))}
-                  {matches.length > 3 ? (
-                    <button
-                      className="mx-auto flex items-center gap-2 rounded-full bg-white/75 px-5 py-3 text-sm font-semibold text-[#0f8f83] shadow-[0_14px_38px_rgba(20,33,61,0.06)] transition duration-300 hover:-translate-y-1 hover:bg-white"
-                      onClick={() => setShowAllMatches((current) => !current)}
-                      type="button"
-                    >
-                      {showAllMatches ? "Show top 3" : `Show ${matches.length - 3} more matches`}
-                    </button>
-                  ) : null}
-                </>
-              )}
+            {/* Refresh button */}
+            <div className="mt-3 flex items-center gap-3">
+              <button
+                type="button"
+                disabled={loadingMatches || !resumeFileName}
+                onClick={() => refreshMatches(true)}
+                className="inline-flex items-center gap-2 rounded-full bg-[#0f9f92] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#0b8f83] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loadingMatches ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                {loadingMatches ? "Searching…" : "Refresh matches"}
+              </button>
             </div>
-          </section>
+          </div>
 
+          {/* Notices */}
+          {matchError && (
+            <p className="mb-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800">{matchError}</p>
+          )}
+          {!matchError && matchNotice && (
+            <p className="mb-4 rounded-2xl bg-teal-50 px-4 py-3 text-sm font-medium text-[#0f8f83]">{matchNotice}</p>
+          )}
+
+          {/* Job cards */}
+          <div className="space-y-2.5">
+            {!resumeFileName ? (
+              <div className="rounded-[1.75rem] bg-white/78 px-6 py-12 text-center shadow-[0_18px_60px_rgba(20,33,61,0.06)]">
+                <h3 className="mt-4 text-xl font-semibold text-[#14213d]">Add your resume to unlock matches.</h3>
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">
+                  Once your master resume is saved, ApplyHQ can refresh your best job matches automatically.
+                </p>
+                <Link href="/documents" className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#0f9f92] px-5 py-3 text-sm font-semibold text-white">
+                  Add documents <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            ) : loadingMatches && matches.length === 0 ? (
+              <>
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="h-20 animate-pulse rounded-[1.6rem] bg-white/70" />
+                ))}
+              </>
+            ) : matches.length === 0 ? (
+              <div className="rounded-[1.75rem] bg-white/78 px-6 py-12 text-center shadow-[0_18px_60px_rgba(20,33,61,0.06)]">
+                <h3 className="mt-4 text-xl font-semibold text-[#14213d]">No fresh matches just yet.</h3>
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">
+                  Try refreshing, or update your keywords to give the search a clearer signal.
+                </p>
+              </div>
+            ) : (
+              <>
+                {(showAllMatches ? matches : matches.slice(0, 5)).map((job) => (
+                  <GrabbedMatchCard
+                    key={job.id}
+                    job={job}
+                    importedApplicationId={imported[job.id] ?? importedByUrl[job.jobUrl]}
+                    importing={Boolean(importing[job.id])}
+                    onImport={importJob}
+                  />
+                ))}
+                {matches.length > 5 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllMatches((v) => !v)}
+                    className="mx-auto flex items-center gap-2 rounded-full bg-white/75 px-5 py-3 text-sm font-semibold text-[#0f8f83] shadow-sm transition hover:-translate-y-0.5 hover:bg-white"
+                  >
+                    {showAllMatches ? "Show fewer" : `Show ${matches.length - 5} more matches`}
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        </section>
       </div>
     </div>
   );
 }
-

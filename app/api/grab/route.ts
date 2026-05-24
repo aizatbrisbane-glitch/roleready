@@ -186,7 +186,7 @@ async function fetchAdzunaJobs({
   appKey,
   query,
   where,
-  workType,
+  workTypes,
   salaryMin,
   maxDaysOld,
   resultsPerPage,
@@ -195,7 +195,7 @@ async function fetchAdzunaJobs({
   appKey: string;
   query: string;
   where?: string;
-  workType?: string;
+  workTypes?: string;
   salaryMin?: number;
   maxDaysOld: number;
   resultsPerPage: number;
@@ -209,7 +209,12 @@ async function fetchAdzunaJobs({
     sort_by: "date",
   });
   if (where) params.set("where", where);
-  if (workType) params.set(workType, "1");
+  if (workTypes) {
+    for (const t of workTypes.split(",")) {
+      const trimmed = t.trim();
+      if (trimmed) params.set(trimmed, "1");
+    }
+  }
   if (salaryMin) params.set("salary_min", String(salaryMin));
 
   const res = await fetch(`https://api.adzuna.com/v1/api/jobs/au/search/1?${params}`, {
@@ -340,7 +345,7 @@ export async function GET(request: Request) {
 
   // Run Adzuna + Jooble in parallel
   const [adzunaSettled, joobleSettled] = await Promise.allSettled([
-    fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, where: locationParam, workType: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 30, resultsPerPage: 25 }),
+    fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, where: locationParam, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 30, resultsPerPage: 25 }),
     joobleApiKey
       ? fetchJoobleJobs({ apiKey: joobleApiKey, query: actualSearchQuery, location: locationParam })
       : Promise.resolve([]),
@@ -355,7 +360,7 @@ export async function GET(request: Request) {
   if (adzunaJobs.length === 0 && joobleJobs.length === 0 && keywords.jobTitle.trim()) {
     actualSearchQuery = keywords.jobTitle.trim();
     try {
-      adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, where: locationParam, workType: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 60, resultsPerPage: 25 });
+      adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, where: locationParam, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 60, resultsPerPage: 25 });
     } catch (e) {
       console.error("[grab] Adzuna fallback fetch failed:", e);
     }
