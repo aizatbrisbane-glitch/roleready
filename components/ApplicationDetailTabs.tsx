@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, Banknote, BookOpen, CheckCircle2, Download, Lightbulb, MapPin, Sparkles, TrendingUp, User } from "lucide-react";
 import { CoverLetterRenderer, ResumeRenderer } from "@/components/ResumeRenderer";
 
@@ -116,6 +116,14 @@ export function ApplicationDetailTabs({
   const [saveMessage, setSaveMessage] = useState("");
   const [summarising, setSummarising] = useState(false);
   const [summariseError, setSummariseError] = useState("");
+  const roleSummaryRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const el = roleSummaryRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [roleSummary]);
 
   async function summariseRole() {
     setSummarising(true);
@@ -198,10 +206,11 @@ export function ApplicationDetailTabs({
               </button>
             </div>
             <textarea
+              ref={roleSummaryRef}
               value={roleSummary}
               onChange={(e) => setRoleSummary(e.target.value)}
               rows={3}
-              className="field mt-2 resize-none"
+              className="field mt-2 resize-none overflow-hidden"
               placeholder="Brief summary of the role..."
             />
             {summariseError && <p className="mt-1 text-xs text-rose-600">{summariseError}</p>}
