@@ -247,6 +247,35 @@ function isAustralianLocation(loc: string): boolean {
   return AU_GEO_TERMS.some((t) => l.includes(t));
 }
 
+// State abbreviations and full names for each capital — used to broaden city matches
+const CITY_STATE_MAP: Record<string, string[]> = {
+  brisbane:   ["qld", "queensland"],
+  sydney:     ["nsw", "new south wales"],
+  melbourne:  ["vic", "victoria"],
+  perth:      ["wa", "western australia"],
+  adelaide:   ["sa", "south australia"],
+  canberra:   ["act", "australian capital territory"],
+  hobart:     ["tas", "tasmania"],
+  darwin:     ["nt", "northern territory"],
+};
+
+function matchesRequestedLocation(jobLoc: string, requested: string): boolean {
+  const j = jobLoc.toLowerCase();
+  const r = requested.toLowerCase().trim();
+  if (!r) return true;
+  // Direct substring match
+  if (j.includes(r)) return true;
+  // Match by state for known cities (e.g. "QLD" matches "Brisbane" request)
+  for (const [city, states] of Object.entries(CITY_STATE_MAP)) {
+    if (r.includes(city)) {
+      if (states.some((s) => j.includes(s))) return true;
+    }
+  }
+  // Match first word of requested location (e.g. "Brisbane" from "Brisbane, QLD")
+  const firstWord = r.split(/[\s,]+/)[0];
+  return firstWord.length > 2 && j.includes(firstWord);
+}
+
 async function fetchJoobleJobs({
   apiKey,
   query,
@@ -273,7 +302,13 @@ async function fetchJoobleJobs({
   const data = (await res.json()) as { jobs?: JoobleJob[] };
 
   return (data.jobs ?? [])
-    .filter((j) => !j.location || isAustralianLocation(j.location))
+    .filter((j) => {
+      if (!j.location) return true;
+      if (!isAustralianLocation(j.location)) return false;
+      // If a specific city/location was requested, enforce it at the city level
+      if (location) return matchesRequestedLocation(j.location, location);
+      return true;
+    })
     .map((j) => ({
       id: j.link,
       title: j.title,

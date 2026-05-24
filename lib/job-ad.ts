@@ -373,16 +373,21 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
     cache: "no-store"
   });
 
+  // After following redirects, use the final URL for blocked-domain detection
+  // (e.g. a jooble.org redirect may land on seek.com.au)
+  const finalUrl = response.url || jobUrl;
+  const effectiveUrl = isBlockedJobBoard(finalUrl) ? finalUrl : jobUrl;
+
   if (!response.ok) {
-    if (isBlockedJobBoard(jobUrl)) {
+    if (isBlockedJobBoard(effectiveUrl)) {
       const fallback = IS_SERVERLESS
-        ? await fetchJobWithJina(jobUrl)
-        : await fetchJobWithBrowser(jobUrl);
+        ? await fetchJobWithJina(effectiveUrl)
+        : await fetchJobWithBrowser(effectiveUrl);
       if (fallback) return fallback;
     }
     throw new Error(
-      isBlockedJobBoard(jobUrl)
-        ? `${new URL(jobUrl).hostname} blocked our request (HTTP ${response.status}). Use the Chrome extension on the job page, or paste the job description in the box below.`
+      isBlockedJobBoard(effectiveUrl)
+        ? `${new URL(effectiveUrl).hostname} blocked our request (HTTP ${response.status}). Use the Chrome extension on the job page, or paste the job description in the box below.`
         : `Could not read this job link. The site returned HTTP ${response.status}.`
     );
   }
@@ -446,12 +451,10 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
   };
 
   // If description is too short and this is a known blocked site, try a scraping fallback
-  if (result.description.trim().length < 300 && isBlockedJobBoard(jobUrl)) {
-    // Serverless (Vercel): use Jina AI reader — no binary dependencies
-    // Local dev: use Puppeteer with local Chrome
+  if (result.description.trim().length < 300 && isBlockedJobBoard(effectiveUrl)) {
     const fallback = IS_SERVERLESS
-      ? await fetchJobWithJina(jobUrl)
-      : await fetchJobWithBrowser(jobUrl);
+      ? await fetchJobWithJina(effectiveUrl)
+      : await fetchJobWithBrowser(effectiveUrl);
     if (fallback) return fallback;
   }
 
