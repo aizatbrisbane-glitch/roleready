@@ -145,7 +145,7 @@ function DesktopRow({ application }: { application: ApplicationWithJob }) {
 
       {/* Applied */}
       <td className={`${tdBase} px-2 text-sm text-slate-600`}>
-        {shortDate(application.created_at)}
+        {application.applied_at ? shortDate(application.applied_at) : <span className="text-slate-300">—</span>}
       </td>
 
       {/* Status */}
