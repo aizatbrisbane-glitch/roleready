@@ -355,12 +355,24 @@ export function DashboardTabs({
               <div>
                 <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Job location</p>
                 <input
+                  list="au-locations"
                   className="w-full rounded-2xl bg-white/90 px-4 py-2.5 text-sm text-[#14213d] shadow-sm outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-teal-100"
                   placeholder="e.g. Sydney"
                   value={locationQuery}
                   onChange={(e) => setLocationQuery(e.target.value)}
                   onKeyDown={onEnter}
                 />
+                <datalist id="au-locations">
+                  <option value="Brisbane" />
+                  <option value="Sydney" />
+                  <option value="Melbourne" />
+                  <option value="Perth" />
+                  <option value="Adelaide" />
+                  <option value="Canberra" />
+                  <option value="Hobart" />
+                  <option value="Darwin" />
+                  <option value="Australia" />
+                </datalist>
               </div>
 
               {/* Salary */}
