@@ -226,6 +226,14 @@ async function fetchAdzunaJobs({
   return data.results ?? [];
 }
 
+const AU_GEO_TERMS = ["australia", "nsw", "vic", "qld", "wa", "sa", "act", "tas", "nt",
+  "sydney", "melbourne", "brisbane", "perth", "adelaide", "canberra", "hobart", "darwin"];
+
+function isAustralianLocation(loc: string): boolean {
+  const l = loc.toLowerCase();
+  return AU_GEO_TERMS.some((t) => l.includes(t));
+}
+
 async function fetchJoobleJobs({
   apiKey,
   query,
@@ -235,8 +243,12 @@ async function fetchJoobleJobs({
   query: string;
   location?: string;
 }): Promise<GrabResult[]> {
-  const body: Record<string, string | number> = { keywords: query, page: 1 };
-  if (location) body.location = location;
+  // Always scope to Australia — Jooble is a global aggregator with no country endpoint
+  const joobleLocation = location
+    ? (location.toLowerCase().includes("australia") ? location : `${location}, Australia`)
+    : "Australia";
+
+  const body: Record<string, string | number> = { keywords: query, location: joobleLocation, page: 1 };
 
   const res = await fetch(`https://jooble.org/api/${apiKey}`, {
     method: "POST",
@@ -247,19 +259,21 @@ async function fetchJoobleJobs({
   if (!res.ok) throw new Error(`Jooble returned HTTP ${res.status}`);
   const data = (await res.json()) as { jobs?: JoobleJob[] };
 
-  return (data.jobs ?? []).map((j) => ({
-    id: j.link,
-    title: j.title,
-    company: j.company ?? "",
-    location: j.location ?? "",
-    description: j.snippet ?? "",
-    jobUrl: j.link,
-    salary: j.salary || undefined,
-    matchScore: 0,
-    matchReason: "",
-    postedAt: j.updated,
-    source: "Jooble",
-  }));
+  return (data.jobs ?? [])
+    .filter((j) => !j.location || isAustralianLocation(j.location))
+    .map((j) => ({
+      id: j.link,
+      title: j.title,
+      company: j.company ?? "",
+      location: j.location ?? "",
+      description: j.snippet ?? "",
+      jobUrl: j.link,
+      salary: j.salary || undefined,
+      matchScore: 0,
+      matchReason: "",
+      postedAt: j.updated,
+      source: "Jooble",
+    }));
 }
 
 export async function GET(request: Request) {
