@@ -62,6 +62,7 @@ function cachedMatchToGrabResult(row: CachedGrabbedJob): GrabResult {
     matchReason: row.match_reason,
     postedAt: row.posted_at ?? row.created_at,
     fetchedAt: row.fetched_at,
+    source: row.source || undefined,
   };
 }
 
@@ -128,6 +129,12 @@ function GrabbedMatchCard({
               <span className="text-slate-300">•</span>
               <MapPin className="h-3 w-3 text-slate-400" />
               <span>{job.location}</span>
+            </>
+          )}
+          {job.source && (
+            <>
+              <span className="text-slate-300">•</span>
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-400">{job.source}</span>
             </>
           )}
         </p>
