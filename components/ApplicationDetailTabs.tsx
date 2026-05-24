@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, Banknote, CheckCircle2, Download, Lightbulb, MapPin, Sparkles, TrendingUp, User } from "lucide-react";
+import { AlertTriangle, Banknote, BookOpen, CheckCircle2, Download, Lightbulb, MapPin, Sparkles, TrendingUp, User } from "lucide-react";
 import { CoverLetterRenderer, ResumeRenderer } from "@/components/ResumeRenderer";
 
 type AnalysisSection = { heading: string; bullets: string[]; body: string };
@@ -181,116 +181,133 @@ export function ApplicationDetailTabs({
 
       {/* Key Notes tab */}
       {activeTab === "notes" && (
-        <div className="p-5 md:p-6">
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* Role Summary */}
-            <div className="md:col-span-2">
-              <div className="flex items-center justify-between gap-3">
-                <label className="label">Role Summary</label>
-                <button
-                  type="button"
-                  onClick={summariseRole}
-                  disabled={summarising}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-[#0f8f83] transition hover:bg-teal-100 disabled:opacity-60"
-                >
-                  <Sparkles className="h-3 w-3" />
-                  {summarising ? "Summarising…" : "Summarise with AI"}
-                </button>
-              </div>
-              <textarea
-                value={roleSummary}
-                onChange={(e) => setRoleSummary(e.target.value)}
-                rows={3}
-                className="field mt-1 resize-none"
-                placeholder="Brief summary of the role..."
-              />
-              {summariseError && <p className="mt-1 text-xs text-rose-600">{summariseError}</p>}
-            </div>
+        <div className="space-y-4 p-5 md:p-6">
 
-            {/* Hiring Manager / Recruiter */}
-            <div>
-              <label className="label flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5" />
-                Hiring Manager / Recruiter
-              </label>
-              <input
-                type="text"
-                value={hiringManager}
-                onChange={(e) => setHiringManager(e.target.value)}
-                className="field mt-1"
-                placeholder="Name, title, or contact details..."
-              />
-            </div>
-
-            {/* Location Type */}
-            <div>
-              <label className="label flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5" />
-                Work Location
-              </label>
-              <select
-                value={locationType}
-                onChange={(e) => setLocationType(e.target.value)}
-                className="field mt-1"
+          {/* Role Summary — full width, no icon */}
+          <div>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-400">Role Summary</p>
+              <button
+                type="button"
+                onClick={summariseRole}
+                disabled={summarising}
+                className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-[#0f8f83] transition hover:bg-teal-100 disabled:opacity-60"
               >
-                {LOCATION_TYPES.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
+                <Sparkles className="h-3 w-3" />
+                {summarising ? "Summarising…" : "Summarise with AI"}
+              </button>
+            </div>
+            <textarea
+              value={roleSummary}
+              onChange={(e) => setRoleSummary(e.target.value)}
+              rows={3}
+              className="field mt-2 resize-none"
+              placeholder="Brief summary of the role..."
+            />
+            {summariseError && <p className="mt-1 text-xs text-rose-600">{summariseError}</p>}
+          </div>
+
+          {/* Hiring Manager + Work Location */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#0f9f92] text-white">
+                <User className="h-5 w-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-400">Hiring Manager / Recruiter</p>
+                <input
+                  type="text"
+                  value={hiringManager}
+                  onChange={(e) => setHiringManager(e.target.value)}
+                  className="field mt-2"
+                  placeholder="Name, title, or contact details..."
+                />
+              </div>
             </div>
 
-            {/* Salary */}
-            <div>
-              <label className="label flex items-center gap-1.5">
-                <Banknote className="h-3.5 w-3.5" />
-                Salary Range
-              </label>
-              <input
-                type="text"
-                value={salary}
-                onChange={(e) => setSalary(e.target.value)}
-                placeholder="e.g. $120,000 – $140,000"
-                className="field mt-1.5"
-              />
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#0f9f92] text-white">
+                <MapPin className="h-5 w-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-400">Work Location</p>
+                <select
+                  value={locationType}
+                  onChange={(e) => setLocationType(e.target.value)}
+                  className="field mt-2"
+                >
+                  {LOCATION_TYPES.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Salary + Helpful Info */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#0f9f92] text-white">
+                <Banknote className="h-5 w-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-400">Salary Range</p>
+                <input
+                  type="text"
+                  value={salary}
+                  onChange={(e) => setSalary(e.target.value)}
+                  placeholder="e.g. $120,000 – $140,000"
+                  className="field mt-2"
+                />
+              </div>
             </div>
 
-            {/* Other important info */}
-            <div>
-              <label className="label">Other Important Info</label>
-              <textarea
-                value={otherNotes}
-                onChange={(e) => setOtherNotes(e.target.value)}
-                rows={3}
-                className="field mt-1 resize-none"
-                placeholder="Perks, deadlines, specific requirements..."
-              />
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amber-400 text-white">
+                <Lightbulb className="h-5 w-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold uppercase tracking-[0.13em] text-amber-500">Helpful Information</p>
+                <textarea
+                  value={otherNotes}
+                  onChange={(e) => setOtherNotes(e.target.value)}
+                  rows={3}
+                  className="field mt-2 resize-none"
+                  placeholder="Perks, deadlines, specific requirements..."
+                />
+              </div>
             </div>
+          </div>
 
-            {/* Personal notes — full width */}
-            <div className="md:col-span-2">
-              <label className="label">Your Notes</label>
+          {/* Your Notes — full width */}
+          <div className="flex items-start gap-3 rounded-2xl border border-stone-100 p-4">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#0f9f92] text-white">
+              <BookOpen className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-400">Your Notes</p>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={4}
-                className="field mt-1 resize-none"
+                className="field mt-2 resize-none"
                 placeholder="Any personal notes about this application..."
               />
+              <div className="mt-3 flex items-center gap-3">
+                <button
+                  onClick={saveKeyNotes}
+                  disabled={saving}
+                  className="btn-primary"
+                >
+                  {saving ? "Saving..." : "Save notes"}
+                </button>
+                {saveMessage && (
+                  <span className="text-sm text-slate-500">{saveMessage}</span>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="mt-5 flex items-center gap-3">
-            <button
-              onClick={saveKeyNotes}
-              disabled={saving}
-              className="btn-primary"
-            >
-              {saving ? "Saving..." : "Save notes"}
-            </button>
-            {saveMessage && (
-              <span className="text-sm text-slate-500">{saveMessage}</span>
-            )}
-          </div>
         </div>
       )}
 
