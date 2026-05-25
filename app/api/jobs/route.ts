@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { fetchJobAdDetails } from "@/lib/job-ad";
 import type { JobSource } from "@/types/database";
 
 const sources: JobSource[] = ["Manual", "SEEK", "LinkedIn", "Adzuna", "Other"];
@@ -21,6 +22,24 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const source = String(formData.get("source") ?? "Manual") as JobSource;
+  const jobUrl = String(formData.get("job_url") ?? "");
+  let description = String(formData.get("description") ?? "");
+
+  if (jobUrl && description.trim().length < 300) {
+    try {
+      // Strip URL fragment — fragments aren't sent to servers and confuse Jina
+      const cleanUrl = jobUrl.split("#")[0];
+      const scraped = await Promise.race([
+        fetchJobAdDetails(cleanUrl),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 32000)),
+      ]);
+      if (scraped && scraped.description.trim().length > description.trim().length) {
+        description = scraped.description;
+      }
+    } catch {
+      // Scraping failed — continue with user-pasted description
+    }
+  }
 
   const { data: job, error: jobError } = await supabase
     .from("jobs")
@@ -30,8 +49,8 @@ export async function POST(request: Request) {
       company: String(formData.get("company") ?? ""),
       location: String(formData.get("location") ?? ""),
       salary: String(formData.get("salary") ?? ""),
-      job_url: String(formData.get("job_url") ?? ""),
-      description: String(formData.get("description") ?? ""),
+      job_url: jobUrl,
+      description,
       source: sources.includes(source) ? source : "Manual"
     })
     .select("id")

@@ -353,6 +353,27 @@ async function fetchJobWithBrowser(url: string): Promise<JobAdDetails | null> {
 // ─── Main export ────────────────────────────────────────────────────────────
 
 export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
+  // Fragments (#hash) are browser-only and break server-side fetches / Jina
+  jobUrl = jobUrl.split("#")[0];
+
+  // Search-result URLs embed the job in a side panel via a query param.
+  // Rewrite to the canonical job page so we scrape the actual listing.
+  try {
+    const u = new URL(jobUrl);
+    if ((u.hostname === "au.seek.com" || u.hostname.endsWith(".seek.com")) && u.searchParams.has("jobId")) {
+      jobUrl = `https://au.seek.com/job/${u.searchParams.get("jobId")}`;
+    } else if (u.hostname.includes("linkedin.com") && u.searchParams.has("currentJobId")) {
+      jobUrl = `https://www.linkedin.com/jobs/view/${u.searchParams.get("currentJobId")}/`;
+    } else if (u.hostname.includes("indeed.com")) {
+      // Search-panel URL: ?vjk=XXXXX  →  /viewjob?jk=XXXXX
+      // Tracking redirect: /rc/clk?jk=XXXXX  →  /viewjob?jk=XXXXX
+      const jk = u.searchParams.get("vjk") ?? u.searchParams.get("jk");
+      if (jk) jobUrl = `https://${u.hostname}/viewjob?jk=${jk}`;
+    }
+  } catch {
+    // malformed URL — fall through
+  }
+
   const response = await fetch(jobUrl, {
     headers: {
       // Realistic Chrome browser headers — many job boards block obvious bot User-Agents.
@@ -380,9 +401,9 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
 
   if (!response.ok) {
     if (isBlockedJobBoard(effectiveUrl)) {
-      const fallback = IS_SERVERLESS
-        ? await fetchJobWithJina(effectiveUrl)
-        : await fetchJobWithBrowser(effectiveUrl);
+      const fallback =
+        (await fetchJobWithJina(effectiveUrl)) ??
+        (IS_SERVERLESS ? null : await fetchJobWithBrowser(effectiveUrl));
       if (fallback) return fallback;
     }
     throw new Error(
@@ -408,7 +429,9 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
     nd?.description ||
     (structured?.description ? htmlToText(String(structured.description)) : "") ||
     meta(html, ["description", "og:description"]) ||
-    htmlToText(html);
+    // For blocked job boards (SEEK, LinkedIn etc.) the full HTML is useless noise —
+    // leave it empty so the fallback scraper is triggered below.
+    (isBlockedJobBoard(effectiveUrl) ? "" : htmlToText(html));
 
   const rawTitle =
     nd?.title ||
@@ -452,9 +475,10 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
 
   // If description is too short and this is a known blocked site, try a scraping fallback
   if (result.description.trim().length < 300 && isBlockedJobBoard(effectiveUrl)) {
-    const fallback = IS_SERVERLESS
-      ? await fetchJobWithJina(effectiveUrl)
-      : await fetchJobWithBrowser(effectiveUrl);
+    console.log(`[job-ad] short/empty description for blocked site (${new URL(effectiveUrl).hostname}), trying Jina…`);
+    const fallback =
+      (await fetchJobWithJina(effectiveUrl)) ??
+      (IS_SERVERLESS ? null : await fetchJobWithBrowser(effectiveUrl));
     if (fallback) return fallback;
   }
 

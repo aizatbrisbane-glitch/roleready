@@ -49,7 +49,7 @@ export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFil
       return;
     }
 
-    router.push(`/applications/${payload.applicationId}`);
+    router.push(`/applications/${payload.applicationId}?generate=true`);
   }
 
   return (

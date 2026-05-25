@@ -82,7 +82,7 @@ export function OnboardingWizard() {
       setLoading(false);
     }
     if (applicationId) {
-      router.push(`/applications/${applicationId}`);
+      router.push(`/applications/${applicationId}?generate=true`);
     } else {
       router.refresh();
     }

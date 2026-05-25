@@ -9,6 +9,8 @@ type AiProvider = "openai" | "anthropic";
 type Props = {
   applicationId: string;
   hasDocuments: boolean;
+  autoGenerate?: boolean;
+  generateHint?: string | null;
 };
 
 const STAGE_LABELS: { threshold: number; label: string }[] = [
@@ -37,12 +39,17 @@ function nextProgress(current: number) {
   return current + 0.06;
 }
 
-export function GenerateButton({ applicationId, hasDocuments }: Props) {
+export function GenerateButton({ applicationId, hasDocuments, autoGenerate, generateHint }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [provider, setProvider] = useState<AiProvider>("anthropic");
   const [message, setMessage] = useState("");
   const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    if (autoGenerate) generate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!loading) return;
@@ -90,18 +97,20 @@ export function GenerateButton({ applicationId, hasDocuments }: Props) {
   return (
     <div className="flex w-full flex-col gap-3 lg:w-auto">
       <div className="flex flex-wrap items-center gap-2">
-        <label className="flex items-center gap-1.5 rounded-full border border-white/60 bg-white/70 px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur">
-          <span className="text-xs text-slate-500">AI</span>
-          <select
-            className="bg-transparent text-sm outline-none"
-            value={provider}
-            onChange={(e) => setProvider(e.target.value as AiProvider)}
-            disabled={loading}
-          >
-            <option value="anthropic">Claude</option>
-            <option value="openai">ChatGPT</option>
-          </select>
-        </label>
+        {hasDocuments && (
+          <label className="flex items-center gap-1.5 rounded-full border border-white/60 bg-white/70 px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur">
+            <span className="text-xs text-slate-500">AI</span>
+            <select
+              className="bg-transparent text-sm outline-none"
+              value={provider}
+              onChange={(e) => setProvider(e.target.value as AiProvider)}
+              disabled={loading}
+            >
+              <option value="anthropic">Claude</option>
+              <option value="openai">ChatGPT</option>
+            </select>
+          </label>
+        )}
         <button
           onClick={generate}
           disabled={loading}
@@ -129,6 +138,7 @@ export function GenerateButton({ applicationId, hasDocuments }: Props) {
       )}
 
       {message && <p className="text-xs text-red-600">{message}</p>}
+      {generateHint && !loading && <p className="text-xs text-amber-600">{generateHint}</p>}
     </div>
   );
 }

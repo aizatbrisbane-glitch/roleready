@@ -10,10 +10,15 @@ export function AddJobForm() {
   const router = useRouter();
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fetchingDesc, setFetchingDesc] = useState(false);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const hasUrl = String(formData.get("job_url") ?? "").trim().length > 0;
+    const hasDesc = String(formData.get("description") ?? "").trim().length >= 300;
     setLoading(true);
+    setFetchingDesc(hasUrl && !hasDesc);
     setMessage("");
 
     const formData = new FormData(event.currentTarget);
@@ -29,7 +34,7 @@ export function AddJobForm() {
       return;
     }
 
-    router.push(`/applications/${payload.applicationId}`);
+    router.push(`/applications/${payload.applicationId}?generate=true`);
   }
 
   return (
@@ -72,7 +77,7 @@ export function AddJobForm() {
       </label>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <button className="btn-primary min-h-11 w-full sm:w-auto" disabled={loading} type="submit">
-          {loading ? "Adding..." : "Add Job"}
+          {fetchingDesc ? "Fetching job description…" : loading ? "Adding…" : "Add Job"}
         </button>
         {message ? <p className="text-sm text-red-700">{message}</p> : null}
       </div>

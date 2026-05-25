@@ -301,7 +301,7 @@ export function DashboardTabs({
         return;
       }
       setImported((prev) => ({ ...prev, [job.id]: payload.applicationId }));
-      router.push(`/applications/${payload.applicationId}`);
+      router.push(`/applications/${payload.applicationId}?generate=true`);
       router.refresh();
     } catch {
       setMatchError("Couldn't start that application.");

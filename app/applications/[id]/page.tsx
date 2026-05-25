@@ -21,6 +21,7 @@ import type { ApplicationStatus, ApplicationWithJob } from "@/types/database";
 
 type Props = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ generate?: string }>;
 };
 
 function scoreTone(score: number | null) {
@@ -79,8 +80,9 @@ function statusGuidance(status: ApplicationStatus, hasDocuments: boolean) {
   };
 }
 
-export default async function ApplicationDetailPage({ params }: Props) {
+export default async function ApplicationDetailPage({ params, searchParams }: Props) {
   const { id } = await params;
+  const { generate } = await searchParams;
   const configured = isSupabaseConfigured();
   const supabase = await createSupabaseServerClient();
   const {
@@ -103,7 +105,10 @@ export default async function ApplicationDetailPage({ params }: Props) {
     );
   }
 
-  const { data } = await supabase.from("applications").select("*, jobs(*)").eq("id", id).eq("user_id", user.id).maybeSingle();
+  const [{ data }, { data: masterResume }] = await Promise.all([
+    supabase.from("applications").select("*, jobs(*)").eq("id", id).eq("user_id", user.id).maybeSingle(),
+    supabase.from("master_resumes").select("id").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+  ]);
   const application = data as ApplicationWithJob | null;
 
   if (!application || !application.jobs) {
@@ -112,6 +117,20 @@ export default async function ApplicationDetailPage({ params }: Props) {
 
   const job = application.jobs;
   const hasDocuments = Boolean(application.tailored_resume && application.cover_letter);
+  const autoGenerate =
+    generate === "true" &&
+    !hasDocuments &&
+    !!masterResume &&
+    job.description.trim().length > 0;
+
+  const generateHint =
+    generate === "true" && !hasDocuments && !autoGenerate
+      ? !masterResume
+        ? "Set up your master resume at Documents before generating."
+        : job.description.trim().length === 0
+        ? "Paste the full job description below, then click Generate."
+        : null
+      : null;
   const missingKeywords = application.missing_keywords ?? [];
   const jobDescriptionLooksShort = job.description.trim().length < 800;
   const status = (application.status ?? "New") as ApplicationStatus;
@@ -216,7 +235,7 @@ export default async function ApplicationDetailPage({ params }: Props) {
                       </a>
                     </>
                   )}
-                  <GenerateButton applicationId={application.id} hasDocuments={hasDocuments} />
+                  <GenerateButton applicationId={application.id} hasDocuments={hasDocuments} autoGenerate={autoGenerate} generateHint={generateHint} />
                 </div>
               </div>
             </section>
