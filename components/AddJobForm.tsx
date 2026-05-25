@@ -21,7 +21,6 @@ export function AddJobForm() {
     setFetchingDesc(hasUrl && !hasDesc);
     setMessage("");
 
-    const formData = new FormData(event.currentTarget);
     const response = await fetch("/api/jobs", {
       method: "POST",
       body: formData
