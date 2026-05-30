@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, Banknote, BookOpen, CheckCircle2, Download, Lightbulb, MapPin, Sparkles, TrendingUp, User } from "lucide-react";
+import { AlertTriangle, Banknote, BookOpen, CheckCircle2, ChevronDown, Download, Lightbulb, MapPin, Sparkles, TrendingUp, User } from "lucide-react";
 import { CoverLetterRenderer, ResumeRenderer } from "@/components/ResumeRenderer";
 
 type AnalysisSection = { heading: string; bullets: string[]; body: string };
@@ -105,6 +105,7 @@ export function ApplicationDetailTabs({
   initialNotes,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("notes");
+  const [openAccordion, setOpenAccordion] = useState<Tab | null>("notes");
 
   const [roleSummary, setRoleSummary] = useState(initialRoleSummary ?? "");
   const [hiringManager, setHiringManager] = useState(initialHiringManager ?? "");
@@ -168,287 +169,262 @@ export function ApplicationDetailTabs({
     }
   }
 
-  return (
-    <div className="overflow-hidden rounded-[1.6rem] border border-slate-100 bg-white shadow-sm">
-      {/* Tab bar */}
-      <div className="flex gap-1 overflow-x-auto border-b border-slate-100 bg-white px-4 py-3 scrollbar-none">
-        {TAB_LABELS.map(({ id, label }) => (
-          <button
-            key={id}
-            onClick={() => setActiveTab(id)}
-            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition ${
-              activeTab === id
-                ? "bg-[#2200ff] text-white shadow-sm"
-                : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Key Notes tab */}
-      {activeTab === "notes" && (
-        <div className="space-y-4 p-5 md:p-6">
-
-          {/* Role Summary — full width, no icon */}
-          <div>
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-400">Role Summary</p>
-              <button
-                type="button"
-                onClick={summariseRole}
-                disabled={summarising}
-                className="inline-flex items-center gap-1.5 rounded-full bg-[#ece8ff] px-3 py-1 text-xs font-semibold text-[#2200ff] transition hover:bg-[#d4ccff] disabled:opacity-60"
-              >
-                <Sparkles className="h-3 w-3" />
-                {summarising ? "Summarising…" : "Summarise with AI"}
-              </button>
-            </div>
-            <textarea
-              ref={roleSummaryRef}
-              value={roleSummary}
-              onChange={(e) => setRoleSummary(e.target.value)}
-              rows={3}
-              className="field mt-2 resize-none overflow-hidden"
-              placeholder="Brief summary of the role..."
-            />
-            {summariseError && <p className="mt-1 text-xs text-rose-600">{summariseError}</p>}
+  function renderContent(tab: Tab) {
+    if (tab === "notes") return (
+      <div className="space-y-4 p-5 md:p-6">
+        {/* Role Summary */}
+        <div>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-400">Role Summary</p>
+            <button
+              type="button"
+              onClick={summariseRole}
+              disabled={summarising}
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#ece8ff] px-3 py-1 text-xs font-semibold text-[#2200ff] transition hover:bg-[#d4ccff] disabled:opacity-60"
+            >
+              <Sparkles className="h-3 w-3" />
+              {summarising ? "Summarising…" : "Summarise with AI"}
+            </button>
           </div>
+          <textarea
+            ref={roleSummaryRef}
+            value={roleSummary}
+            onChange={(e) => setRoleSummary(e.target.value)}
+            rows={3}
+            className="field mt-2 resize-none overflow-hidden"
+            placeholder="Brief summary of the role..."
+          />
+          {summariseError && <p className="mt-1 text-xs text-rose-600">{summariseError}</p>}
+        </div>
 
-          {/* Hiring Manager + Work Location */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="flex items-start gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#ece8ff] text-[#2200ff]">
-                <User className="h-4 w-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-400">Hiring Manager / Recruiter</p>
-                <input
-                  type="text"
-                  value={hiringManager}
-                  onChange={(e) => setHiringManager(e.target.value)}
-                  className="field mt-2"
-                  placeholder="Name, title, or contact details..."
-                />
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#ece8ff] text-[#2200ff]">
-                <MapPin className="h-4 w-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-400">Work Location</p>
-                <select
-                  value={locationType}
-                  onChange={(e) => setLocationType(e.target.value)}
-                  className="field mt-2"
-                >
-                  {LOCATION_TYPES.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Salary + Helpful Info */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="flex items-start gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#ece8ff] text-[#2200ff]">
-                <Banknote className="h-4 w-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-400">Salary Range</p>
-                <input
-                  type="text"
-                  value={salary}
-                  onChange={(e) => setSalary(e.target.value)}
-                  placeholder="e.g. $120,000 – $140,000"
-                  className="field mt-2"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-500">
-                <Lightbulb className="h-4 w-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.13em] text-amber-500">Helpful Information</p>
-                <textarea
-                  value={otherNotes}
-                  onChange={(e) => setOtherNotes(e.target.value)}
-                  rows={3}
-                  className="field mt-2 resize-none"
-                  placeholder="Perks, deadlines, specific requirements..."
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Your Notes — full width */}
-          <div className="flex items-start gap-3 rounded-2xl border border-slate-100 p-4">
+        {/* Hiring Manager + Work Location */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="flex items-start gap-3">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#ece8ff] text-[#2200ff]">
-              <BookOpen className="h-4 w-4" />
+              <User className="h-4 w-4" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-400">Your Notes</p>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={4}
-                className="field mt-2 resize-none"
-                placeholder="Any personal notes about this application..."
+              <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-400">Hiring Manager / Recruiter</p>
+              <input
+                type="text"
+                value={hiringManager}
+                onChange={(e) => setHiringManager(e.target.value)}
+                className="field mt-2"
+                placeholder="Name, title, or contact details..."
               />
-              <div className="mt-3 flex items-center gap-3">
-                <button
-                  onClick={saveKeyNotes}
-                  disabled={saving}
-                  className="btn-primary"
-                >
-                  {saving ? "Saving..." : "Save notes"}
-                </button>
-                {saveMessage && (
-                  <span className="text-sm text-slate-500">{saveMessage}</span>
-                )}
-              </div>
             </div>
           </div>
-
-        </div>
-      )}
-
-      {/* Match Analysis tab */}
-      {activeTab === "analysis" && (
-        <div className="p-5 md:p-6">
-          {(() => {
-            if (!matchExplanation) {
-              return (
-                <p className="text-sm italic text-slate-400">
-                  Generate the application to see how your resume maps to this role.
-                </p>
-              );
-            }
-            const sections = parseMatchExplanation(matchExplanation);
-            if (!sections) {
-              return (
-                <p className="whitespace-pre-wrap text-sm leading-7 text-slate-600">{matchExplanation}</p>
-              );
-            }
-            return (
-              <div className="space-y-4">
-                {sections.map((section) => (
-                  <div
-                    key={section.heading}
-                    className={`rounded-2xl border px-5 py-4 ${sectionColors(section.heading)}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <SectionIcon heading={section.heading} />
-                      <h3 className="text-sm font-semibold text-slate-900">{section.heading}</h3>
-                    </div>
-                    {section.body && (
-                      <p className="mt-2 text-sm leading-6 text-slate-600"><InlineMarkdown text={section.body} /></p>
-                    )}
-                    {section.bullets.length > 0 && (
-                      <ul className="mt-3 space-y-2">
-                        {section.bullets.map((b, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm leading-6 text-slate-600">
-                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-40" />
-                            <InlineMarkdown text={b} />
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ))}
-              </div>
-            );
-          })()}
-        </div>
-      )}
-
-      {/* Tailored Resume tab */}
-      {activeTab === "resume" && (
-        <div>
-          {tailoredResume ? (
-            <>
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-3">
-                <span className="text-sm text-slate-500">Tailored resume</span>
-                <div className="flex gap-2">
-                  <a
-                    href={`/api/applications/${applicationId}/export?type=resume&format=docx`}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-[#2200ff] px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[#1a00cc]"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    DOCX
-                  </a>
-                  <a
-                    href={`/api/applications/${applicationId}/export?type=resume&format=pdf`}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    PDF
-                  </a>
-                </div>
-              </div>
-              <div className="max-h-[680px] overflow-auto rounded-b-[1.6rem]">
-                <ResumeRenderer content={tailoredResume} />
-              </div>
-            </>
-          ) : (
-            <p className="px-5 py-8 text-sm italic text-slate-400">
-              Generate the application to see your tailored resume here.
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Cover Letter tab */}
-      {activeTab === "cover" && (
-        <div>
-          {coverLetter ? (
-            <>
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-3">
-                <span className="text-sm text-slate-500">Cover letter</span>
-                <div className="flex gap-2">
-                  <a
-                    href={`/api/applications/${applicationId}/export?type=cover&format=docx`}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-[#2200ff] px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[#1a00cc]"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    DOCX
-                  </a>
-                  <a
-                    href={`/api/applications/${applicationId}/export?type=cover&format=pdf`}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    PDF
-                  </a>
-                </div>
-              </div>
-              <div className="max-h-[680px] overflow-auto rounded-b-[1.6rem]">
-                <CoverLetterRenderer content={coverLetter} />
-              </div>
-            </>
-          ) : (
-            <p className="px-5 py-8 text-sm italic text-slate-400">
-              Generate the application to see your cover letter here.
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Job Description tab */}
-      {activeTab === "jd" && (
-        <div className="max-h-[680px] overflow-auto rounded-b-[1.6rem] bg-slate-50 px-4 py-6 md:px-8 md:py-8">
-          <div className="mx-auto w-full max-w-[794px] bg-white px-10 py-10 shadow-[0_2px_16px_rgba(0,0,0,0.10)] md:px-16 md:py-14">
-            <p className="whitespace-pre-wrap text-sm leading-7 text-slate-700">{jobDescription}</p>
+          <div className="flex items-start gap-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#ece8ff] text-[#2200ff]">
+              <MapPin className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-400">Work Location</p>
+              <select value={locationType} onChange={(e) => setLocationType(e.target.value)} className="field mt-2">
+                {LOCATION_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
           </div>
         </div>
-      )}
+
+        {/* Salary + Helpful Info */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="flex items-start gap-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#ece8ff] text-[#2200ff]">
+              <Banknote className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-400">Salary Range</p>
+              <input
+                type="text"
+                value={salary}
+                onChange={(e) => setSalary(e.target.value)}
+                placeholder="e.g. $120,000 – $140,000"
+                className="field mt-2"
+              />
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-500">
+              <Lightbulb className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.13em] text-amber-500">Helpful Information</p>
+              <textarea
+                value={otherNotes}
+                onChange={(e) => setOtherNotes(e.target.value)}
+                rows={3}
+                className="field mt-2 resize-none"
+                placeholder="Perks, deadlines, specific requirements..."
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Your Notes */}
+        <div className="flex items-start gap-3 rounded-2xl border border-slate-100 p-4">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#ece8ff] text-[#2200ff]">
+            <BookOpen className="h-4 w-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-400">Your Notes</p>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={4}
+              className="field mt-2 resize-none"
+              placeholder="Any personal notes about this application..."
+            />
+            <div className="mt-3 flex items-center gap-3">
+              <button onClick={saveKeyNotes} disabled={saving} className="btn-primary">
+                {saving ? "Saving..." : "Save notes"}
+              </button>
+              {saveMessage && <span className="text-sm text-slate-500">{saveMessage}</span>}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+
+    if (tab === "analysis") return (
+      <div className="p-5 md:p-6">
+        {!matchExplanation ? (
+          <p className="text-sm italic text-slate-400">Generate the application to see how your resume maps to this role.</p>
+        ) : (() => {
+          const sections = parseMatchExplanation(matchExplanation);
+          if (!sections) return <p className="whitespace-pre-wrap text-sm leading-7 text-slate-600">{matchExplanation}</p>;
+          return (
+            <div className="space-y-4">
+              {sections.map((section) => (
+                <div key={section.heading} className={`rounded-2xl border px-5 py-4 ${sectionColors(section.heading)}`}>
+                  <div className="flex items-center gap-2">
+                    <SectionIcon heading={section.heading} />
+                    <h3 className="text-sm font-semibold text-slate-900">{section.heading}</h3>
+                  </div>
+                  {section.body && <p className="mt-2 text-sm leading-6 text-slate-600"><InlineMarkdown text={section.body} /></p>}
+                  {section.bullets.length > 0 && (
+                    <ul className="mt-3 space-y-2">
+                      {section.bullets.map((b, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm leading-6 text-slate-600">
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-40" />
+                          <InlineMarkdown text={b} />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+      </div>
+    );
+
+    if (tab === "resume") return (
+      <div>
+        {tailoredResume ? (
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-3">
+              <span className="text-sm text-slate-500">Tailored resume</span>
+              <div className="flex gap-2">
+                <a href={`/api/applications/${applicationId}/export?type=resume&format=docx`} className="inline-flex items-center gap-1.5 rounded-full bg-[#2200ff] px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[#1a00cc]">
+                  <Download className="h-3.5 w-3.5" /> DOCX
+                </a>
+                <a href={`/api/applications/${applicationId}/export?type=resume&format=pdf`} className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50">
+                  <Download className="h-3.5 w-3.5" /> PDF
+                </a>
+              </div>
+            </div>
+            <div className="max-h-[680px] overflow-auto rounded-b-[1.6rem]">
+              <ResumeRenderer content={tailoredResume} />
+            </div>
+          </>
+        ) : (
+          <p className="px-5 py-8 text-sm italic text-slate-400">Generate the application to see your tailored resume here.</p>
+        )}
+      </div>
+    );
+
+    if (tab === "cover") return (
+      <div>
+        {coverLetter ? (
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-3">
+              <span className="text-sm text-slate-500">Cover letter</span>
+              <div className="flex gap-2">
+                <a href={`/api/applications/${applicationId}/export?type=cover&format=docx`} className="inline-flex items-center gap-1.5 rounded-full bg-[#2200ff] px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[#1a00cc]">
+                  <Download className="h-3.5 w-3.5" /> DOCX
+                </a>
+                <a href={`/api/applications/${applicationId}/export?type=cover&format=pdf`} className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50">
+                  <Download className="h-3.5 w-3.5" /> PDF
+                </a>
+              </div>
+            </div>
+            <div className="max-h-[680px] overflow-auto rounded-b-[1.6rem]">
+              <CoverLetterRenderer content={coverLetter} />
+            </div>
+          </>
+        ) : (
+          <p className="px-5 py-8 text-sm italic text-slate-400">Generate the application to see your cover letter here.</p>
+        )}
+      </div>
+    );
+
+    if (tab === "jd") return (
+      <div className="max-h-[680px] overflow-auto rounded-b-[1.6rem] bg-slate-50 px-4 py-6 md:px-8 md:py-8">
+        <div className="mx-auto w-full max-w-[794px] bg-white px-10 py-10 shadow-[0_2px_16px_rgba(0,0,0,0.10)] md:px-16 md:py-14">
+          <p className="whitespace-pre-wrap text-sm leading-7 text-slate-700">{jobDescription}</p>
+        </div>
+      </div>
+    );
+
+    return null;
+  }
+
+  return (
+    <div className="overflow-hidden rounded-[1.6rem] border border-slate-100 bg-white shadow-sm">
+
+      {/* ── Mobile accordion (hidden md+) ── */}
+      <div className="divide-y divide-slate-100 md:hidden">
+        {TAB_LABELS.map(({ id, label }) => {
+          const isOpen = openAccordion === id;
+          return (
+            <div key={id}>
+              <button
+                className={`flex w-full items-center justify-between px-5 py-4 text-left transition ${isOpen ? "bg-[#ece8ff]" : "hover:bg-slate-50"}`}
+                onClick={() => setOpenAccordion(isOpen ? null : id)}
+              >
+                <span className={`text-sm font-semibold ${isOpen ? "text-[#2200ff]" : "text-slate-900"}`}>{label}</span>
+                <ChevronDown className={`h-4 w-4 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180 text-[#2200ff]" : "text-slate-400"}`} />
+              </button>
+              {isOpen && (
+                <div className="border-t border-slate-100">
+                  {renderContent(id)}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── Desktop tabs (hidden below md) ── */}
+      <div className="hidden md:block">
+        <div className="flex gap-1 overflow-x-auto border-b border-slate-100 bg-white px-4 py-3 scrollbar-none">
+          {TAB_LABELS.map(({ id, label }) => (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+                activeTab === id ? "bg-[#2200ff] text-white shadow-sm" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {renderContent(activeTab)}
+      </div>
+
     </div>
   );
 }
