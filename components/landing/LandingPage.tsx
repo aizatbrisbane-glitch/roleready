@@ -116,7 +116,7 @@ export function LandingPage() {
                 <a href="#how-it-works" className="transition hover:text-[#2200ff]">How it works</a>
                 <a href="#features"     className="transition hover:text-[#2200ff]">Features</a>
                 <Link href="/pricing"   className="transition hover:text-[#2200ff]">Pricing</Link>
-                <a href="#blog"         className="transition hover:text-[#2200ff]">Blog</a>
+                <Link href="/blog"      className="transition hover:text-[#2200ff]">Blog</Link>
               </nav>
 
               <div className="flex items-center gap-2 sm:gap-3">
