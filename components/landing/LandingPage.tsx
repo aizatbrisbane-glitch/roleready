@@ -101,58 +101,60 @@ export function LandingPage() {
         .applyhq-float-3  { animation: applyhq-float 7s ease-in-out infinite 1.6s; }
       `}</style>
 
-      {/* ── Header ── */}
-      <header className="mx-auto flex max-w-7xl items-center justify-between px-5 py-6 sm:px-8 lg:px-10">
-        <Link href="/" className="inline-flex items-center">
-          <img src="/brand/applyhq-logo-indigo.svg" alt="ApplyHQ" className="h-12 w-auto sm:h-14" />
-        </Link>
-
-        <nav className="hidden items-center gap-9 text-sm font-medium text-slate-600 md:flex">
-          <a href="#how-it-works" className="transition hover:text-[#2200ff]">How it works</a>
-          <a href="#features"     className="transition hover:text-[#2200ff]">Features</a>
-          <a href="#pricing"      className="transition hover:text-[#2200ff]">Pricing</a>
-          <a href="#blog"         className="transition hover:text-[#2200ff]">Blog</a>
-        </nav>
-
-        <div className="flex items-center gap-2 sm:gap-3">
-          <Link
-            href="/login"
-            className="inline-flex min-h-10 items-center justify-center rounded-full px-4 text-sm font-semibold text-slate-600 transition hover:text-[#2200ff]"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/login"
-            className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#2200ff] px-4 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(34,0,255,0.3)] transition hover:-translate-y-0.5 hover:bg-[#1a00cc] sm:min-h-11 sm:px-6"
-          >
-            <span className="sm:hidden">Start free</span>
-            <span className="hidden sm:inline">Get started free</span>
-          </Link>
-        </div>
-      </header>
-
       <main>
 
-        {/* ── Hero ── */}
-        <section className="applyhq-fade-up relative overflow-hidden" style={{ minHeight: 680, background: "#f5f3f0" }}>
+        {/* ── Hero (header lives inside so nav overlays the image) ── */}
+        <section className="applyhq-fade-up relative overflow-hidden" style={{ minHeight: 720, background: "#f5f3f0" }}>
 
-          {/* Photo — right 60%, no gradient fade, subject fills the panel */}
-          <div className="pointer-events-none absolute bottom-0 right-0 top-0 hidden w-[60%] md:block">
+          {/* Nav overlay — sits on top of the photo background */}
+          <header className="absolute inset-x-0 top-0 z-20">
+            <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-6 sm:px-8 lg:px-10">
+              <Link href="/" className="inline-flex items-center">
+                <img src="/brand/applyhq-logo-indigo.svg" alt="ApplyHQ" className="h-12 w-auto sm:h-14" />
+              </Link>
+
+              <nav className="hidden items-center gap-9 text-sm font-medium text-slate-700 md:flex">
+                <a href="#how-it-works" className="transition hover:text-[#2200ff]">How it works</a>
+                <a href="#features"     className="transition hover:text-[#2200ff]">Features</a>
+                <a href="#pricing"      className="transition hover:text-[#2200ff]">Pricing</a>
+                <a href="#blog"         className="transition hover:text-[#2200ff]">Blog</a>
+              </nav>
+
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Link
+                  href="/login"
+                  className="inline-flex min-h-10 items-center justify-center rounded-full px-4 text-sm font-semibold text-slate-700 transition hover:text-[#2200ff]"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/login"
+                  className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#2200ff] px-4 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(34,0,255,0.3)] transition hover:-translate-y-0.5 hover:bg-[#1a00cc] sm:min-h-11 sm:px-6"
+                >
+                  <span className="sm:hidden">Start free</span>
+                  <span className="hidden sm:inline">Get started free</span>
+                </Link>
+              </div>
+            </div>
+          </header>
+
+          {/* Photo — right 63%, narrow blend so lady's arm is close to the text */}
+          <div className="pointer-events-none absolute bottom-0 right-0 top-0 hidden w-[63%] md:block">
             <img
               src="/landing/hero-job-seeker.png"
               alt=""
               className="absolute inset-0 h-full w-full object-cover object-top"
               onError={(e) => { e.currentTarget.style.display = "none"; }}
             />
-            {/* Soft left blend into the warm-gray background */}
-            <div className="absolute inset-y-0 left-0 w-[30%] bg-gradient-to-r from-[#f5f3f0] to-transparent" />
+            {/* Narrow left blend — keeps the lady close to the callout */}
+            <div className="absolute inset-y-0 left-0 w-[18%] bg-gradient-to-r from-[#f5f3f0] to-transparent" />
             {/* Bottom fade */}
             <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#f5f3f0] to-transparent" />
           </div>
 
-          {/* Left content */}
-          <div className="relative z-10 mx-auto max-w-7xl px-5 pb-24 pt-14 sm:px-8 lg:px-10 lg:pt-20 lg:pb-32">
-            <div className="max-w-[500px]">
+          {/* Left content — top padding clears the overlaid nav */}
+          <div className="relative z-10 mx-auto max-w-7xl px-5 pb-24 pt-32 sm:px-8 lg:px-10 lg:pt-36 lg:pb-32">
+            <div className="max-w-[460px]">
 
               {/* Headline */}
               <h1 className="text-6xl font-black leading-[1.0] tracking-tight text-slate-900 sm:text-7xl lg:text-8xl">
@@ -161,9 +163,8 @@ export function LandingPage() {
               </h1>
 
               {/* Subheading */}
-              <p className="mt-6 max-w-md text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
-                Track applications. Tailor every submission.<br className="hidden sm:block" />
-                Prepare for interviews. Stay organised and get more offers.
+              <p className="mt-6 max-w-sm text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
+                Track applications. Tailor every submission. Prepare for interviews. Stay organised and get more offers.
               </p>
 
               {/* CTA buttons */}
@@ -196,10 +197,10 @@ export function LandingPage() {
             </div>
           </div>
 
-          {/* Floating cards — matching the reference image positions */}
+          {/* Floating cards — spread to avoid overlap */}
 
-          {/* Card: Application Sent — top-centre (woman's upper-left shoulder) */}
-          <div className="applyhq-float absolute hidden w-52 rounded-2xl bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.13)] md:block" style={{ top: "14%", left: "42%" }}>
+          {/* Card: Application Sent — mid-upper, left of photo (woman's shoulder area) */}
+          <div className="applyhq-float absolute hidden w-52 rounded-2xl bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.13)] md:block" style={{ top: "30%", left: "40%" }}>
             <div className="flex items-center gap-2.5">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50">
                 <CheckCircle2 className="h-5 w-5 text-emerald-500" />
@@ -210,8 +211,8 @@ export function LandingPage() {
             <p className="mt-0.5 text-xs text-slate-400">2 days ago</p>
           </div>
 
-          {/* Card: Interview Booked — top-right */}
-          <div className="applyhq-float-2 absolute right-6 hidden w-60 rounded-2xl bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.13)] md:block lg:right-10" style={{ top: "12%" }}>
+          {/* Card: Interview Booked — top-right corner */}
+          <div className="applyhq-float-2 absolute right-6 hidden w-60 rounded-2xl bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.13)] md:block lg:right-10" style={{ top: "8%" }}>
             <div className="flex items-center gap-2.5">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#ece8ff]">
                 <Calendar className="h-5 w-5 text-[#2200ff]" />
@@ -225,8 +226,8 @@ export function LandingPage() {
             </a>
           </div>
 
-          {/* Card: Offer Received — bottom-right */}
-          <div className="applyhq-float-3 absolute right-6 hidden w-52 rounded-2xl bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.13)] md:block lg:right-10" style={{ bottom: "18%" }}>
+          {/* Card: Offer Received — bottom-right corner */}
+          <div className="applyhq-float-3 absolute right-6 hidden w-52 rounded-2xl bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.13)] md:block lg:right-10" style={{ bottom: "12%" }}>
             <div className="flex items-center gap-2.5">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-50">
                 <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
