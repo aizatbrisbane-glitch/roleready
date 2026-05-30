@@ -107,7 +107,7 @@ export function LandingPage() {
 
           {/* Nav overlay — sits on top of the photo background */}
           <header className="absolute inset-x-0 top-0 z-20">
-            <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-6 sm:px-8 lg:px-10">
+            <div className="flex items-center justify-between px-8 py-6 sm:px-12 lg:px-16">
               <Link href="/" className="inline-flex items-center">
                 <img src="/brand/applyhq-logo-indigo.svg" alt="ApplyHQ" className="h-12 w-auto sm:h-14" />
               </Link>
@@ -152,7 +152,7 @@ export function LandingPage() {
           </div>
 
           {/* Left content — top padding clears the overlaid nav */}
-          <div className="relative z-10 mx-auto max-w-7xl px-5 pb-24 pt-32 sm:px-8 lg:px-10 lg:pt-36 lg:pb-32">
+          <div className="relative z-10 px-8 pb-24 pt-32 sm:px-12 lg:px-16 lg:pt-36 lg:pb-32">
             <div className="max-w-[460px]">
 
               {/* Headline */}
