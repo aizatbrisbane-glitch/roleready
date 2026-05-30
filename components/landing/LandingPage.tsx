@@ -103,7 +103,7 @@ export function LandingPage() {
       <main>
 
         {/* ── Hero (header lives inside so nav overlays the image) ── */}
-        <section className="applyhq-fade-up relative overflow-hidden" style={{ minHeight: 720, background: "#f5f3f0" }}>
+        <section className="applyhq-fade-up relative overflow-hidden md:min-h-[720px]" style={{ background: "#f5f3f0" }}>
 
           {/* Nav overlay — sits on top of the photo background */}
           <header className="absolute inset-x-0 top-0 z-20">
@@ -160,6 +160,16 @@ export function LandingPage() {
                 Land your<br />next role
                 <span className="block text-[#2200ff]">faster.</span>
               </h1>
+
+              {/* Mobile hero photo — shown below headline, hidden on desktop */}
+              <div className="mt-6 block overflow-hidden rounded-3xl shadow-lg md:hidden">
+                <img
+                  src="/landing/hero-job-seeker.png"
+                  alt=""
+                  className="h-72 w-full object-cover object-top"
+                  onError={(e) => { e.currentTarget.style.display = "none"; }}
+                />
+              </div>
 
               {/* Subheading */}
               <p className="mt-6 max-w-sm text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
