@@ -4,7 +4,6 @@ import Link from "next/link";
 import {
   ArrowRight,
   Briefcase,
-  Calendar,
   CheckCircle2,
   Download,
   FileText,
@@ -21,28 +20,28 @@ const steps = [
   {
     icon: UploadCloud,
     title: "Upload your master resume",
-    body: "Add your best version once.",
+    body: "Once. That's it. We store it, you forget about it.",
     color: "bg-[#ece8ff] text-[#2200ff]",
     badge: "bg-[#d4ccff] text-[#1a00cc]",
   },
   {
     icon: Search,
     title: "Find or paste a job ad",
-    body: "Use a role you love.",
+    body: "Drop in a URL or paste the ad. Job done.",
     color: "bg-rose-50 text-rose-600",
     badge: "bg-rose-100 text-rose-800",
   },
   {
     icon: Sparkles,
     title: "AI tailors your documents",
-    body: "Resume and cover letter, matched.",
+    body: "Your resume and cover letter, rewritten to match — in seconds.",
     color: "bg-violet-50 text-violet-600",
     badge: "bg-violet-100 text-violet-800",
   },
   {
     icon: Download,
     title: "Download & apply",
-    body: "Export, send, and track.",
+    body: "Export, hit send, and track every application in one place.",
     color: "bg-amber-50 text-amber-700",
     badge: "bg-amber-100 text-amber-900",
   },
@@ -164,7 +163,7 @@ export function LandingPage() {
 
               {/* Subheading */}
               <p className="mt-6 max-w-sm text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
-                Track applications. Tailor every submission. Prepare for interviews. Stay organised and get more offers.
+                Stop the spray-and-pray. ApplyHQ tailors every application to the role — more interviews, less chaos.
               </p>
 
               {/* CTA buttons */}
@@ -197,46 +196,6 @@ export function LandingPage() {
             </div>
           </div>
 
-          {/* Floating cards — spread to avoid overlap */}
-
-          {/* Card: Application Sent — mid-upper, left of photo (woman's shoulder area) */}
-          <div className="applyhq-float absolute hidden w-52 rounded-2xl bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.13)] md:block" style={{ top: "30%", left: "40%" }}>
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50">
-                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-              </span>
-              <span className="text-sm font-bold text-slate-900">Application Sent</span>
-            </div>
-            <p className="mt-2 text-xs font-medium text-slate-600">Acme Corp</p>
-            <p className="mt-0.5 text-xs text-slate-400">2 days ago</p>
-          </div>
-
-          {/* Card: Interview Booked — top-right corner */}
-          <div className="applyhq-float-2 absolute right-6 hidden w-60 rounded-2xl bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.13)] md:block lg:right-10" style={{ top: "8%" }}>
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#ece8ff]">
-                <Calendar className="h-5 w-5 text-[#2200ff]" />
-              </span>
-              <span className="text-sm font-bold text-slate-900">Interview Booked</span>
-            </div>
-            <p className="mt-2 text-xs text-slate-500">Tue, 14 May · 10:00 AM</p>
-            <p className="mt-0.5 text-xs text-slate-500">Product Manager</p>
-            <a href="/login" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#2200ff] hover:underline">
-              View details <ArrowRight className="h-3 w-3" />
-            </a>
-          </div>
-
-          {/* Card: Offer Received — bottom-right corner */}
-          <div className="applyhq-float-3 absolute right-6 hidden w-52 rounded-2xl bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.13)] md:block lg:right-10" style={{ bottom: "12%" }}>
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-50">
-                <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
-              </span>
-              <span className="text-sm font-bold text-slate-900">Offer Received!</span>
-            </div>
-            <p className="mt-2 text-xs font-medium text-slate-600">Senior Analyst</p>
-            <p className="mt-0.5 text-xs text-slate-400">3 days ago</p>
-          </div>
 
         </section>
 
@@ -277,10 +236,10 @@ export function LandingPage() {
               <LimeSwoop />
             </div>
             <h2 className="mx-auto max-w-3xl text-center text-4xl font-black leading-tight tracking-tight text-slate-900 sm:text-5xl">
-              A calmer way to send stronger applications
+              Four steps. More interviews.
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-center text-lg leading-8 text-slate-600">
-              Bring your resume, choose a role, and let ApplyHQ help shape the next version with care.
+              Upload your resume once. We do the tailoring. You do the interviewing.
             </p>
             <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {steps.map(({ icon: Icon, title, body, color, badge }, index) => (
@@ -302,12 +261,17 @@ export function LandingPage() {
         {/* ── Electric blue CTA band ── */}
         <section className="applyhq-fade-up bg-[#2200ff] px-5 py-20 sm:px-8 lg:px-10">
           <div className="mx-auto max-w-4xl text-center">
-            <LimeSwoop className="mx-auto mb-6" />
+            {/* Emoji decorations — brand brief style */}
+            <div className="mb-6 flex items-center justify-center gap-6">
+              <span className="inline-block -rotate-12 text-4xl" aria-hidden="true">🤞</span>
+              <LimeSwoop />
+              <span className="inline-block rotate-12 text-4xl" aria-hidden="true">⚡</span>
+            </div>
             <h2 className="text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl">
-              Ready to land your next role?
+              Stop applying. Start landing.
             </h2>
             <p className="mx-auto mt-5 max-w-xl text-lg leading-8 text-white/80">
-              Join thousands of job seekers who apply smarter, track better and get hired faster.
+              Smart job seekers use ApplyHQ to apply better, track everything, and actually hear back. Your turn.
             </p>
             <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
               <Link
@@ -327,10 +291,10 @@ export function LandingPage() {
             <div className="p-8 sm:p-12 lg:p-16">
               <h2 className="text-4xl font-black leading-tight tracking-tight text-slate-900 sm:text-5xl">
                 Apply smarter.
-                <span className="block text-[#2200ff]">Get better results.</span>
+                <span className="block text-[#2200ff]">Get the offer.</span>
               </h2>
               <p className="mt-6 max-w-md text-lg leading-8 text-slate-700">
-                Save time, stay organised and send stronger applications.
+                Free to start. No credit card. No excuses. Just more interviews.
               </p>
               <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
                 <Link
