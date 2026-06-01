@@ -13,71 +13,77 @@ const plans = [
   {
     name: "Free",
     price: "$0",
-    description: "",
+    description: "Try ApplyHQ and keep a lightweight view of your job search.",
     features: [
-      "3 application generations per month",
-      "Basic resume tailoring",
-      "Basic cover letter generation",
-      "Application tracker"
+      "3 applications per month",
+      "1 month credit validity",
+      "View-only dashboard access",
+      "Limited access to job matches"
     ],
     button: "Start Free",
     href: "/login"
   },
   {
-    name: "Career Accelerator",
-    price: "$19/month",
-    description: "For professionals actively applying for jobs.",
+    name: "7-Day Sprint",
+    price: "$9",
+    description: "For a short, focused burst of applications.",
     features: [
-      "Unlimited application generations",
-      "Resume tailoring",
-      "Cover letters",
-      "ATS optimisation",
-      "Daily job recommendations",
-      "Application tracking",
-      "PDF and DOCX downloads"
+      "12 applications",
+      "7 days credit validity",
+      "7 days dashboard access",
+      "Access to job matches",
+      "Resume and cover letter tailoring"
     ],
-    button: "Get Started",
+    button: "Start Sprint",
     href: "/login"
   },
   {
-    name: "Career Transition",
-    price: "$49 for 3 months",
+    name: "30-Day Focus",
+    price: "$19",
     badge: "Best Value",
-    description: "For active job seekers, career changers and professionals impacted by redundancy.",
+    description: "For active job seekers applying steadily across the month.",
     features: [
-      "Everything in Career Accelerator",
-      "Interview preparation",
-      "STAR answer builder",
-      "Mock interview practice",
-      "Company research brief",
-      "Offer review",
-      "Salary comparison",
-      "Negotiation preparation"
+      "50 applications",
+      "30 days credit validity",
+      "30 days dashboard access",
+      "Access to job matches",
+      "Resume and cover letter tailoring"
     ],
-    button: "Start Career Transition",
+    button: "Start 30-Day Focus",
     href: "/login",
     highlighted: true
   },
   {
+    name: "90-Day Partner",
+    price: "$49",
+    description: "For a serious career transition or longer job search.",
+    features: [
+      "150 applications",
+      "90 days credit validity",
+      "90 days dashboard access",
+      "Access to job matches",
+      "Resume and cover letter tailoring"
+    ],
+    button: "Start 90-Day Partner",
+    href: "/login"
+  },
+  {
     name: "Enterprise",
     price: "Contact Us",
-    description: "For organisations supporting employees through career transitions and redundancy programs.",
+    description: "For organisations supporting employees through redundancy and career transitions.",
     features: [
       "Bulk seat licensing",
-      "Employee transition support",
+      "90-day employee access",
       "Resume and cover letter tools",
+      "Application tracking",
+      "Job match access",
       "Interview preparation",
-      "Reporting and analytics"
+      "Basic reporting",
+      "Volume pricing available"
     ],
     button: "Contact Sales",
     href: "mailto:sales@applyhq.com"
   }
-];
-
-const payAsYouGo = [
-  { quantity: "10 Applications", price: "$5" },
-  { quantity: "30 Applications", price: "$12" },
-  { quantity: "100 Applications", price: "$30" }
 ];
 
 const faqs = [
@@ -87,15 +93,15 @@ const faqs = [
   },
   {
     question: "Can I cancel anytime?",
-    answer: "Yes. Subscription plans are designed to be flexible, so you can stop when your job search changes."
+    answer: "The paid plans are one-off passes rather than ongoing subscriptions, so there is no monthly subscription to cancel."
   },
   {
-    question: "How does the 3-month plan work?",
-    answer: "Career Transition gives you three months of access for one payment, so you have focused support across the most active part of your search."
+    question: "How do the application credits work?",
+    answer: "Each application credit lets you create a tailored application pack for a role. The pass length determines how long your credits and editable dashboard access remain active."
   },
   {
     question: "What happens after I get a job?",
-    answer: "You can cancel, switch to pay as you go, or keep ApplyHQ ready for future opportunities."
+    answer: "You can simply stop using your pass, or come back later and choose a new pass when your next search begins."
   }
 ];
 
@@ -149,13 +155,18 @@ export default async function PricingPage() {
             Choose the right support for your job search.
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
-            Start free, scale up when applications get serious, or choose focused transition support for the next three months.
+            Start free, then choose a focused application pass when you are ready to apply seriously.
           </p>
+          <div className="mx-auto mt-7 grid max-w-2xl gap-3 text-sm font-semibold text-slate-700 sm:grid-cols-3">
+            <div className="rounded-2xl bg-slate-50 px-4 py-3">7 days = 12 applications</div>
+            <div className="rounded-2xl bg-slate-50 px-4 py-3">30 days = 50 applications</div>
+            <div className="rounded-2xl bg-slate-50 px-4 py-3">90 days = 150 applications</div>
+          </div>
         </div>
       </section>
 
       <section className="px-5 py-14 sm:px-8 lg:px-10 lg:py-20">
-        <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-4">
+        <div className="mx-auto grid max-w-7xl gap-5 sm:grid-cols-2 xl:grid-cols-5">
           {plans.map((plan) => (
             <article
               key={plan.name}
@@ -207,26 +218,6 @@ export default async function PricingPage() {
               </div>
             </article>
           ))}
-        </div>
-      </section>
-
-      <section className="px-5 pb-14 sm:px-8 lg:px-10 lg:pb-20">
-        <div className="mx-auto max-w-5xl rounded-[1.75rem] border border-slate-100 bg-white p-6 shadow-sm sm:p-8">
-          <div className="grid gap-6 md:grid-cols-[0.9fr_1.1fr] md:items-center">
-            <div>
-              <h2 className="text-2xl font-black tracking-tight text-slate-900">Pay As You Go</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600">For users who don&apos;t want a subscription.</p>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-3">
-              {payAsYouGo.map((item) => (
-                <div key={item.quantity} className="rounded-2xl bg-slate-50 p-4">
-                  <p className="text-sm font-semibold text-slate-600">{item.quantity}</p>
-                  <p className="mt-1 text-2xl font-black text-[#2200ff]">{item.price}</p>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </section>
 

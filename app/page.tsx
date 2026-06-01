@@ -2,6 +2,7 @@ import { DashboardTabs } from "@/components/DashboardTabs";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { SetupNotice } from "@/components/SetupNotice";
+import { getAccessState, type AccessState } from "@/lib/entitlements";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ApplicationWithJob, CachedGrabbedJob } from "@/types/database";
@@ -29,14 +30,16 @@ export default async function DashboardPage() {
   let profileName: string | null = null;
   let profileLocation: string | null = null;
   let grabbedMatches: CachedGrabbedJob[] = [];
+  let accessState: AccessState | null = null;
 
   if (supabase && user) {
-    const [{ data }, { data: resume }, { data: coverLetter }, { data: profile }, { data: cachedMatches }] = await Promise.all([
+    const [{ data }, { data: resume }, { data: coverLetter }, { data: profile }, { data: cachedMatches }, access] = await Promise.all([
       supabase.from("applications").select("*, jobs(*)").eq("user_id", user.id).order("created_at", { ascending: false }),
       supabase.from("master_resumes").select("id, file_name").eq("user_id", user.id).limit(1).maybeSingle(),
       supabase.from("master_cover_letters").select("id, file_name").eq("user_id", user.id).limit(1).maybeSingle(),
       supabase.from("profiles").select("name, location").eq("id", user.id).maybeSingle(),
-      supabase.from("cached_grabbed_jobs").select("*").eq("user_id", user.id).order("match_score", { ascending: false }).limit(15)
+      supabase.from("cached_grabbed_jobs").select("*").eq("user_id", user.id).order("match_score", { ascending: false }).limit(15),
+      getAccessState(supabase, user.id)
     ]);
     applications = (data ?? []) as ApplicationWithJob[];
     resumeFileName = resume?.file_name ?? null;
@@ -44,6 +47,7 @@ export default async function DashboardPage() {
     profileName = profile?.name ?? user.user_metadata?.name ?? user.email ?? null;
     profileLocation = (profile as { location?: string } | null)?.location ?? null;
     grabbedMatches = (cachedMatches ?? []) as CachedGrabbedJob[];
+    accessState = access;
   }
 
   if (!configured) {
@@ -76,6 +80,7 @@ export default async function DashboardPage() {
         profileLocation={profileLocation}
         grabbedMatches={grabbedMatches}
         grabbedMatchesStale={isStaleGrabCache(grabbedMatches)}
+        accessState={accessState}
       />
     </main>
   );

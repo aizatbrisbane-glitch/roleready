@@ -1,7 +1,7 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type AiProvider = "openai" | "anthropic";
@@ -45,9 +45,13 @@ export function GenerateButton({ applicationId, hasDocuments, autoGenerate, gene
   const [provider, setProvider] = useState<AiProvider>("anthropic");
   const [message, setMessage] = useState("");
   const [progress, setProgress] = useState(0);
+  const generatingRef = useRef(false);
+  const autoGenerateStartedRef = useRef(false);
 
   useEffect(() => {
-    if (autoGenerate) generate();
+    if (!autoGenerate || autoGenerateStartedRef.current) return;
+    autoGenerateStartedRef.current = true;
+    generate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -63,6 +67,8 @@ export function GenerateButton({ applicationId, hasDocuments, autoGenerate, gene
   }, [loading]);
 
   async function generate() {
+    if (generatingRef.current) return;
+    generatingRef.current = true;
     setLoading(true);
     setMessage("");
     const controller = new AbortController();
@@ -90,6 +96,7 @@ export function GenerateButton({ applicationId, hasDocuments, autoGenerate, gene
       );
     } finally {
       window.clearTimeout(timeout);
+      generatingRef.current = false;
       setLoading(false);
     }
   }

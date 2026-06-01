@@ -23,6 +23,12 @@ type Props = {
   profileLocation?: string | null;
   grabbedMatches: CachedGrabbedJob[];
   grabbedMatchesStale: boolean;
+  accessState?: {
+    planLabel: string;
+    planType: string;
+    applicationsRemaining: number;
+    validUntil: string | null;
+  } | null;
 };
 
 const WORK_TYPE_OPTIONS = [
@@ -86,6 +92,11 @@ function getGreeting(): string {
   if (h < 12) return "Good morning";
   if (h < 17) return "Good afternoon";
   return "Good evening";
+}
+
+function formatAccessDate(value: string | null) {
+  if (!value) return null;
+  return new Intl.DateTimeFormat("en-AU", { day: "numeric", month: "short", year: "numeric" }).format(new Date(value));
 }
 
 function GrabbedMatchCard({
@@ -198,6 +209,7 @@ export function DashboardTabs({
   profileLocation,
   grabbedMatches,
   grabbedMatchesStale,
+  accessState,
 }: Props) {
   const router = useRouter();
   const name = firstName(userName);
@@ -332,6 +344,17 @@ export function DashboardTabs({
         <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-5xl">
           {getGreeting()}{name ? `, ${name}` : ""} 👋
         </h1>
+        {accessState ? (
+          <div className="mt-4 inline-flex flex-wrap items-center gap-2 rounded-2xl border border-slate-100 bg-white px-4 py-3 text-sm font-semibold text-slate-600 shadow-sm">
+            <span className={accessState.planType === "enterprise_90_day" ? "text-[#2200ff]" : "text-slate-700"}>
+              {accessState.planType === "enterprise_90_day" && accessState.validUntil
+                ? `Enterprise access active until ${formatAccessDate(accessState.validUntil)}`
+                : accessState.planLabel}
+            </span>
+            <span className="text-slate-300">|</span>
+            <span>{accessState.applicationsRemaining} applications remaining</span>
+          </div>
+        ) : null}
       </div>
 
       <div className="min-w-0 space-y-6 md:space-y-8">

@@ -2,6 +2,10 @@ export type ApplicationStatus = "New" | "Ready" | "Applied" | "Interview" | "Rej
 export type JobSource = "Manual" | "SEEK" | "LinkedIn" | "Adzuna" | "Other";
 export type GeneratedDocumentType = "tailored_resume" | "cover_letter";
 export type GeneratedDocumentFormat = "markdown" | "docx" | "pdf";
+export type OrganizationStatus = "active" | "inactive";
+export type OrganizationMemberRole = "owner" | "admin" | "employee";
+export type EntitlementPlanType = "free" | "sprint_7_day" | "focus_30_day" | "partner_90_day" | "enterprise_90_day";
+export type EntitlementStatus = "active" | "expired" | "revoked";
 
 export type Profile = {
   id: string;
@@ -72,6 +76,36 @@ export type CachedGrabbedJob = {
   search_query: string;
   source: string;
   fetched_at: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Organization = {
+  id: string;
+  name: string;
+  status: OrganizationStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+export type OrganizationMember = {
+  id: string;
+  organization_id: string;
+  user_id: string;
+  role: OrganizationMemberRole;
+  created_at: string;
+};
+
+export type Entitlement = {
+  id: string;
+  user_id: string;
+  organization_id: string | null;
+  plan_type: EntitlementPlanType;
+  application_limit: number;
+  applications_used: number;
+  valid_from: string;
+  valid_until: string;
+  status: EntitlementStatus;
   created_at: string;
   updated_at: string;
 };

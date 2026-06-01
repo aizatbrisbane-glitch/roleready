@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
+import { consumeGenerationCredit, generationLimitMessage, getAccessState } from "@/lib/entitlements";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const maxDuration = 120;
@@ -240,6 +241,13 @@ export async function POST(request: Request, { params }: Props) {
     return NextResponse.json({ error: "Add your master resume text before preparing an application." }, { status: 400 });
   }
 
+  const shouldConsumeCredit = !app.generated_at;
+  const access = await getAccessState(supabase, user.id);
+
+  if (shouldConsumeCredit && !access.canGenerate) {
+    return NextResponse.json({ error: generationLimitMessage(access) }, { status: 402 });
+  }
+
   const prompt = buildPrompt({
     profile: profile as Profile | null,
     masterResume: masterResume as MasterResume,
@@ -292,6 +300,13 @@ export async function POST(request: Request, { params }: Props) {
         content: generated.coverLetter
       }
     ]);
+
+    if (shouldConsumeCredit) {
+      const credit = await consumeGenerationCredit(supabase, access);
+      if (!credit.ok) {
+        return NextResponse.json({ error: credit.error ?? "Unable to record application credit usage." }, { status: 400 });
+      }
+    }
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "AI generation failed." }, { status: 500 });
   }
