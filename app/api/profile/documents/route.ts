@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { extractTextFromFile } from "@/lib/file-text";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+function unreadableFileMessage(fileName: string) {
+  return `I could not read text from ${fileName}. If this is a scanned PDF, upload a DOCX file or paste the text into the box below.`;
+}
+
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient();
 
@@ -26,7 +30,16 @@ export async function POST(request: Request) {
 
   if (resumeFile instanceof File && resumeFile.size > 0) {
     resumeFileName = resumeFile.name;
-    resumeText = (await extractTextFromFile(resumeFile)) || resumeText;
+    try {
+      resumeText = (await extractTextFromFile(resumeFile)) || resumeText;
+    } catch {
+      return NextResponse.json({ error: unreadableFileMessage(resumeFile.name) }, { status: 400 });
+    }
+
+    if (!resumeText.trim()) {
+      return NextResponse.json({ error: unreadableFileMessage(resumeFile.name) }, { status: 400 });
+    }
+
     resumeStoragePath = `${user.id}/${Date.now()}-${resumeFile.name}`;
     const { error: uploadError } = await supabase.storage.from("master-resumes").upload(resumeStoragePath, await resumeFile.arrayBuffer(), {
       contentType: resumeFile.type || "application/octet-stream",
@@ -58,7 +71,16 @@ export async function POST(request: Request) {
 
   if (coverLetterFile instanceof File && coverLetterFile.size > 0) {
     coverLetterFileName = coverLetterFile.name;
-    coverLetterText = (await extractTextFromFile(coverLetterFile)) || coverLetterText;
+    try {
+      coverLetterText = (await extractTextFromFile(coverLetterFile)) || coverLetterText;
+    } catch {
+      return NextResponse.json({ error: unreadableFileMessage(coverLetterFile.name) }, { status: 400 });
+    }
+
+    if (!coverLetterText.trim()) {
+      return NextResponse.json({ error: unreadableFileMessage(coverLetterFile.name) }, { status: 400 });
+    }
+
     coverLetterStoragePath = `${user.id}/${Date.now()}-${coverLetterFile.name}`;
     const { error: uploadError } = await supabase.storage.from("master-cover-letters").upload(coverLetterStoragePath, await coverLetterFile.arrayBuffer(), {
       contentType: coverLetterFile.type || "application/octet-stream",
