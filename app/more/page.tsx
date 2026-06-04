@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Bookmark, FileText, Settings } from "lucide-react";
+import { ArrowRight, Bookmark, Building2, FileText, Settings } from "lucide-react";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { SetupNotice } from "@/components/SetupNotice";
 import { isSupabaseConfigured } from "@/lib/env";
@@ -35,6 +35,15 @@ export default async function MorePage() {
   const {
     data: { user },
   } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+  const { data: enterpriseAdminMembership } = user && supabase
+    ? await supabase
+        .from("organization_members")
+        .select("id")
+        .eq("user_id", user.id)
+        .in("role", ["owner", "admin"])
+        .limit(1)
+        .maybeSingle()
+    : { data: null };
 
   if (!configured) {
     return (
@@ -47,6 +56,19 @@ export default async function MorePage() {
   if (!user) {
     return <LandingPage />;
   }
+
+  const visibleMoreItems = enterpriseAdminMembership
+    ? [
+        {
+          href: "/enterprise",
+          title: "Enterprise admin",
+          body: "Manage seats, access and employee usage.",
+          icon: Building2,
+          color: "bg-[#ece8ff] text-[#2200ff]",
+        },
+        ...moreItems,
+      ]
+    : moreItems;
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-5 pb-36 md:px-8 md:py-10 md:pb-10 xl:px-10">
@@ -62,7 +84,7 @@ export default async function MorePage() {
         </div>
 
         <section className="space-y-3">
-          {moreItems.map(({ href, title, body, icon: Icon, color }) => (
+          {visibleMoreItems.map(({ href, title, body, icon: Icon, color }) => (
             <Link
               key={href}
               href={href}

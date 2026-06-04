@@ -8,7 +8,7 @@ const items = [
   { href: "/", label: "Home", icon: Home },
   { href: "/applications", label: "Applications", icon: FileText },
   { href: "/saved", label: "Saved", icon: Bookmark },
-  { href: "/more", label: "More", icon: Menu, activePaths: ["/more", "/documents", "/profile"] },
+  { href: "/more", label: "More", icon: Menu, activePaths: ["/more", "/documents", "/profile", "/enterprise"] },
 ];
 
 export function MobileNav() {

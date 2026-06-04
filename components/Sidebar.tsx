@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bookmark, FileText, Home, LogOut, Plus, Settings } from "lucide-react";
+import { Bookmark, Building2, FileText, Home, LogOut, Plus, Settings } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 const navItems = [
@@ -17,6 +17,7 @@ type SidebarProps = {
   userName?: string | null;
   userEmail?: string | null;
   avatarUrl?: string | null;
+  showEnterpriseAdmin?: boolean;
 };
 
 function initialsFrom(name?: string | null, email?: string | null) {
@@ -29,10 +30,13 @@ function initialsFrom(name?: string | null, email?: string | null) {
     .join("");
 }
 
-export function Sidebar({ userName, userEmail, avatarUrl }: SidebarProps) {
+export function Sidebar({ userName, userEmail, avatarUrl, showEnterpriseAdmin }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const initials = initialsFrom(userName, userEmail);
+  const visibleNavItems = showEnterpriseAdmin
+    ? [...navItems, { href: "/enterprise", label: "Enterprise", icon: Building2 }]
+    : navItems;
 
   async function signOut() {
     const supabase = createSupabaseBrowserClient();
@@ -50,7 +54,7 @@ export function Sidebar({ userName, userEmail, avatarUrl }: SidebarProps) {
 
       {/* Nav items */}
       <nav className="flex-1 space-y-1 px-4 py-4">
-        {navItems.map(({ href, label, icon: Icon }) => {
+        {visibleNavItems.map(({ href, label, icon: Icon }) => {
           const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
           return (
             <Link

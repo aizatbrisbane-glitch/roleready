@@ -82,7 +82,7 @@ const plans = [
       "Volume pricing available"
     ],
     button: "Contact Sales",
-    href: "mailto:sales@applyhq.com"
+    href: "/enterprise/request"
   }
 ];
 

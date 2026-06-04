@@ -38,20 +38,40 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const { data: profile } = user && supabase
     ? await supabase.from("profiles").select("name,email,avatar_url").eq("id", user.id).maybeSingle()
     : { data: null };
+  if (user && supabase) {
+    await supabase.rpc("accept_enterprise_invitations");
+  }
+  const { data: enterpriseAdminMembership } = user && supabase
+    ? await supabase
+        .from("organization_members")
+        .select("id")
+        .eq("user_id", user.id)
+        .in("role", ["owner", "admin"])
+        .limit(1)
+        .maybeSingle()
+    : { data: null };
 
   const headersList = await headers();
   const pathname = headersList.get("x-pathname") ?? "";
-  const isAuthPage = pathname.startsWith("/auth/");
-  const authed = Boolean(user) && !isAuthPage;
+  const isPublicShellPage = pathname === "/login" || pathname === "/enterprise/request" || pathname.startsWith("/auth/");
+  const authed = Boolean(user) && !isPublicShellPage;
   const displayName = profile?.name || null;
   const displayEmail = profile?.email || user?.email || null;
   const avatarUrl = profile?.avatar_url || null;
   const initials = initialsFrom(displayName, displayEmail);
+  const showEnterpriseAdmin = Boolean(enterpriseAdminMembership);
 
   return (
     <html lang="en" className={inter.className}>
       <body className="overflow-x-hidden">
-        {authed && <Sidebar userName={displayName} userEmail={displayEmail} avatarUrl={avatarUrl} />}
+        {authed && (
+          <Sidebar
+            userName={displayName}
+            userEmail={displayEmail}
+            avatarUrl={avatarUrl}
+            showEnterpriseAdmin={showEnterpriseAdmin}
+          />
+        )}
 
         <div className={`flex min-h-screen flex-col ${authed ? "md:pl-60" : ""}`}>
           {/* Mobile-only top header — authenticated users only */}

@@ -6,6 +6,8 @@ export type OrganizationStatus = "active" | "inactive";
 export type OrganizationMemberRole = "owner" | "admin" | "employee";
 export type EntitlementPlanType = "free" | "sprint_7_day" | "focus_30_day" | "partner_90_day" | "enterprise_90_day";
 export type EntitlementStatus = "active" | "expired" | "revoked";
+export type EnterpriseRequestStatus = "new" | "contacted" | "approved" | "rejected";
+export type EnterpriseInvitationStatus = "pending" | "accepted" | "revoked" | "expired";
 
 export type Profile = {
   id: string;
@@ -84,6 +86,7 @@ export type Organization = {
   id: string;
   name: string;
   status: OrganizationStatus;
+  seat_limit: number;
   created_at: string;
   updated_at: string;
 };
@@ -106,6 +109,34 @@ export type Entitlement = {
   valid_from: string;
   valid_until: string;
   status: EntitlementStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+export type EnterpriseRequest = {
+  id: string;
+  company_name: string;
+  contact_name: string;
+  contact_email: string;
+  contact_role: string | null;
+  requested_seats: number;
+  expected_start_timeframe: string | null;
+  notes: string | null;
+  status: EnterpriseRequestStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+export type EnterpriseInvitation = {
+  id: string;
+  organization_id: string;
+  email: string;
+  role: OrganizationMemberRole;
+  status: EnterpriseInvitationStatus;
+  invited_by: string | null;
+  accepted_by: string | null;
+  expires_at: string;
+  accepted_at: string | null;
   created_at: string;
   updated_at: string;
 };

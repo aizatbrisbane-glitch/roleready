@@ -8,7 +8,13 @@ export async function GET(request: Request) {
   const supabase = await createSupabaseServerClient();
 
   if (code && supabase) {
-    await supabase.auth.exchangeCodeForSession(code);
+    const { data } = await supabase.auth.exchangeCodeForSession(code);
+    if (data.session) {
+      const { error } = await supabase.rpc("accept_enterprise_invitations");
+      if (error) {
+        console.error("Unable to accept enterprise invitation during callback", error.message);
+      }
+    }
   }
 
   return NextResponse.redirect(new URL(next, requestUrl.origin));
