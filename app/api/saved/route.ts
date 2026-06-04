@@ -1,5 +1,14 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { JobSource } from "@/types/database";
+
+const VALID_SOURCES: JobSource[] = ["Manual", "SEEK", "LinkedIn", "Adzuna", "Other"];
+
+function sanitiseSource(raw: string | undefined): JobSource {
+  if (!raw) return "Other";
+  const match = VALID_SOURCES.find((s) => s.toLowerCase() === raw.toLowerCase());
+  return match ?? "Other";
+}
 
 export async function GET() {
   const supabase = await createSupabaseServerClient();
@@ -58,7 +67,7 @@ export async function POST(request: Request) {
       salary: String(salary ?? ""),
       job_url: String(jobUrl ?? ""),
       description: String(description ?? ""),
-      source: source ?? "Other",
+      source: sanitiseSource(source),
     })
     .select("id")
     .single();

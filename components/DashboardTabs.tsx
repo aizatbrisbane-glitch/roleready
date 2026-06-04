@@ -198,7 +198,7 @@ function GrabbedMatchCard({
           <Link
             href="/saved"
             title="View saved jobs"
-            className="hidden h-9 w-9 items-center justify-center rounded-full bg-[#ece8ff] text-[#2200ff] shadow-sm transition hover:bg-[#d4ccff] sm:inline-flex"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#ece8ff] text-[#2200ff] shadow-sm transition hover:bg-[#d4ccff]"
           >
             <Bookmark className="h-4 w-4 fill-current" />
           </Link>
@@ -208,7 +208,7 @@ function GrabbedMatchCard({
             disabled={saving}
             onClick={() => onSave(job)}
             title="Save job for later"
-            className="hidden h-9 w-9 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm transition hover:text-[#2200ff] disabled:opacity-50 sm:inline-flex"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm transition hover:text-[#2200ff] disabled:opacity-50"
           >
             <Bookmark className="h-4 w-4" />
           </button>
