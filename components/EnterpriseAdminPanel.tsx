@@ -116,12 +116,10 @@ export function EnterpriseAdminPanel({ rows }: Props) {
     setEmail("");
     setMessage(
       payload?.action === "invite_sent"
-        ? "Employee invite sent."
+        ? "Employee invite sent. Access activates after they accept."
         : payload?.action === "invite_recorded"
           ? payload?.warning ?? "Employee invite saved."
-          : payload?.action === "access_granted"
-            ? "Employee already had an ApplyHQ account, so enterprise access was activated without sending a new invite email."
-          : "Employee access added."
+          : "Employee invite saved. Access activates after they accept."
     );
     startTransition(() => router.refresh());
   }
