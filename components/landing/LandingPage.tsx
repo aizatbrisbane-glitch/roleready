@@ -241,14 +241,14 @@ export function LandingPage() {
                     onError={(e) => { e.currentTarget.style.display = "none"; }}
                   />
                 ))}
-                {/* Top gradient for text readability */}
-                <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/70 to-transparent" />
                 {/* TikTok-style overlay text */}
                 <p
-                  className="absolute top-6 left-5 right-5 text-center text-2xl leading-tight text-white drop-shadow-lg"
+                  className="absolute top-5 left-5 right-5 text-center text-2xl leading-tight text-black"
                   style={{ fontFamily: "'Anton', sans-serif", letterSpacing: "0.01em" }}
                 >
-                  POV you not rewriting CVs and Covers manually 😌
+                  <span className="box-decoration-clone bg-white px-2 py-1 leading-[1.6]">
+                    POV you not rewriting CVs and Covers manually 😌
+                  </span>
                 </p>
                 {/* Slideshow dots */}
                 <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5">
