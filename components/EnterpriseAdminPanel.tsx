@@ -198,14 +198,17 @@ export function EnterpriseAdminPanel({ rows }: Props) {
         </div>
       </section>
 
-      <section className="grid gap-3 md:grid-cols-3 xl:grid-cols-7">
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-[1.4rem] border border-slate-100 bg-white p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Seat usage</p>
+          <p className="mt-2 text-3xl font-bold text-slate-900">{allocatedSeats}/{seatLimit} used</p>
+          <p className="mt-1 text-xs text-slate-400">
+            {seatsRemaining} remaining{revokedSeats ? ` | ${revokedSeats} revoked` : ""}
+          </p>
+        </div>
         {[
-          ["Allocated seats", allocatedSeats],
           ["Active seats", activeSeats],
           ["Pending invites", pendingInvites],
-          ["Revoked seats", revokedSeats],
-          ["Seat limit", seatLimit],
-          ["Seats remaining", seatsRemaining],
           ["Application credits", totalApplicationLimit],
         ].map(([label, value]) => (
           <div key={label} className="rounded-[1.4rem] border border-slate-100 bg-white p-5 shadow-sm">
