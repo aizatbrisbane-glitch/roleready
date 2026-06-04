@@ -91,7 +91,7 @@ export function EnterpriseAdminPanel({ rows }: Props) {
   const seatsRemaining = Math.max(0, seatLimit - allocatedSeats);
   const totalApplicationsUsed = activeEmployeeRows.reduce((sum, row) => sum + (row.applications_used ?? 0), 0);
   const totalApplicationLimit = activeEmployeeRows.reduce((sum, row) => sum + (row.application_limit ?? 0), 0);
-  const latestExpiry = selectedRows
+  const latestActiveExpiry = activeEmployeeRows
     .map((row) => row.valid_until)
     .filter((value): value is string => Boolean(value))
     .sort()
@@ -220,7 +220,7 @@ export function EnterpriseAdminPanel({ rows }: Props) {
           <div>
             <h2 className="text-xl font-bold text-slate-900">{selectedRows[0]?.organization_name ?? "Organisation"}</h2>
             <p className="mt-1 text-sm text-slate-500">
-              {selectedRows.length} roster member{selectedRows.length === 1 ? "" : "s"} | Latest access expiry: {formatDate(latestExpiry)}
+              {selectedRows.length} roster member{selectedRows.length === 1 ? "" : "s"} | Latest active access expiry: {formatDate(latestActiveExpiry)}
             </p>
           </div>
 
@@ -255,7 +255,7 @@ export function EnterpriseAdminPanel({ rows }: Props) {
             <span>Role</span>
             <span>Status</span>
             <span>Usage</span>
-            <span>Valid until</span>
+            <span>Expires</span>
             <span className="text-right">Action</span>
           </div>
 
@@ -263,7 +263,11 @@ export function EnterpriseAdminPanel({ rows }: Props) {
             {selectedRows.map((row) => {
               const remaining = Math.max(0, (row.application_limit ?? 0) - (row.applications_used ?? 0));
               const hasActiveAccess = row.entitlement_status === "active";
-              const validUntil = row.row_type === "invitation" ? row.invitation_expires_at : row.valid_until;
+              const expiresAt = row.row_type === "invitation"
+                ? row.invitation_expires_at
+                : hasActiveAccess
+                  ? row.valid_until
+                  : null;
               return (
                 <div
                   key={`${row.organization_id}-${row.row_type}-${row.user_id ?? row.invitation_id}`}
@@ -287,7 +291,7 @@ export function EnterpriseAdminPanel({ rows }: Props) {
                       {row.row_type === "invitation" ? "Awaiting signup" : hasActiveAccess ? `${remaining} remaining` : "Access not active"}
                     </span>
                   </p>
-                  <p className="text-slate-600">{formatDate(validUntil)}</p>
+                  <p className="text-slate-600">{formatDate(expiresAt)}</p>
                   <div className="flex justify-start md:justify-end">
                     {row.row_type === "invitation" && row.invitation_id ? (
                       <button
