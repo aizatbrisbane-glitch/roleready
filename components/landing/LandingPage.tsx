@@ -94,6 +94,22 @@ export function LandingPage() {
   const [heroResumeFile, setHeroResumeFile] = useState<File | null>(null);
   const [storedDraft, setStoredDraft] = useState<StoredDraft | null>(null);
   const [onboardingMessage, setOnboardingMessage] = useState("");
+  const [heroImageIndex, setHeroImageIndex] = useState(0);
+
+  const heroImages = [
+    "/landing/hero-job-seeker.png",
+    "/landing/slide-1.png",
+    "/landing/slide-2.png",
+    "/landing/slide-3.png",
+    "/landing/slide-4.png",
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setHeroImageIndex((i) => (i + 1) % heroImages.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
@@ -135,6 +151,7 @@ export function LandingPage() {
   return (
     <div className="min-h-screen overflow-x-hidden bg-white text-slate-900">
       <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
         html { scroll-behavior: smooth; }
 
         @keyframes applyhq-float {
@@ -212,15 +229,38 @@ export function LandingPage() {
             {/* Two-column: photo left, resume card right */}
             <div className="mt-10 grid grid-cols-1 gap-6 pb-4 lg:grid-cols-2 lg:gap-10">
 
-              {/* Left: lady photo */}
-              <div className="hidden overflow-hidden rounded-3xl shadow-lg lg:block">
-                <img
-                  src="/landing/hero-job-seeker.png"
-                  alt=""
-                  className="h-full w-full object-cover object-top"
-                  style={{ minHeight: "420px" }}
-                  onError={(e) => { e.currentTarget.style.display = "none"; }}
-                />
+              {/* Left: slideshow */}
+              <div className="relative hidden overflow-hidden rounded-3xl shadow-lg lg:block" style={{ minHeight: "420px" }}>
+                {heroImages.map((src, i) => (
+                  <img
+                    key={src}
+                    src={src}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-1000"
+                    style={{ opacity: i === heroImageIndex ? 1 : 0 }}
+                    onError={(e) => { e.currentTarget.style.display = "none"; }}
+                  />
+                ))}
+                {/* Top gradient for text readability */}
+                <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/70 to-transparent" />
+                {/* TikTok-style overlay text */}
+                <p
+                  className="absolute top-6 left-5 right-5 text-center text-2xl leading-tight text-white drop-shadow-lg"
+                  style={{ fontFamily: "'Anton', sans-serif", letterSpacing: "0.01em" }}
+                >
+                  POV you not rewriting CVs and Covers manually 😌
+                </p>
+                {/* Slideshow dots */}
+                <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5">
+                  {heroImages.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setHeroImageIndex(i)}
+                      className="h-1.5 rounded-full transition-all duration-300"
+                      style={{ width: i === heroImageIndex ? "20px" : "6px", background: i === heroImageIndex ? "white" : "rgba(255,255,255,0.5)" }}
+                    />
+                  ))}
+                </div>
               </div>
 
               {/* Right: big resume upload card */}
