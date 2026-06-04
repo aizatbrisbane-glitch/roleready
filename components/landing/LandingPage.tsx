@@ -151,7 +151,6 @@ export function LandingPage() {
   return (
     <div className="min-h-screen overflow-x-hidden bg-white text-slate-900">
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
         html { scroll-behavior: smooth; }
 
         @keyframes applyhq-float {
@@ -242,12 +241,9 @@ export function LandingPage() {
                   />
                 ))}
                 {/* TikTok-style overlay text */}
-                <p
-                  className="absolute top-5 left-5 right-5 text-center text-2xl leading-tight text-black"
-                  style={{ fontFamily: "'Anton', sans-serif", letterSpacing: "0.01em" }}
-                >
-                  <span className="box-decoration-clone bg-white px-2 py-1 leading-[1.6]">
-                    POV you not rewriting CVs and Covers manually 😌
+                <p className="absolute top-5 left-5 right-5 text-center text-xl font-black leading-tight tracking-tight text-black">
+                  <span className="box-decoration-clone bg-white px-2 py-1 leading-[1.7]">
+                    POV: you not rewriting CVs and Covers manually 😌
                   </span>
                 </p>
                 {/* Slideshow dots */}
