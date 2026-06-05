@@ -390,7 +390,20 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
           token: cleanCode,
           type: "email",
         });
-        if (fallback.error) throw new Error(fallback.error.message);
+        if (fallback.error) {
+          const fallback2 = await supabase.auth.verifyOtp({
+            email,
+            token: cleanCode,
+            type: "magiclink",
+          });
+          if (fallback2.error) {
+            const msg = fallback2.error.message.toLowerCase();
+            if (msg.includes("expired") || msg.includes("invalid")) {
+              throw new Error("That code has expired. Click Resend to get a fresh one.");
+            }
+            throw new Error(fallback2.error.message);
+          }
+        }
       }
 
       setIsAuthenticated(true);
@@ -405,19 +418,18 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
 
   async function resendVerificationCode() {
     setMessage("");
+    setVerificationCode("");
     setLoading(true);
     try {
       const supabase = createSupabaseBrowserClient();
       if (!supabase) throw new Error("Supabase is not configured.");
-      const { error } = await supabase.auth.resend({
-        type: "signup",
+      // signInWithOtp works for both new and existing users
+      const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/`,
-        },
+        options: { shouldCreateUser: true },
       });
       if (error) throw new Error(error.message);
-      setMessage("New code sent. Check your email.");
+      setMessage("New code sent — check your email.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not resend the code.");
     } finally {
