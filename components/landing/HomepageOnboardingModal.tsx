@@ -338,21 +338,21 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
 
       saveDraft(currentDraft);
 
-      const { error } = await supabase.auth.signUp({
+      // Create account with password, then send a separate OTP so the
+      // verify step always uses type:email (no signup/email type mismatch).
+      const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/`,
-        },
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/` },
       });
+      if (signUpError) throw new Error(signUpError.message);
 
-      if (error) throw new Error(error.message);
-
-      const { data: nextSession } = await supabase.auth.getSession();
-      if (nextSession.session) {
-        await submitAuthenticated();
-        return;
-      }
+      // Send a fresh email-type OTP regardless of whether user is new or returning.
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: true },
+      });
+      if (otpError) throw new Error(otpError.message);
 
       setConfirmEmail(true);
       setMessage("Enter the verification code from your email to continue.");
@@ -381,14 +381,14 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       const { error } = await supabase.auth.verifyOtp({
         email,
         token: cleanCode,
-        type: "signup",
+        type: "email",
       });
 
       if (error) {
         const fallback = await supabase.auth.verifyOtp({
           email,
           token: cleanCode,
-          type: "email",
+          type: "signup",
         });
         if (fallback.error) {
           const fallback2 = await supabase.auth.verifyOtp({
