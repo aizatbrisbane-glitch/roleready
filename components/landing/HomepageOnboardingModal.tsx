@@ -35,6 +35,7 @@ type Props = {
 };
 
 const acceptedDocumentTypes = [".pdf", ".docx"];
+const EMAIL_OTP_LENGTH = 6;
 const DRAFT_DB_NAME = "applyhq-onboarding-drafts";
 const DRAFT_STORE_NAME = "files";
 
@@ -353,21 +354,38 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       }
 
       // New user (or wrong password for returning user) — attempt sign-up.
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/` },
       });
 
       if (signUpError) {
-        // If the error is specifically wrong password for an existing account, surface that.
-        if (signInError && !signUpError.message.toLowerCase().includes("already registered")) {
+        if (signInError && signUpError.message.toLowerCase().includes("already registered")) {
           throw new Error("Incorrect password. Try signing in from the main menu.");
         }
         throw new Error(signUpError.message);
       }
 
+      if (signUpData.user && Array.isArray(signUpData.user.identities) && signUpData.user.identities.length === 0) {
+        throw new Error("Incorrect password. Try signing in from the main menu.");
+      }
+
+      if (signUpData.session) {
+        setIsAuthenticated(true);
+        await submitAuthenticated();
+        return;
+      }
+
+      const { data: refreshedSessionData } = await supabase.auth.getSession();
+      if (refreshedSessionData.session) {
+        setIsAuthenticated(true);
+        await submitAuthenticated();
+        return;
+      }
+
       setConfirmEmail(true);
+      setVerificationCode("");
       setMessage("Enter the verification code from your email to continue.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Something went wrong.");
@@ -380,8 +398,8 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
     event.preventDefault();
     setMessage("");
     const cleanCode = verificationCode.replace(/\D/g, "");
-    if (cleanCode.length !== 6) {
-      setMessage("Enter the 6-digit code from your email.");
+    if (cleanCode.length !== EMAIL_OTP_LENGTH) {
+      setMessage(`Enter the ${EMAIL_OTP_LENGTH}-digit code from your email.`);
       return;
     }
 
@@ -400,7 +418,8 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       if (error) {
         const msg = error.message.toLowerCase();
         if (msg.includes("expired") || msg.includes("invalid")) {
-          throw new Error("That code has expired. Click Resend to get a fresh one.");
+          setVerificationCode("");
+          throw new Error("That code has expired or was replaced by a newer email. Click Resend and use the newest code only.");
         }
         throw new Error(error.message);
       }
@@ -422,9 +441,13 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
     try {
       const supabase = createSupabaseBrowserClient();
       if (!supabase) throw new Error("Supabase is not configured.");
-      const { error } = await supabase.auth.resend({ type: "signup", email });
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/` },
+      });
       if (error) throw new Error(error.message);
-      setMessage("New code sent — check your email.");
+      setMessage("New code sent. Use the newest email only. Resending creates a new code and expires the old one.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not resend the code.");
     } finally {
@@ -465,7 +488,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
               <CheckCircle2 className="h-10 w-10 text-emerald-600" />
               <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-900">Enter your verification code</h2>
               <p className="mt-3 text-base leading-7 text-slate-600">
-                We sent a 6-digit code to <span className="font-bold text-slate-900">{email}</span>. Keep this tab open so your resume can continue into your first application.
+                We sent a {EMAIL_OTP_LENGTH}-digit code to <span className="font-bold text-slate-900">{email}</span>. This confirms the email belongs to you and keeps your resume ready for your first application.
               </p>
             </div>
 
@@ -476,12 +499,12 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   pattern="[0-9]*"
-                  maxLength={6}
+                  maxLength={EMAIL_OTP_LENGTH}
                   required
                   className="w-full rounded-2xl border border-slate-200 px-4 py-4 text-center text-2xl font-black tracking-[0.35em] text-slate-900 outline-none focus:ring-2 focus:ring-[#d4ccff]"
                   value={verificationCode}
-                  onChange={(event) => setVerificationCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
-                  placeholder="000000"
+                  onChange={(event) => setVerificationCode(event.target.value.replace(/\D/g, "").slice(0, EMAIL_OTP_LENGTH))}
+                  placeholder={"0".repeat(EMAIL_OTP_LENGTH)}
                 />
               </label>
               <button

@@ -78,8 +78,8 @@ export async function POST(request: Request) {
   const jobUrl = String(formData.get("job_url") ?? "").trim();
   const fallbackDescription = String(formData.get("job_description_fallback") ?? "").trim();
 
-  if (!jobUrl) {
-    return NextResponse.json({ error: "Paste a job ad link first." }, { status: 400 });
+  if (!jobUrl && !fallbackDescription) {
+    return NextResponse.json({ error: "Paste a job ad link or the full job description first." }, { status: 400 });
   }
 
   try {
@@ -106,29 +106,38 @@ export async function POST(request: Request) {
     });
 
     let jobDetails;
-    try {
-      jobDetails = await fetchJobAdDetails(jobUrl);
-      // Prefer pasted fallback text when the fetch returned a short snippet
-      if (fallbackDescription && jobDetails.description.trim().length < 300) {
-        jobDetails.description = fallbackDescription;
-      }
-    } catch (error) {
-      if (!fallbackDescription) {
-        throw new Error(
-          isBlockedJobBoard(jobUrl)
-            ? "This site blocked our request. Open the job page in Chrome, click the Job Assistant extension, then come back — or paste the full job description in the box below."
-            : error instanceof Error
-              ? error.message
-              : "Could not read this job link."
-        );
-      }
+    if (!jobUrl) {
       jobDetails = {
-        title: "Job from pasted link",
+        title: "Job from pasted description",
         company: "Company from job ad",
         location: "",
         salary: "",
         description: fallbackDescription
       };
+    } else {
+      try {
+        jobDetails = await fetchJobAdDetails(jobUrl);
+        if (fallbackDescription && jobDetails.description.trim().length < 300) {
+          jobDetails.description = fallbackDescription;
+        }
+      } catch (error) {
+        if (!fallbackDescription) {
+          throw new Error(
+            isBlockedJobBoard(jobUrl)
+              ? "This site blocked our request. Open the job page in Chrome, click the Job Assistant extension, then come back, or paste the full job description in the box below."
+              : error instanceof Error
+                ? error.message
+                : "Could not read this job link."
+          );
+        }
+        jobDetails = {
+          title: "Job from pasted link",
+          company: "Company from job ad",
+          location: "",
+          salary: "",
+          description: fallbackDescription
+        };
+      }
     }
 
     if (!jobDetails.description.trim()) {
@@ -145,7 +154,7 @@ export async function POST(request: Request) {
         salary: jobDetails.salary,
         job_url: jobUrl,
         description: jobDetails.description,
-        source: detectJobSource(jobUrl)
+        source: jobUrl ? detectJobSource(jobUrl) : "Manual"
       })
       .select("id")
       .single();
