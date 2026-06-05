@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { blogArticles } from "@/lib/blog";
+import { PublicFooter } from "@/components/PublicFooter";
 import {
   HOMEPAGE_ONBOARDING_DRAFT_KEY,
   HomepageOnboardingModal,
@@ -470,6 +471,7 @@ export function LandingPage() {
         </section>
 
       </main>
+      <PublicFooter />
       <HomepageOnboardingModal
         open={onboardingOpen}
         initialResumeFile={heroResumeFile}

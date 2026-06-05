@@ -4,6 +4,7 @@ import Link from "next/link";
 import { blogArticles, blogCategories, getFeaturedArticle } from "@/lib/blog";
 import { BlogArticleCard } from "@/components/blog/BlogArticleCard";
 import { NewsletterSignup } from "@/components/blog/NewsletterSignup";
+import { PublicFooter } from "@/components/PublicFooter";
 
 export const metadata: Metadata = {
   title: "Career Advice & Insights | ApplyHQ",
@@ -94,6 +95,7 @@ export default function BlogPage() {
           <NewsletterSignup />
         </div>
       </section>
+      <PublicFooter />
     </main>
   );
 }

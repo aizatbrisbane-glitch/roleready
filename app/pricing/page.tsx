@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Star } from "lucide-react";
+import { PublicFooter } from "@/components/PublicFooter";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -240,6 +241,7 @@ export default async function PricingPage() {
           </div>
         </div>
       </section>
+      <PublicFooter />
     </main>
   );
 }
