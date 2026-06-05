@@ -126,6 +126,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
   const [message, setMessage] = useState(initialMessage ?? "");
   const [confirmEmail, setConfirmEmail] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState("");
   const [extracting, setExtracting] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -257,6 +258,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       documentData.append("resume_file", resumeFile);
       if (coverLetterFile) documentData.append("cover_letter_file", coverLetterFile);
 
+      setLoadingStep("Saving your resume…");
       const documentResponse = await fetch("/api/profile/documents", {
         method: "POST",
         body: documentData,
@@ -294,10 +296,12 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
     if (jobMode === "url") formData.append("job_url", jobUrl.trim());
     if (jobMode === "description") formData.append("job_description_fallback", jobDescription.trim());
 
+    setLoadingStep("Saving your resume…");
     const response = await fetch("/api/quick-start", {
       method: "POST",
       body: formData,
     });
+    setLoadingStep("Creating your application…");
     const payload = await response.json();
 
     if (!response.ok || !payload.applicationId) {
@@ -369,6 +373,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
     }
 
     setLoading(true);
+    setLoadingStep("Verifying your code…");
     try {
       const supabase = createSupabaseBrowserClient();
       if (!supabase) throw new Error("Supabase is not configured.");
@@ -394,6 +399,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       setMessage(error instanceof Error ? error.message : "Could not verify that code.");
     } finally {
       setLoading(false);
+      setLoadingStep("");
     }
   }
 
@@ -477,7 +483,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                 className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-4 text-base font-bold text-white shadow-[0_12px_32px_rgba(34,0,255,0.22)] disabled:opacity-60"
               >
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="h-5 w-5" />}
-                Verify and generate my application
+                {loading && loadingStep ? loadingStep : "Verify and generate my application"}
               </button>
               <button
                 type="button"
