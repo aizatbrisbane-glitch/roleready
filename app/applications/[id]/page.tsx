@@ -13,6 +13,7 @@ import { AuthPanel } from "@/components/AuthPanel";
 import { ApplicationDetailTabs } from "@/components/ApplicationDetailTabs";
 import { GenerateButton } from "@/components/GenerateButton";
 import { JobDescriptionEditor } from "@/components/JobDescriptionEditor";
+import { PostGenerationGuide } from "@/components/PostGenerationGuide";
 import { SetupNotice } from "@/components/SetupNotice";
 import { StatusSelector } from "@/components/StatusSelector";
 import { isSupabaseConfigured } from "@/lib/env";
@@ -154,6 +155,7 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
     !hasDocuments &&
     !!masterResume &&
     job.description.trim().length > 0;
+  const showWelcomeGuide = generate === "true" && hasDocuments;
 
   const generateHint =
     generate === "true" && !hasDocuments && !autoGenerate
@@ -277,6 +279,8 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
             </section>
 
             {jobDescriptionLooksShort && <JobDescriptionEditor applicationId={application.id} initialDescription={job.description} />}
+
+            <PostGenerationGuide applicationId={application.id} show={showWelcomeGuide} />
 
             {/* Opportunities to strengthen */}
             <section className="rounded-[1.6rem] border border-slate-100 bg-white p-5 shadow-sm md:p-6">
