@@ -304,6 +304,9 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
     setLoadingStep("Creating your application…");
     const payload = await response.json();
 
+    if (response.status === 401) {
+      throw new Error("Your session expired — please sign in again and retry.");
+    }
     if (!response.ok || !payload.applicationId) {
       throw new Error(payload.error ?? "Unable to create your first application.");
     }
@@ -332,6 +335,8 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
 
       const { data: sessionData } = await supabase.auth.getSession();
       if (sessionData.session) {
+        // Refresh to ensure server-side cookies are current before calling the API.
+        await supabase.auth.refreshSession();
         await submitAuthenticated();
         return;
       }
