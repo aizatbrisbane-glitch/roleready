@@ -5,6 +5,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const maxDuration = 60;
 
+const JOB_TEXT_UNAVAILABLE = "JOB_TEXT_UNAVAILABLE";
+
 async function saveMasterDocument({
   bucket,
   table,
@@ -122,13 +124,19 @@ export async function POST(request: Request) {
         }
       } catch (error) {
         if (!fallbackDescription) {
-          throw new Error(
-            isBlockedJobBoard(jobUrl)
-              ? "This site blocked our request. Open the job page in Chrome, click the Job Assistant extension, then come back, or paste the full job description in the box below."
-              : error instanceof Error
-                ? error.message
-                : "Could not read this job link."
-          );
+          if (isBlockedJobBoard(jobUrl)) {
+            return NextResponse.json(
+              {
+                errorCode: JOB_TEXT_UNAVAILABLE,
+                source: detectJobSource(jobUrl),
+                jobUrl,
+                error: "We could not read the job text from this site. Paste the full job description and continue."
+              },
+              { status: 422 }
+            );
+          }
+
+          throw new Error(error instanceof Error ? error.message : "Could not read this job link.");
         }
         jobDetails = {
           title: "Job from pasted link",

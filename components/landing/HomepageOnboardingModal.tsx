@@ -38,6 +38,7 @@ const acceptedDocumentTypes = [".pdf", ".docx"];
 const EMAIL_OTP_LENGTH = 6;
 const DRAFT_DB_NAME = "applyhq-onboarding-drafts";
 const DRAFT_STORE_NAME = "files";
+const JOB_TEXT_UNAVAILABLE = "JOB_TEXT_UNAVAILABLE";
 
 function isAcceptedDocument(file: File) {
   const name = file.name.toLowerCase();
@@ -308,6 +309,14 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
     if (response.status === 401) {
       throw new Error("Your session expired — please sign in again and retry.");
     }
+    if (payload?.errorCode === JOB_TEXT_UNAVAILABLE) {
+      setConfirmEmail(false);
+      setStep(3);
+      setJobMode("description");
+      saveDraft({ ...currentDraft, jobMode: "description" });
+      setMessage("We could not read that job link. Paste the full job description below and continue.");
+      return;
+    }
     if (!response.ok || !payload.applicationId) {
       throw new Error(payload.error ?? "Unable to create your first application.");
     }
@@ -488,7 +497,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
               <CheckCircle2 className="h-10 w-10 text-emerald-600" />
               <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-900">Enter your verification code</h2>
               <p className="mt-3 text-base leading-7 text-slate-600">
-                We sent a {EMAIL_OTP_LENGTH}-digit code to <span className="font-bold text-slate-900">{email}</span>. This confirms the email belongs to you and keeps your resume ready for your first application.
+                We sent a {EMAIL_OTP_LENGTH}-digit code to <span className="font-bold text-slate-900">{email}</span>. This confirms the email belongs to you before we save your application.
               </p>
             </div>
 
@@ -513,7 +522,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                 className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-4 text-base font-bold text-white shadow-[0_12px_32px_rgba(34,0,255,0.22)] disabled:opacity-60"
               >
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="h-5 w-5" />}
-                {loading && loadingStep ? loadingStep : "Verify and generate my application"}
+                {loading && loadingStep ? loadingStep : "Verify and continue"}
               </button>
               <button
                 type="button"

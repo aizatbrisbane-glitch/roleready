@@ -85,7 +85,52 @@ function meta(html: string, selectors: string[]) {
   return "";
 }
 
-function scriptJson(html: string) {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function typeIncludesJobPosting(value: unknown) {
+  if (typeof value === "string") return value.includes("JobPosting");
+  if (Array.isArray(value)) return value.some(typeIncludesJobPosting);
+  return false;
+}
+
+function findNested(value: unknown, predicate: (item: Record<string, unknown>) => boolean, depth = 0): Record<string, unknown> | null {
+  if (depth > 12) return null;
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = findNested(item, predicate, depth + 1);
+      if (found) return found;
+    }
+    return null;
+  }
+  if (!isRecord(value)) return null;
+  if (predicate(value)) return value;
+  for (const child of Object.values(value)) {
+    const found = findNested(child, predicate, depth + 1);
+    if (found) return found;
+  }
+  return null;
+}
+
+function firstString(...values: unknown[]) {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+    if (typeof value === "number") return String(value);
+  }
+  return "";
+}
+
+function nestedString(value: unknown, ...keys: string[]) {
+  let current: unknown = value;
+  for (const key of keys) {
+    if (!isRecord(current)) return "";
+    current = current[key];
+  }
+  return firstString(current);
+}
+
+function scriptJson(html: string): any {
   const matches =
     html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi) ?? [];
 
@@ -96,11 +141,7 @@ function scriptJson(html: string) {
       .trim();
     try {
       const parsed = JSON.parse(jsonText);
-      const items = Array.isArray(parsed) ? parsed : [parsed];
-      const posting = items.find(
-        (item) =>
-          item?.["@type"] === "JobPosting" || item?.["@type"]?.includes?.("JobPosting")
-      );
+      const posting = findNested(parsed, (item) => typeIncludesJobPosting(item["@type"]));
       if (posting) return posting;
     } catch {
       // ignore malformed JSON blocks
@@ -133,30 +174,33 @@ function nextDataJob(html: string): Partial<{
       props.job ??
       props.listing ??
       props.jobAd ??
-      props.data?.jobDetails;
+      props.data?.jobDetails ??
+      findNested(props, (item) => {
+        const description = firstString(item.description, item.jobDescription, item.fullDescription, item.content);
+        const title = firstString(item.title, item.roleName, item.jobTitle);
+        return description.length > 100 && title.length > 0;
+      });
 
     if (!job) return null;
 
     const rawDescription =
-      job.content ?? job.description ?? job.jobDescription ?? job.fullDescription ?? "";
+      job.content ?? job.description ?? job.jobDescription ?? job.fullDescription ?? nestedString(job, "details", "description") ?? "";
 
     return {
-      title: String(job.title ?? job.roleName ?? ""),
-      company: String(
-        job.advertiser?.description ??
-          job.advertiser?.name ??
-          job.companyName ??
-          job.company ??
-          ""
+      title: firstString(job.title, job.roleName, job.jobTitle),
+      company: firstString(
+        nestedString(job, "advertiser", "description"),
+        nestedString(job, "advertiser", "name"),
+        job.companyName,
+        job.company
       ),
-      location: String(
-        job.locationLabel ??
-          job.location?.label ??
-          job.location?.description ??
-          job.location ??
-          ""
+      location: firstString(
+        job.locationLabel,
+        nestedString(job, "location", "label"),
+        nestedString(job, "location", "description"),
+        job.location
       ),
-      salary: String(job.salary ?? job.salaryLabel ?? job.salaryRange ?? ""),
+      salary: firstString(job.salary, job.salaryLabel, job.salaryRange),
       description: htmlToText(String(rawDescription))
     };
   } catch {
