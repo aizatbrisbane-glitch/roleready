@@ -343,21 +343,29 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
 
       saveDraft(currentDraft);
 
-      // Create account with password, then send a separate OTP so the
-      // verify step always uses type:email (no signup/email type mismatch).
+      // Try signing in first — handles returning users without sending an OTP.
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInData?.session) {
+        // Returning user successfully signed in — skip OTP.
+        setIsAuthenticated(true);
+        await submitAuthenticated();
+        return;
+      }
+
+      // New user (or wrong password for returning user) — attempt sign-up.
       const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/` },
       });
-      if (signUpError) throw new Error(signUpError.message);
 
-      // Send a fresh email-type OTP regardless of whether user is new or returning.
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        email,
-        options: { shouldCreateUser: true },
-      });
-      if (otpError) throw new Error(otpError.message);
+      if (signUpError) {
+        // If the error is specifically wrong password for an existing account, surface that.
+        if (signInError && !signUpError.message.toLowerCase().includes("already registered")) {
+          throw new Error("Incorrect password. Try signing in from the main menu.");
+        }
+        throw new Error(signUpError.message);
+      }
 
       setConfirmEmail(true);
       setMessage("Enter the verification code from your email to continue.");
@@ -386,29 +394,15 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       const { error } = await supabase.auth.verifyOtp({
         email,
         token: cleanCode,
-        type: "email",
+        type: "signup",
       });
 
       if (error) {
-        const fallback = await supabase.auth.verifyOtp({
-          email,
-          token: cleanCode,
-          type: "signup",
-        });
-        if (fallback.error) {
-          const fallback2 = await supabase.auth.verifyOtp({
-            email,
-            token: cleanCode,
-            type: "magiclink",
-          });
-          if (fallback2.error) {
-            const msg = fallback2.error.message.toLowerCase();
-            if (msg.includes("expired") || msg.includes("invalid")) {
-              throw new Error("That code has expired. Click Resend to get a fresh one.");
-            }
-            throw new Error(fallback2.error.message);
-          }
+        const msg = error.message.toLowerCase();
+        if (msg.includes("expired") || msg.includes("invalid")) {
+          throw new Error("That code has expired. Click Resend to get a fresh one.");
         }
+        throw new Error(error.message);
       }
 
       setIsAuthenticated(true);
@@ -428,11 +422,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
     try {
       const supabase = createSupabaseBrowserClient();
       if (!supabase) throw new Error("Supabase is not configured.");
-      // signInWithOtp works for both new and existing users
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { shouldCreateUser: true },
-      });
+      const { error } = await supabase.auth.resend({ type: "signup", email });
       if (error) throw new Error(error.message);
       setMessage("New code sent — check your email.");
     } catch (error) {
