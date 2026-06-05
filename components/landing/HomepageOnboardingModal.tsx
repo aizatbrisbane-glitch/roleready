@@ -452,7 +452,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
               <CheckCircle2 className="h-10 w-10 text-emerald-600" />
               <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-900">Enter your verification code</h2>
               <p className="mt-3 text-base leading-7 text-slate-600">
-                We sent an 8-digit code to <span className="font-bold text-slate-900">{email}</span>. Keep this tab open so your resume can continue into your first application.
+                We sent a 6-digit code to <span className="font-bold text-slate-900">{email}</span>. Keep this tab open so your resume can continue into your first application.
               </p>
             </div>
 
@@ -705,7 +705,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
           </>
         )}
 
-        {message && <p className="mt-5 rounded-2xl bg-rose-50 px-4 py-3 text-sm leading-6 text-rose-600">{message}</p>}
+        {message && <p className="mt-5 text-center text-sm leading-6 text-slate-500">{message}</p>}
       </div>
     </div>
   );
