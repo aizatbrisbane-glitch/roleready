@@ -67,23 +67,6 @@ const plans = [
     ],
     button: "Start 90-Day Partner",
     href: "/login"
-  },
-  {
-    name: "Enterprise",
-    price: "Contact Us",
-    description: "For organisations supporting employees through redundancy and career transitions.",
-    features: [
-      "Bulk seat licensing",
-      "90-day employee access",
-      "Resume and cover letter tools",
-      "Application tracking",
-      "Job match access",
-      "Interview preparation",
-      "Basic reporting",
-      "Volume pricing available"
-    ],
-    button: "Contact Sales",
-    href: "/enterprise/request"
   }
 ];
 
@@ -167,7 +150,7 @@ export default async function PricingPage() {
       </section>
 
       <section className="px-5 py-14 sm:px-8 lg:px-10 lg:py-20">
-        <div className="mx-auto grid max-w-7xl gap-5 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="mx-auto grid max-w-7xl gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {plans.map((plan) => (
             <article
               key={plan.name}
