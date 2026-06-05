@@ -363,8 +363,8 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
     event.preventDefault();
     setMessage("");
     const cleanCode = verificationCode.replace(/\D/g, "");
-    if (cleanCode.length !== 8) {
-      setMessage("Enter the 8-digit code from your email.");
+    if (cleanCode.length !== 6) {
+      setMessage("Enter the 6-digit code from your email.");
       return;
     }
 
@@ -463,12 +463,12 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   pattern="[0-9]*"
-                  maxLength={8}
+                  maxLength={6}
                   required
                   className="w-full rounded-2xl border border-slate-200 px-4 py-4 text-center text-2xl font-black tracking-[0.35em] text-slate-900 outline-none focus:ring-2 focus:ring-[#d4ccff]"
                   value={verificationCode}
-                  onChange={(event) => setVerificationCode(event.target.value.replace(/\D/g, "").slice(0, 8))}
-                  placeholder="00000000"
+                  onChange={(event) => setVerificationCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="000000"
                 />
               </label>
               <button
