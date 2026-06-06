@@ -1,9 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { KeywordStrengthSection } from "@/components/KeywordStrengthSection";
 import { ApplicationDetailTabs } from "@/components/ApplicationDetailTabs";
 import type { Tab } from "@/components/ApplicationDetailTabs";
+import type { EntitlementPlanType } from "@/types/database";
+
+export type DocumentUpdate = {
+  resume: string | null;
+  cover: string | null;
+  keyword: string;
+  snippet: string;
+};
 
 type Props = {
   applicationId: string;
@@ -19,14 +27,19 @@ type Props = {
   initialLocationType: string | null;
   initialOtherNotes: string | null;
   initialNotes: string | null;
+  planType: EntitlementPlanType;
+  hasTailoredResume: boolean;
+  hasCoverLetter: boolean;
+  strengthenedKeywords: string[];
+  strengthenedKeywordSnippets: Record<string, string>;
 };
 
 export function ApplicationDetailClient({
   applicationId,
   missingKeywords,
   matchScore,
-  tailoredResume,
-  coverLetter,
+  tailoredResume: initialTailoredResume,
+  coverLetter: initialCoverLetter,
   jobDescription,
   initialSalary,
   matchExplanation,
@@ -34,23 +47,60 @@ export function ApplicationDetailClient({
   initialHiringManager,
   initialLocationType,
   initialOtherNotes,
-  initialNotes
+  initialNotes,
+  planType,
+  hasTailoredResume,
+  hasCoverLetter,
+  strengthenedKeywords,
+  strengthenedKeywordSnippets,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("notes");
   const [openAccordion, setOpenAccordion] = useState<Tab | null>("notes");
+  const [tailoredResume, setTailoredResume] = useState(initialTailoredResume);
+  const [coverLetter, setCoverLetter] = useState(initialCoverLetter);
+  const [highlightKeyword, setHighlightKeyword] = useState<string | null>(null);
+  const clearHighlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => { if (clearHighlightTimer.current) clearTimeout(clearHighlightTimer.current); }, []);
+
+  const handleDocumentUpdate = useCallback((update: DocumentUpdate) => {
+    setHighlightKeyword(update.keyword);
+    if (clearHighlightTimer.current) clearTimeout(clearHighlightTimer.current);
+    clearHighlightTimer.current = setTimeout(() => setHighlightKeyword(null), 8000);
+
+    if (update.resume !== null) {
+      setTailoredResume(update.resume);
+      setActiveTab("resume");
+      setOpenAccordion("resume");
+    }
+    if (update.cover !== null) {
+      setCoverLetter(update.cover);
+      if (update.resume === null) {
+        setActiveTab("cover");
+        setOpenAccordion("cover");
+      }
+    }
+  }, []);
 
   return (
     <>
       <KeywordStrengthSection
+        applicationId={applicationId}
         missingKeywords={missingKeywords}
         matchScore={matchScore}
+        planType={planType}
+        hasTailoredResume={hasTailoredResume}
+        hasCoverLetter={hasCoverLetter}
+        strengthenedKeywords={strengthenedKeywords}
+        strengthenedKeywordSnippets={strengthenedKeywordSnippets}
+        onDocumentUpdate={handleDocumentUpdate}
       />
       <ApplicationDetailTabs
         applicationId={applicationId}
+        missingKeywords={missingKeywords}
         jobDescription={jobDescription}
         initialSalary={initialSalary}
         matchExplanation={matchExplanation}
-        missingKeywords={missingKeywords}
         tailoredResume={tailoredResume}
         coverLetter={coverLetter}
         initialRoleSummary={initialRoleSummary}
@@ -62,6 +112,7 @@ export function ApplicationDetailClient({
         onTabChange={setActiveTab}
         openAccordion={openAccordion}
         onAccordionChange={setOpenAccordion}
+        highlightKeyword={highlightKeyword}
       />
     </>
   );

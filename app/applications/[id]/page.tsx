@@ -15,6 +15,7 @@ import { JobDescriptionEditor } from "@/components/JobDescriptionEditor";
 import { PostGenerationGuide } from "@/components/PostGenerationGuide";
 import { SetupNotice } from "@/components/SetupNotice";
 import { StatusSelector } from "@/components/StatusSelector";
+import { getAccessState } from "@/lib/entitlements";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ApplicationStatus, ApplicationWithJob } from "@/types/database";
@@ -137,9 +138,10 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
     );
   }
 
-  const [{ data }, { data: masterResume }] = await Promise.all([
+  const [{ data }, { data: masterResume }, access] = await Promise.all([
     supabase.from("applications").select("*, jobs(*)").eq("id", id).eq("user_id", user.id).maybeSingle(),
     supabase.from("master_resumes").select("id").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+    getAccessState(supabase, user.id),
   ]);
   const application = data as ApplicationWithJob | null;
 
@@ -296,6 +298,11 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
               initialLocationType={application.location_type}
               initialOtherNotes={application.other_notes}
               initialNotes={application.notes}
+              planType={access.planType}
+              hasTailoredResume={!!application.tailored_resume}
+              hasCoverLetter={!!application.cover_letter}
+              strengthenedKeywords={application.strengthened_keywords ?? []}
+              strengthenedKeywordSnippets={application.strengthened_keyword_snippets ?? {}}
             />
 
         </div>

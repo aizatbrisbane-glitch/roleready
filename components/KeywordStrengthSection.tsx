@@ -1,20 +1,129 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Lightbulb } from "lucide-react";
+import Link from "next/link";
+import { AlertTriangle, CheckCircle2, ChevronDown, Lightbulb, Loader2, Lock, Sparkles } from "lucide-react";
+import type { EntitlementPlanType } from "@/types/database";
+import type { DocumentUpdate } from "@/components/ApplicationDetailClient";
+
+type Target = "resume" | "cover_letter" | "both";
+
+type KeywordState =
+  | { phase: "idle" }
+  | { phase: "expanding" }
+  | { phase: "loading" }
+  | { phase: "success"; target: Target | null; snippet: string }
+  | { phase: "error"; message: string };
 
 type Props = {
+  applicationId: string;
   missingKeywords: string[];
   matchScore: number | null;
+  planType: EntitlementPlanType;
+  hasTailoredResume: boolean;
+  hasCoverLetter: boolean;
+  strengthenedKeywords: string[];
+  strengthenedKeywordSnippets: Record<string, string>;
+  onDocumentUpdate: (update: DocumentUpdate) => void;
 };
 
-export function KeywordStrengthSection({ missingKeywords, matchScore }: Props) {
+export function KeywordStrengthSection({
+  applicationId,
+  missingKeywords,
+  matchScore,
+  planType,
+  hasTailoredResume,
+  hasCoverLetter,
+  strengthenedKeywords,
+  strengthenedKeywordSnippets,
+  onDocumentUpdate,
+}: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const [states, setStates] = useState<Record<string, KeywordState>>(() => {
+    const initial: Record<string, KeywordState> = {};
+    for (const kw of strengthenedKeywords) {
+      initial[kw] = { phase: "success", target: null, snippet: strengthenedKeywordSnippets[kw] ?? "" };
+    }
+    return initial;
+  });
+  const [evidenceMap, setEvidenceMap] = useState<Record<string, string>>({});
+  const [targetMap, setTargetMap] = useState<Record<string, Target>>({});
+
   const hasRealKeywords = missingKeywords.length > 0;
+  const isPremium = planType !== "free";
+  const hasBothDocs = hasTailoredResume && hasCoverLetter;
+  const hasAnyDoc = hasTailoredResume || hasCoverLetter;
+  const defaultTarget: Target = hasBothDocs ? "both" : hasTailoredResume ? "resume" : "cover_letter";
 
   const displayItems = hasRealKeywords
     ? missingKeywords
     : ["Review job requirements", "Check resume emphasis", "Personalise your opening"];
+
+  function getState(keyword: string): KeywordState {
+    return states[keyword] ?? { phase: "idle" };
+  }
+
+  function setState(keyword: string, state: KeywordState) {
+    setStates((prev) => ({ ...prev, [keyword]: state }));
+  }
+
+  function getEvidence(keyword: string) {
+    return evidenceMap[keyword] ?? "";
+  }
+
+  function setEvidence(keyword: string, value: string) {
+    setEvidenceMap((prev) => ({ ...prev, [keyword]: value }));
+  }
+
+  function getTarget(keyword: string): Target {
+    return targetMap[keyword] ?? defaultTarget;
+  }
+
+  function setTarget(keyword: string, value: Target) {
+    setTargetMap((prev) => ({ ...prev, [keyword]: value }));
+  }
+
+  function targetLabel(target: Target | null) {
+    if (target === "resume") return "resume";
+    if (target === "cover_letter") return "cover letter";
+    if (target === "both") return "both documents";
+    return "documents";
+  }
+
+  function addButtonLabel() {
+    if (hasTailoredResume && !hasCoverLetter) return "Add to resume";
+    if (!hasTailoredResume && hasCoverLetter) return "Add to cover letter";
+    return "Add to documents";
+  }
+
+  async function handleStrengthen(keyword: string) {
+    const evidence = getEvidence(keyword).trim();
+    if (!evidence) return;
+    const target = getTarget(keyword);
+    setState(keyword, { phase: "loading" });
+
+    try {
+      const res = await fetch(`/api/applications/${applicationId}/strengthen`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keyword, evidence, target }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setState(keyword, { phase: "error", message: data.error ?? "Something went wrong." });
+        return;
+      }
+      onDocumentUpdate({
+        resume: data.tailoredResume ?? null,
+        cover: data.coverLetter ?? null,
+        keyword,
+        snippet: data.changedSnippet ?? "",
+      });
+      setState(keyword, { phase: "success", target, snippet: data.changedSnippet ?? "" });
+    } catch {
+      setState(keyword, { phase: "error", message: "Network error. Please try again." });
+    }
+  }
 
   return (
     <section className="rounded-[1.6rem] border border-slate-100 bg-white shadow-sm">
@@ -47,17 +156,137 @@ export function KeywordStrengthSection({ missingKeywords, matchScore }: Props) {
               : "No major keyword gaps were identified yet."}
           </p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {displayItems.map((item) => (
-              <div key={item} className="rounded-2xl bg-slate-50 px-4 py-4">
-                <Lightbulb className="h-5 w-5 text-amber-500" />
-                <p className="mt-3 text-sm font-semibold text-slate-900">{item}</p>
-                <p className="mt-1 text-xs leading-5 text-slate-500">
-                  {hasRealKeywords
-                    ? "Only include this if it genuinely appears in your experience."
-                    : "Use the generated documents as a starting point, then add context where it is true."}
-                </p>
-              </div>
-            ))}
+            {displayItems.map((item) => {
+              const state = getState(item);
+              const isSuccess = state.phase === "success";
+              const isExpanding = state.phase === "expanding";
+              const isLoading = state.phase === "loading";
+              const isError = state.phase === "error";
+
+              return (
+                <div
+                  key={item}
+                  className={`rounded-2xl px-4 py-4 transition-colors ${
+                    isSuccess ? "bg-green-50" : isError ? "bg-rose-50" : "bg-slate-50"
+                  }`}
+                >
+                  {isSuccess ? (
+                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  ) : isError ? (
+                    <AlertTriangle className="h-5 w-5 text-rose-500" />
+                  ) : (
+                    <Lightbulb className="h-5 w-5 text-amber-500" />
+                  )}
+
+                  <p className="mt-3 text-sm font-semibold text-slate-900">{item}</p>
+
+                  {isSuccess && state.phase === "success" ? (
+                    <>
+                      <p className="mt-1 text-xs font-semibold leading-5 text-green-600">Added to {targetLabel(state.target)}</p>
+                      {state.snippet ? (
+                        <p className="mt-2 rounded-xl bg-green-100 px-3 py-2 text-xs italic leading-5 text-green-800">
+                          &ldquo;{state.snippet}&rdquo;
+                        </p>
+                      ) : null}
+                    </>
+                  ) : isError && state.phase === "error" ? (
+                    <>
+                      <p className="mt-1 text-xs leading-5 text-rose-600">{state.message}</p>
+                      <button
+                        type="button"
+                        onClick={() => setState(item, { phase: "expanding" })}
+                        className="mt-2 text-xs font-semibold text-rose-500 hover:text-rose-700"
+                      >
+                        Retry
+                      </button>
+                    </>
+                  ) : isExpanding || isLoading ? (
+                    <div className="mt-3 space-y-2">
+                      <textarea
+                        className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-[#d4ccff]"
+                        rows={3}
+                        placeholder={`Describe your experience with "${item}"...`}
+                        value={getEvidence(item)}
+                        onChange={(e) => setEvidence(item, e.target.value)}
+                        disabled={isLoading}
+                        autoFocus
+                      />
+                      {hasBothDocs && (
+                        <div className="flex flex-wrap gap-1">
+                          {(["resume", "cover_letter", "both"] as Target[]).map((t) => (
+                            <button
+                              key={t}
+                              type="button"
+                              disabled={isLoading}
+                              onClick={() => setTarget(item, t)}
+                              className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition ${
+                                getTarget(item) === t
+                                  ? "bg-[#2200ff] text-white"
+                                  : "bg-slate-200 text-slate-600 hover:bg-slate-300"
+                              }`}
+                            >
+                              {t === "resume" ? "Resume" : t === "cover_letter" ? "Cover letter" : "Both"}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={isLoading || !getEvidence(item).trim()}
+                          onClick={() => handleStrengthen(item)}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-[#2200ff] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
+                        >
+                          {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                          {isLoading ? "Weaving in..." : "Weave it in"}
+                        </button>
+                        {!isLoading && (
+                          <button
+                            type="button"
+                            onClick={() => setState(item, { phase: "idle" })}
+                            className="text-xs text-slate-400 hover:text-slate-600"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="mt-1 text-xs leading-5 text-slate-500">
+                        {hasRealKeywords
+                          ? "Only include this if it genuinely appears in your experience."
+                          : "Use the generated documents as a starting point, then add context where it is true."}
+                      </p>
+                      {hasRealKeywords && (
+                        isPremium ? (
+                          hasAnyDoc ? (
+                            <button
+                              type="button"
+                              onClick={() => setState(item, { phase: "expanding" })}
+                              className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#2200ff]/20 bg-white px-3 py-1.5 text-xs font-semibold text-[#2200ff] transition hover:bg-[#ece8ff]"
+                            >
+                              <Sparkles className="h-3 w-3" />
+                              {addButtonLabel()}
+                            </button>
+                          ) : (
+                            <p className="mt-3 text-xs text-slate-400">Generate your application first.</p>
+                          )
+                        ) : (
+                          <Link
+                            href="/pricing"
+                            className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-[#d4ccff] hover:text-[#2200ff]"
+                          >
+                            <Lock className="h-3 w-3" />
+                            Upgrade to add
+                          </Link>
+                        )
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

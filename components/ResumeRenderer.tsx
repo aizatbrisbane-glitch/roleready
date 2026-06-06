@@ -2,15 +2,35 @@
 
 import React from "react";
 
-function InlineMd({ text }: { text: string }) {
+function splitHighlight(text: string, keyword: string): React.ReactNode[] {
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(`(${escaped})`, "gi");
+  const parts = text.split(regex);
+  let matched = false;
+  return parts.map((part, i) => {
+    if (regex.test(part)) {
+      matched = !matched;
+      return (
+        <mark key={i} className="kw-highlight rounded bg-yellow-200 px-0.5 not-italic">
+          {part}
+        </mark>
+      );
+    }
+    return <React.Fragment key={i}>{part}</React.Fragment>;
+  });
+}
+
+function InlineMd({ text, highlightKeyword }: { text: string; highlightKeyword?: string | null }) {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return (
     <>
       {parts.map((part, i) =>
         part.startsWith("**") && part.endsWith("**") ? (
           <strong key={i} className="font-semibold text-[#14213d]">
-            {part.slice(2, -2)}
+            {highlightKeyword ? splitHighlight(part.slice(2, -2), highlightKeyword) : part.slice(2, -2)}
           </strong>
+        ) : highlightKeyword && part ? (
+          <React.Fragment key={i}>{splitHighlight(part, highlightKeyword)}</React.Fragment>
         ) : (
           part
         )
@@ -42,7 +62,7 @@ function parseLines(content: string): ParsedLine[] {
     });
 }
 
-export function ResumeRenderer({ content }: { content: string }) {
+export function ResumeRenderer({ content, highlightKeyword }: { content: string; highlightKeyword?: string | null }) {
   const lines = parseLines(content);
   const nodes: React.ReactNode[] = [];
   let bullets: string[] = [];
@@ -55,7 +75,7 @@ export function ResumeRenderer({ content }: { content: string }) {
         {bullets.map((b, i) => (
           <li key={i} className="flex items-start gap-2.5 text-sm leading-6 text-slate-600">
             <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-slate-400" />
-            <span><InlineMd text={b} /></span>
+            <span><InlineMd text={b} highlightKeyword={highlightKeyword} /></span>
           </li>
         ))}
       </ul>
@@ -73,7 +93,7 @@ export function ResumeRenderer({ content }: { content: string }) {
     if (line.type === "h1") {
       nodes.push(
         <h1 key={k++} className="font-serif text-2xl font-bold tracking-tight text-[#1B3A6B]">
-          <InlineMd text={line.text} />
+          <InlineMd text={line.text} highlightKeyword={highlightKeyword} />
         </h1>
       );
     } else if (line.type === "h2") {
@@ -85,13 +105,13 @@ export function ResumeRenderer({ content }: { content: string }) {
     } else if (line.type === "h3") {
       nodes.push(
         <h3 key={k++} className="mt-3 text-sm font-semibold text-[#14213d]">
-          <InlineMd text={line.text} />
+          <InlineMd text={line.text} highlightKeyword={highlightKeyword} />
         </h3>
       );
     } else if (line.type === "text") {
       nodes.push(
         <p key={k++} className="text-xs leading-5 text-slate-500">
-          <InlineMd text={line.text} />
+          <InlineMd text={line.text} highlightKeyword={highlightKeyword} />
         </p>
       );
     }
@@ -108,12 +128,11 @@ export function ResumeRenderer({ content }: { content: string }) {
   );
 }
 
-export function CoverLetterRenderer({ content }: { content: string }) {
+export function CoverLetterRenderer({ content, highlightKeyword }: { content: string; highlightKeyword?: string | null }) {
   const lines = parseLines(content);
   const nodes: React.ReactNode[] = [];
   let k = 0;
   let pendingBlanks = 0;
-  // Track whether we're still in the name/contact header block
   let inHeader = false;
   let headerDone = false;
 
@@ -132,7 +151,7 @@ export function CoverLetterRenderer({ content }: { content: string }) {
       headerDone = false;
       nodes.push(
         <h1 key={k++} className="font-serif text-2xl font-bold tracking-tight text-[#1B3A6B]">
-          <InlineMd text={line.text} />
+          <InlineMd text={line.text} highlightKeyword={highlightKeyword} />
         </h1>
       );
     } else if (line.type === "h2") {
@@ -145,17 +164,16 @@ export function CoverLetterRenderer({ content }: { content: string }) {
       );
     } else if (line.type === "text" || line.type === "h3") {
       if (inHeader && !headerDone) {
-        // Contact/location lines — match resume header style
         nodes.push(
           <p key={k++} className="mt-0.5 text-xs leading-5 text-slate-500">
-            <InlineMd text={line.text} />
+            <InlineMd text={line.text} highlightKeyword={highlightKeyword} />
           </p>
         );
       } else {
         const mt = pendingBlanks > 0 ? "mt-4" : "mt-1";
         nodes.push(
           <p key={k++} className={`${mt} text-sm leading-7 text-slate-700`}>
-            <InlineMd text={line.text} />
+            <InlineMd text={line.text} highlightKeyword={highlightKeyword} />
           </p>
         );
       }

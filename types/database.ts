@@ -160,6 +160,8 @@ export type Application = {
   role_summary: string | null;
   other_notes: string | null;
   strengthen_count: number;
+  strengthened_keywords: string[];
+  strengthened_keyword_snippets: Record<string, string>;
   created_at: string;
   updated_at: string;
 };

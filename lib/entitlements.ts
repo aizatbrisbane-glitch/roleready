@@ -14,7 +14,7 @@ export type AccessState = {
   entitlementId: string | null;
 };
 
-const FREE_MONTHLY_APPLICATION_LIMIT = 3;
+const FREE_MONTHLY_APPLICATION_LIMIT = 1;
 
 function monthStartIso() {
   const now = new Date();
@@ -108,7 +108,7 @@ export async function consumeGenerationCredit(supabase: SupabaseServerClient, ac
 
 export function generationLimitMessage(access: AccessState) {
   if (access.planType === "free") {
-    return "You have used your 3 free applications for this month.";
+    return "You have used your free application. Upgrade to generate more.";
   }
 
   return "This access pass has no application credits remaining.";

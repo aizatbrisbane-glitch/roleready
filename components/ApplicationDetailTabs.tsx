@@ -82,6 +82,7 @@ type Props = {
   onTabChange: (tab: Tab) => void;
   openAccordion: Tab | null;
   onAccordionChange: (tab: Tab | null) => void;
+  highlightKeyword?: string | null;
 };
 
 const LOCATION_TYPES = ["Not specified", "Remote", "Hybrid", "On-site"];
@@ -111,6 +112,7 @@ export function ApplicationDetailTabs({
   onTabChange,
   openAccordion,
   onAccordionChange,
+  highlightKeyword,
 }: Props) {
 
   const [roleSummary, setRoleSummary] = useState(initialRoleSummary ?? "");
@@ -126,6 +128,16 @@ export function ApplicationDetailTabs({
   const roleSummaryRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
+    if (!highlightKeyword) return;
+    if (activeTab !== "resume" && activeTab !== "cover") return;
+    const timer = setTimeout(() => {
+      const el = document.querySelector(".kw-highlight");
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [highlightKeyword, activeTab]);
+
+  useEffect(() => {
     const el = roleSummaryRef.current;
     if (!el) return;
     el.style.height = "auto";
@@ -136,7 +148,11 @@ export function ApplicationDetailTabs({
     setSummarising(true);
     setSummariseError("");
     try {
-      const res = await fetch(`/api/applications/${applicationId}/summarise-role`, { method: "POST" });
+      const res = await fetch(`/api/applications/${applicationId}/summarise-role`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ save: true }),
+      });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
         setSummariseError(data?.error ?? "Could not summarise. Try again.");
@@ -353,7 +369,7 @@ export function ApplicationDetailTabs({
               </div>
             </div>
             <div className="max-h-[680px] overflow-auto rounded-b-[1.6rem]">
-              <ResumeRenderer content={tailoredResume} />
+              <ResumeRenderer content={tailoredResume} highlightKeyword={highlightKeyword} />
             </div>
           </>
         ) : (
@@ -378,7 +394,7 @@ export function ApplicationDetailTabs({
               </div>
             </div>
             <div className="max-h-[680px] overflow-auto rounded-b-[1.6rem]">
-              <CoverLetterRenderer content={coverLetter} />
+              <CoverLetterRenderer content={coverLetter} highlightKeyword={highlightKeyword} />
             </div>
           </>
         ) : (

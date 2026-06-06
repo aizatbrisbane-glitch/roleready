@@ -737,7 +737,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
               <section className="mt-5">
                 <h2 className="text-3xl font-black tracking-tight text-slate-900">Your first application is almost ready</h2>
                 <p className="mt-3 text-base leading-7 text-slate-600">
-                  Create a free account to save your resume, generate your first tailored application, and access your 3 free monthly applications.
+                  Create a free account to save your resume and generate your first tailored application for free.
                 </p>
                 <form onSubmit={handleAccountGate} className="mt-6 space-y-4">
                   <label className="block">
