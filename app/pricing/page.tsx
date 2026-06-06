@@ -16,7 +16,7 @@ const plans = [
     price: "$0",
     description: "Try ApplyHQ and keep a lightweight view of your job search.",
     features: [
-      "3 applications per month",
+      "1 free application",
       "1 month credit validity",
       "View-only dashboard access",
       "Limited access to job matches"
