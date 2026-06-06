@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Star } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Star } from "lucide-react";
 import { PublicFooter } from "@/components/PublicFooter";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getAccessState } from "@/lib/entitlements";
 
 export const metadata: Metadata = {
   title: "Pricing | ApplyHQ",
@@ -89,11 +90,92 @@ const faqs = [
   }
 ];
 
+const paidPlans = plans.filter((p) => p.name !== "Free");
+
 export default async function PricingPage() {
   const supabase = isSupabaseConfigured() ? await createSupabaseServerClient() : null;
   const {
     data: { user }
   } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+
+  if (user && supabase) {
+    const access = await getAccessState(supabase, user.id);
+
+    return (
+      <main className="min-h-screen bg-slate-50 px-4 py-10 sm:px-8">
+        <div className="mx-auto max-w-4xl">
+          <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-[#2200ff]">
+            <ArrowLeft className="h-4 w-4" /> Back
+          </Link>
+
+          <div className="mt-6 overflow-hidden rounded-[2rem] border border-slate-100 bg-white shadow-[0_32px_80px_rgba(34,0,255,0.08)]">
+            <div className="border-b border-slate-100 bg-gradient-to-br from-[#ece8ff] to-[#f5f3ff] px-7 py-8 sm:px-10">
+              <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Ready to apply more?</h1>
+              {access.planType === "free" ? (
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  You are on the free plan — <span className="font-semibold">{access.applicationsRemaining} of {access.applicationLimit} application</span> remaining. Pick a pass to keep going.
+                </p>
+              ) : (
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  You are on the <span className="font-semibold">{access.planLabel}</span> — <span className="font-semibold">{access.applicationsRemaining}</span> applications remaining.
+                </p>
+              )}
+            </div>
+
+            <div className="grid gap-5 p-7 sm:grid-cols-3 sm:p-10">
+              {paidPlans.map((plan) => (
+                <article
+                  key={plan.name}
+                  className={`relative flex flex-col rounded-[1.5rem] border p-5 ${
+                    plan.highlighted
+                      ? "border-[#2200ff] shadow-[0_16px_48px_rgba(34,0,255,0.14)]"
+                      : "border-slate-100 bg-slate-50"
+                  }`}
+                >
+                  {plan.badge ? (
+                    <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-[#c8ff00] px-2.5 py-0.5 text-xs font-bold text-slate-900">
+                      <Star className="h-3 w-3 fill-slate-900 text-slate-900" />
+                      {plan.badge}
+                    </span>
+                  ) : null}
+
+                  <h2 className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">{plan.name}</h2>
+                  <p className="mt-3 text-3xl font-black tracking-tight text-slate-900">{plan.price}</p>
+                  <p className="mt-2 text-xs leading-5 text-slate-500">{plan.description}</p>
+
+                  <ul className="mt-5 flex-1 space-y-2.5 text-xs leading-5 text-slate-700">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex gap-2">
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#2200ff]" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Link
+                    href={plan.href}
+                    className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition ${
+                      plan.highlighted
+                        ? "bg-[#2200ff] text-white shadow-[0_12px_28px_rgba(34,0,255,0.22)] hover:-translate-y-0.5 hover:bg-[#1a00cc]"
+                        : "border border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:border-slate-300"
+                    }`}
+                  >
+                    {plan.button}
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </article>
+              ))}
+            </div>
+
+            <p className="border-t border-slate-100 px-7 py-5 text-center text-xs text-slate-400 sm:px-10">
+              One-off passes — no subscription, no auto-renewal.
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   const showPublicHeader = !user;
 
   return (
