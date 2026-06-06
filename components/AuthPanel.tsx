@@ -13,6 +13,8 @@ export function AuthPanel() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState("");
 
   function getSupabase() {
     const supabase = createSupabaseBrowserClient();
@@ -26,6 +28,8 @@ export function AuthPanel() {
   function switchMode(next: Mode) {
     setMode(next);
     setMessage("");
+    setOtpSent(false);
+    setOtp("");
   }
 
   async function signIn(event: React.FormEvent<HTMLFormElement>) {
@@ -57,7 +61,7 @@ export function AuthPanel() {
       return;
     }
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
@@ -65,10 +69,37 @@ export function AuthPanel() {
 
     if (error) {
       setMessage(error.message);
-    } else {
-      setMessage("Account created. Check your email to confirm, then sign in.");
+      setLoading(false);
+      return;
     }
+
+    if (data.session) {
+      window.location.href = "/";
+      return;
+    }
+
+    setOtpSent(true);
+    setMessage("");
     setLoading(false);
+  }
+
+  async function verifyOtp(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLoading(true);
+    setMessage("");
+    const supabase = getSupabase();
+    if (!supabase) { setLoading(false); return; }
+
+    const cleanCode = otp.replace(/\D/g, "");
+    const { error } = await supabase.auth.verifyOtp({ email, token: cleanCode, type: "signup" });
+
+    if (error) {
+      setMessage(error.message);
+      setLoading(false);
+      return;
+    }
+
+    window.location.href = "/";
   }
 
   async function signInWithGoogle() {
@@ -100,6 +131,58 @@ export function AuthPanel() {
 
   const isSignin = mode === "signin";
   const isSignup = mode === "signup";
+
+  if (otpSent) {
+    return (
+      <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-[0_32px_100px_rgba(34,0,255,0.1)] sm:p-9 lg:p-12">
+        <div className="text-center">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#ece8ff] text-[#2200ff]">
+            <MousePointer2 className="h-9 w-9 fill-[#d4ccff]" />
+          </div>
+          <h1 className="mt-7 text-3xl font-bold text-slate-900">Check your email</h1>
+          <p className="mt-3 text-base leading-7 text-slate-600">
+            We sent a 6-digit code to <span className="font-bold text-slate-900">{email}</span>. Enter it below to confirm your account.
+          </p>
+        </div>
+
+        <form onSubmit={verifyOtp} className="mt-9 space-y-5">
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-slate-600">Verification code</span>
+            <input
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-center text-2xl font-black tracking-[0.35em] text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              pattern="[0-9]*"
+              maxLength={6}
+              placeholder="000000"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              required
+              autoFocus
+            />
+          </label>
+
+          <button
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-4 text-base font-semibold text-white shadow-[0_18px_48px_rgba(34,0,255,0.22)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#1a00cc] disabled:cursor-not-allowed disabled:opacity-70"
+            disabled={loading}
+            type="submit"
+          >
+            {loading ? "Verifying..." : "Confirm account"}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-slate-500">
+          Wrong email?{" "}
+          <button type="button" onClick={() => switchMode("signup")} className="font-semibold text-[#2200ff] hover:text-[#1a00cc]">
+            Go back
+          </button>
+        </p>
+
+        {message && <p className="mt-5 rounded-2xl bg-[#ece8ff] px-4 py-3 text-sm leading-6 text-[#1a00cc]">{message}</p>}
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-[0_32px_100px_rgba(34,0,255,0.1)] sm:p-9 lg:p-12">
