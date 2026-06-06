@@ -30,7 +30,7 @@ export function blockedJobBoardMessage(url: string, status?: number): string {
     }
   })();
   const statusText = status ? ` (HTTP ${status})` : "";
-  return `${host} blocked our request${statusText}. Use the Chrome extension on the job page, or paste the full job description in the box below.`;
+  return `${host} blocked our request${statusText}. Paste the full job description in the box below instead.`;
 }
 
 export function detectJobSource(url: string): "SEEK" | "LinkedIn" | "Adzuna" | "Other" {
@@ -291,6 +291,69 @@ async function fetchLinkedInGuestApi(url: string): Promise<JobAdDetails | null> 
     };
   } catch (e) {
     console.warn("[job-ad] LinkedIn guest API failed:", e);
+    return null;
+  }
+}
+
+// ─── Seek Chalice API (tries Seek's internal JSON API before scraping) ────────
+
+function extractSeekJobId(url: string): string | null {
+  try {
+    const u = new URL(url);
+    const pathMatch = u.pathname.match(/^\/job\/(\d+)/);
+    if (pathMatch) return pathMatch[1];
+    const qp = u.searchParams.get("jobId");
+    if (qp) return qp;
+  } catch { /* ignore */ }
+  return null;
+}
+
+async function fetchSeekJobApi(url: string): Promise<JobAdDetails | null> {
+  const jobId = extractSeekJobId(url);
+  if (!jobId) return null;
+
+  try {
+    const res = await fetch(
+      `https://chalice-experience.seek.com.au/jobs/${jobId}?locale=en-AU`,
+      {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+          Accept: "application/json, text/plain, */*",
+          "Accept-Language": "en-AU,en;q=0.9",
+          Referer: `https://au.seek.com/job/${jobId}`,
+          "sec-fetch-mode": "cors",
+          "sec-fetch-site": "same-site",
+        },
+        signal: AbortSignal.timeout(15000),
+      }
+    );
+
+    if (!res.ok) return null;
+    const data = await res.json();
+
+    const rawDescription = String(data?.content ?? data?.description ?? data?.jobDescription ?? "");
+    const description = htmlToText(rawDescription);
+    if (description.trim().length < 100) return null;
+
+    console.log(`[job-ad] Seek API ok — jobId: ${jobId}, desc length: ${description.length}`);
+
+    return {
+      title: firstString(data?.title, data?.roleName) || "Job from SEEK",
+      company: firstString(
+        nestedString(data, "advertiser", "description"),
+        nestedString(data, "advertiser", "name"),
+        data?.companyName
+      ) || "Company from job ad",
+      location: firstString(
+        data?.locationLabel,
+        nestedString(data, "location", "label"),
+        nestedString(data, "location", "description")
+      ),
+      salary: firstString(data?.salary, data?.salaryLabel),
+      description: description.slice(0, 30000),
+    };
+  } catch (e) {
+    console.warn("[job-ad] Seek API fetch failed:", e);
     return null;
   }
 }
@@ -580,7 +643,11 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
 
   if (!response.ok) {
     if (isBlockedJobBoard(effectiveUrl)) {
-      const isLinkedIn = new URL(effectiveUrl).hostname.includes("linkedin.com");
+      const hostname = new URL(effectiveUrl).hostname;
+      const isLinkedIn = hostname.includes("linkedin.com");
+      const isSeek = hostname.includes("seek.");
+      const seekResult = isSeek ? await fetchSeekJobApi(effectiveUrl) : null;
+      if (seekResult) return seekResult;
       const linkedInResult = isLinkedIn ? await fetchLinkedInGuestApi(effectiveUrl) : null;
       const fallback = linkedInResult ?? (await fetchWithScrapingFallbacks(effectiveUrl));
       if (fallback) return fallback;
@@ -657,8 +724,16 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
     const hostname = new URL(effectiveUrl).hostname;
     console.log(`[job-ad] short/empty description for blocked site (${hostname}), trying fallbacks…`);
 
-    // LinkedIn: try the public guest API first (no auth needed)
+    const isSeek = hostname.includes("seek.");
     const isLinkedIn = hostname.includes("linkedin.com");
+
+    // Seek: try internal Chalice API first (bypasses Cloudflare)
+    if (isSeek) {
+      const seekFallback = await fetchSeekJobApi(effectiveUrl);
+      if (seekFallback) return seekFallback;
+    }
+
+    // LinkedIn: try the public guest API first (no auth needed)
     if (isLinkedIn) {
       const linkedinFallback = await fetchLinkedInGuestApi(effectiveUrl);
       if (linkedinFallback) return linkedinFallback;

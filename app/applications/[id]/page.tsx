@@ -109,7 +109,7 @@ function jobDisplayCopy(job: NonNullable<ApplicationWithJob["jobs"]>) {
   return {
     title: "Oops, we need the job description",
     company: "This job board blocked the full ad",
-    note: "Use the Chrome extension on the job page to capture it, or paste the full description below."
+    note: "Paste the full job description below so we can tailor your application properly."
   };
 }
 

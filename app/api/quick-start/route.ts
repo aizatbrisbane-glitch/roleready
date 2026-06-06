@@ -130,7 +130,7 @@ export async function POST(request: Request) {
                 errorCode: JOB_TEXT_UNAVAILABLE,
                 source: detectJobSource(jobUrl),
                 jobUrl,
-                error: "We could not read the job text from this site. Paste the full job description and continue."
+                error: "We couldn't read that page — Seek and LinkedIn block automated access. Paste the full job description below instead."
               },
               { status: 422 }
             );
