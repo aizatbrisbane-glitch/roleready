@@ -312,6 +312,15 @@ export async function POST(request: Request, { params }: Props) {
       return NextResponse.json({ error: updateError.message }, { status: 400 });
     }
 
+    // Sync authoritative score back to browse cache so dashboard stays consistent
+    if (app.jobs?.job_url) {
+      await supabase
+        .from("cached_grabbed_jobs")
+        .update({ match_score: generated.matchScore })
+        .eq("user_id", user.id)
+        .eq("job_url", app.jobs.job_url);
+    }
+
     await supabase.from("generated_documents").insert([
       {
         user_id: user.id,
