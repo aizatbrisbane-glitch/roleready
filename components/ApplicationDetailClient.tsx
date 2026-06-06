@@ -59,6 +59,21 @@ export function ApplicationDetailClient({
   const [tailoredResume, setTailoredResume] = useState(initialTailoredResume);
   const [coverLetter, setCoverLetter] = useState(initialCoverLetter);
   const [highlightKeyword, setHighlightKeyword] = useState<string | null>(null);
+  const isMounted = useRef(false);
+
+  useEffect(() => {
+    if (!isMounted.current) { isMounted.current = true; return; }
+    setTailoredResume(initialTailoredResume);
+    if (initialTailoredResume) {
+      setActiveTab("resume");
+      setOpenAccordion("resume");
+    }
+  }, [initialTailoredResume]);
+
+  useEffect(() => {
+    if (!isMounted.current) return;
+    setCoverLetter(initialCoverLetter);
+  }, [initialCoverLetter]);
   const clearHighlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => { if (clearHighlightTimer.current) clearTimeout(clearHighlightTimer.current); }, []);

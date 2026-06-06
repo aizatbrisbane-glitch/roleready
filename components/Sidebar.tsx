@@ -87,7 +87,7 @@ export function Sidebar({ userName, userEmail, avatarUrl, showEnterpriseAdmin, p
       {planType === "free" && (
         <div className="mx-4 mb-3 rounded-2xl bg-[#ece8ff] p-4">
           <p className="text-xs font-black text-[#2200ff]">Need to apply more?</p>
-          <p className="mt-1 text-xs leading-5 text-[#4422cc]">You have 1 free application. Upgrade for up to 150.</p>
+          <p className="mt-1 text-xs leading-5 text-[#4422cc]">You have 1 free application per month. Upgrade for up to 150.</p>
           <Link
             href="/pricing"
             className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[#2200ff] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#1a00cc]"

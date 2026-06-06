@@ -166,19 +166,20 @@ export function KeywordStrengthSection({
               return (
                 <div
                   key={item}
-                  className={`rounded-2xl px-4 py-4 transition-colors ${
+                  className={`rounded-2xl px-4 py-3 transition-colors ${
                     isSuccess ? "bg-green-50" : isError ? "bg-rose-50" : "bg-slate-50"
                   }`}
                 >
-                  {isSuccess ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  ) : isError ? (
-                    <AlertTriangle className="h-5 w-5 text-rose-500" />
-                  ) : (
-                    <Lightbulb className="h-5 w-5 text-amber-500" />
-                  )}
-
-                  <p className="mt-3 text-sm font-semibold text-slate-900">{item}</p>
+                  <div className="flex items-center gap-2">
+                    {isSuccess ? (
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />
+                    ) : isError ? (
+                      <AlertTriangle className="h-4 w-4 shrink-0 text-rose-500" />
+                    ) : (
+                      <Lightbulb className="h-4 w-4 shrink-0 text-amber-500" />
+                    )}
+                    <p className="text-sm font-semibold text-slate-900">{item}</p>
+                  </div>
 
                   {isSuccess && state.phase === "success" ? (
                     <>
@@ -253,29 +254,29 @@ export function KeywordStrengthSection({
                     </div>
                   ) : (
                     <>
-                      <p className="mt-1 text-xs leading-5 text-slate-500">
-                        {hasRealKeywords
-                          ? "Only include this if it genuinely appears in your experience."
-                          : "Use the generated documents as a starting point, then add context where it is true."}
-                      </p>
+                      {!hasRealKeywords && (
+                        <p className="mt-1 text-xs leading-5 text-slate-500">
+                          Use the generated documents as a starting point, then add context where it is true.
+                        </p>
+                      )}
                       {hasRealKeywords && (
                         isPremium ? (
                           hasAnyDoc ? (
                             <button
                               type="button"
                               onClick={() => setState(item, { phase: "expanding" })}
-                              className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#2200ff]/20 bg-white px-3 py-1.5 text-xs font-semibold text-[#2200ff] transition hover:bg-[#ece8ff]"
+                              className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-[#2200ff]/20 bg-white px-3 py-1.5 text-xs font-semibold text-[#2200ff] transition hover:bg-[#ece8ff]"
                             >
                               <Sparkles className="h-3 w-3" />
                               {addButtonLabel()}
                             </button>
                           ) : (
-                            <p className="mt-3 text-xs text-slate-400">Generate your application first.</p>
+                            <p className="mt-2 text-xs text-slate-400">Generate your application first.</p>
                           )
                         ) : (
                           <Link
                             href="/pricing"
-                            className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-[#d4ccff] hover:text-[#2200ff]"
+                            className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-[#d4ccff] hover:text-[#2200ff]"
                           >
                             <Lock className="h-3 w-3" />
                             Upgrade to add

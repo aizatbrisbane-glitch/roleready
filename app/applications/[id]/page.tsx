@@ -155,7 +155,8 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
     generate === "true" &&
     !hasDocuments &&
     !!masterResume &&
-    job.description.trim().length > 0;
+    job.description.trim().length > 0 &&
+    access.canGenerate;
   const showWelcomeGuide = generate === "true" && hasDocuments;
 
   const generateHint =
@@ -274,7 +275,7 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
                       </a>
                     </>
                   )}
-                  <GenerateButton applicationId={application.id} hasDocuments={hasDocuments} autoGenerate={autoGenerate} generateHint={generateHint} />
+                  <GenerateButton applicationId={application.id} hasDocuments={hasDocuments} canGenerate={access.canGenerate} autoGenerate={autoGenerate} generateHint={generateHint} />
                 </div>
               </div>
             </section>
