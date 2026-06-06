@@ -59,6 +59,10 @@ export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFil
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!jobUrl.trim() && !descText.trim()) {
+      setMessage("Paste a job link or the job description first.");
+      return;
+    }
     setLoading(true);
     setMessage("");
 
@@ -118,7 +122,6 @@ export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFil
                 type="url"
                 className="min-w-0 flex-1 bg-transparent py-2 text-[16px] text-slate-900 outline-none placeholder:text-slate-400 sm:text-sm"
                 placeholder="Paste job link"
-                required
                 value={jobUrl}
                 onChange={(e) => handleUrlChange(e.target.value)}
               />
@@ -152,7 +155,7 @@ export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFil
             <textarea
               name="job_description_fallback"
               className="mt-3 min-h-28 w-full resize-y rounded-xl border-0 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
-              placeholder="Paste the job description here if the link needs a little help."
+              placeholder="Paste the full job description here — works even without a link."
               value={descText}
               onChange={(e) => setDescText(e.target.value)}
               maxLength={10000}

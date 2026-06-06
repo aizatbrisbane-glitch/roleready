@@ -21,6 +21,8 @@ export function OnboardingWizard() {
   const [jobUrl, setJobUrl] = useState("");
   const [location, setLocation] = useState("");
   const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [descText, setDescText] = useState("");
+  const [descOpen, setDescOpen] = useState(false);
 
   const resumeRef = useRef<HTMLInputElement>(null);
   const coverRef = useRef<HTMLInputElement>(null);
@@ -55,16 +57,22 @@ export function OnboardingWizard() {
   }
 
   async function handleJobUrl() {
-    if (!jobUrl.trim()) { setStep(4); return; }
+    if (!jobUrl.trim() && !descText.trim()) { setStep(4); return; }
     setLoading(true);
     setError("");
     const fd = new FormData();
-    fd.append("job_url", jobUrl);
+    if (jobUrl.trim()) fd.append("job_url", jobUrl);
+    if (descText.trim()) fd.append("job_description_fallback", descText);
     const res = await fetch("/api/quick-start", { method: "POST", body: fd });
     const data = await res.json().catch(() => null);
     setLoading(false);
     if (!res.ok) {
-      setError(data?.error ?? "Could not process this URL. You can skip and add jobs from the dashboard.");
+      if (data?.errorCode === "JOB_TEXT_UNAVAILABLE") {
+        setDescOpen(true);
+        setError("We couldn't read that page — paste the job description below and try again.");
+      } else {
+        setError(data?.error ?? "Something went wrong. You can skip and add jobs from the dashboard.");
+      }
       return;
     }
     if (data?.applicationId) setApplicationId(data.applicationId);
@@ -192,15 +200,35 @@ export function OnboardingWizard() {
         {step === 3 && (
           <>
             <h2 className="text-2xl font-bold text-slate-900">Which job are you applying for?</h2>
-            <p className="mt-2 text-slate-500">Paste the URL so we can check it out</p>
-            <div className="mt-8">
+            <p className="mt-2 text-slate-500">Paste a Seek or LinkedIn link — or paste the full job description below.</p>
+            <div className="mt-8 space-y-3 text-left">
               <input
                 type="url"
                 value={jobUrl}
                 onChange={(e) => setJobUrl(e.target.value)}
-                placeholder="https://..."
+                placeholder="https://www.seek.com.au/job/..."
                 className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:border-[#2200ff] focus:ring-2 focus:ring-[#d4ccff]"
               />
+              {!descOpen && (
+                <button
+                  type="button"
+                  onClick={() => setDescOpen(true)}
+                  className="text-sm text-slate-400 underline underline-offset-2 hover:text-slate-600"
+                >
+                  Or paste the job description instead
+                </button>
+              )}
+              {descOpen && (
+                <textarea
+                  value={descText}
+                  onChange={(e) => setDescText(e.target.value)}
+                  placeholder="Paste the full job description here..."
+                  rows={6}
+                  // eslint-disable-next-line jsx-a11y/no-autofocus
+                  autoFocus
+                  className="w-full resize-y rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-[#2200ff] focus:ring-2 focus:ring-[#d4ccff]"
+                />
+              )}
             </div>
             {error && <p className="mt-3 text-sm text-rose-600">{error}</p>}
             <div className="mt-6 flex flex-col items-center gap-3">
