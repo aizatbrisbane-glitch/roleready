@@ -67,7 +67,12 @@ export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFil
     const payload = await response.json();
 
     if (!response.ok) {
-      setMessage(payload.error ?? "Something went wrong.");
+      if (payload.errorCode === "JOB_TEXT_UNAVAILABLE") {
+        setDescOpen(true);
+        setMessage("We couldn't read that page — paste the job description below and submit again.");
+      } else {
+        setMessage(payload.error ?? "Something went wrong.");
+      }
       setLoading(false);
       return;
     }
