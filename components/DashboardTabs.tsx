@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Bookmark,
   ExternalLink,
+  Info,
   Loader2,
   MapPin,
   RefreshCw,
@@ -169,10 +170,15 @@ function GrabbedMatchCard({
         {/* Score */}
         <div className="min-w-0 text-left sm:text-right">
           <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-bold tabular-nums sm:px-3 sm:text-sm ${matchPillClass(job.matchScore)}`}>
-            <span className="sm:hidden">{job.matchScore}%</span>
-            <span className="hidden sm:inline">{job.matchScore}% Match</span>
+            <span className="sm:hidden">~{job.matchScore}%</span>
+            <span className="hidden sm:inline">~{job.matchScore}% Match</span>
           </span>
-          <p className="mt-0.5 hidden text-xs text-slate-500 sm:block">{label}</p>
+          <p className="mt-0.5 hidden items-center gap-1 text-xs text-slate-500 sm:flex sm:justify-end">
+            {label}
+            <span title="Estimated match — full analysis runs when you generate your application." className="cursor-help">
+              <Info className="h-3 w-3 text-slate-400" />
+            </span>
+          </p>
         </div>
 
         {/* Action button */}

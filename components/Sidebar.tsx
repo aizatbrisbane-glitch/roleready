@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bookmark, Building2, FileText, Home, LogOut, Plus, Settings } from "lucide-react";
+import { ArrowRight, Bookmark, Building2, FileText, Home, LogOut, Plus, Settings } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 const navItems = [
@@ -18,6 +18,7 @@ type SidebarProps = {
   userEmail?: string | null;
   avatarUrl?: string | null;
   showEnterpriseAdmin?: boolean;
+  planType?: string | null;
 };
 
 function initialsFrom(name?: string | null, email?: string | null) {
@@ -30,7 +31,7 @@ function initialsFrom(name?: string | null, email?: string | null) {
     .join("");
 }
 
-export function Sidebar({ userName, userEmail, avatarUrl, showEnterpriseAdmin }: SidebarProps) {
+export function Sidebar({ userName, userEmail, avatarUrl, showEnterpriseAdmin, planType }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const initials = initialsFrom(userName, userEmail);
@@ -82,6 +83,19 @@ export function Sidebar({ userName, userEmail, avatarUrl, showEnterpriseAdmin }:
           </Link>
         </div>
       </nav>
+
+      {planType === "free" && (
+        <div className="mx-4 mb-3 rounded-2xl bg-[#ece8ff] p-4">
+          <p className="text-xs font-black text-[#2200ff]">Need to apply more?</p>
+          <p className="mt-1 text-xs leading-5 text-[#4422cc]">You have 1 free application. Upgrade for up to 150.</p>
+          <Link
+            href="/pricing"
+            className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[#2200ff] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#1a00cc]"
+          >
+            See plans <ArrowRight className="h-3 w-3" />
+          </Link>
+        </div>
+      )}
 
       <div className="px-4 py-5">
         <Link

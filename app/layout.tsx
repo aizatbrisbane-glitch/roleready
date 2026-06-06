@@ -8,6 +8,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { SignOutButton } from "@/components/SignOutButton";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getAccessState } from "@/lib/entitlements";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
@@ -60,6 +61,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const avatarUrl = profile?.avatar_url || null;
   const initials = initialsFrom(displayName, displayEmail);
   const showEnterpriseAdmin = Boolean(enterpriseAdminMembership);
+  const access = user && supabase ? await getAccessState(supabase, user.id) : null;
+  const planType = access?.planType ?? null;
 
   return (
     <html lang="en" className={inter.className}>
@@ -70,6 +73,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             userEmail={displayEmail}
             avatarUrl={avatarUrl}
             showEnterpriseAdmin={showEnterpriseAdmin}
+            planType={planType}
           />
         )}
 
@@ -83,6 +87,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </Link>
 
                 <nav className="flex items-center gap-1">
+                  {planType === "free" && (
+                    <Link
+                      href="/pricing"
+                      className="inline-flex items-center gap-1 rounded-full bg-[#ece8ff] px-3 py-1.5 text-xs font-semibold text-[#2200ff] transition hover:bg-[#ddd8ff]"
+                    >
+                      Upgrade
+                    </Link>
+                  )}
                   <Link
                     href="/more"
                     className="inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#ece8ff] to-[#d4ccff] text-xs font-semibold text-[#2200ff] shadow-[0_10px_24px_rgba(34,0,255,0.12)] transition hover:bg-white hover:text-[#2200ff]"

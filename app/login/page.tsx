@@ -1,5 +1,8 @@
+import { redirect } from "next/navigation";
 import { CheckCircle2, Sparkles, Target } from "lucide-react";
 import { AuthPanel } from "@/components/AuthPanel";
+import { isSupabaseConfigured } from "@/lib/env";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const benefits = [
   {
@@ -22,7 +25,12 @@ const benefits = [
   },
 ];
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const supabase = isSupabaseConfigured() ? await createSupabaseServerClient() : null;
+  const { data: { user } } = supabase
+    ? await supabase.auth.getUser()
+    : { data: { user: null } };
+  if (user) redirect("/");
   return (
     <main className="relative min-h-screen overflow-hidden bg-slate-50 px-5 py-8 text-slate-900 sm:px-8 lg:px-12">
       <div className="pointer-events-none absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-[#d4ccff]/60 blur-3xl" />
