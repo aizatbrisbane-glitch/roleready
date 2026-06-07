@@ -155,16 +155,14 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
     generate === "true" &&
     !hasDocuments &&
     !!masterResume &&
-    job.description.trim().length >= 800 &&
+    job.description.trim().length > 0 &&
     access.canGenerate;
   const showWelcomeGuide = generate === "true" && hasDocuments;
 
   const generateHint =
-    !hasDocuments && !autoGenerate
+    generate === "true" && !hasDocuments && !autoGenerate
       ? !masterResume
         ? "Set up your master resume at Documents before generating."
-        : job.description.trim().length < 800
-        ? "Paste the full job description below, then click Generate."
         : job.description.trim().length === 0
         ? "Paste the full job description below, then click Generate."
         : null
