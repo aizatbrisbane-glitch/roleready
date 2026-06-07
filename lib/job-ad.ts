@@ -662,6 +662,19 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
   const effectiveUrl = isBlockedJobBoard(finalUrl) ? finalUrl : jobUrl;
 
   if (!response.ok) {
+    // Redirect landed on a blocked domain (e.g. Adzuna → Seek) — run parallel fallbacks
+    if (isBlockedJobBoard(effectiveUrl)) {
+      const hostname = new URL(effectiveUrl).hostname;
+      const isSeek = hostname.includes("seek.");
+      const isLinkedIn = hostname.includes("linkedin.com");
+      const fetchers: Promise<JobAdDetails | null>[] = [fetchJobWithJina(effectiveUrl), fetchJobWithBrowser(effectiveUrl)];
+      if (isSeek) fetchers.unshift(fetchSeekJobApi(effectiveUrl));
+      if (isLinkedIn) fetchers.unshift(fetchLinkedInGuestApi(effectiveUrl));
+      const result = await Promise.any(
+        fetchers.map((p) => p.then((r) => { if (!r) throw new Error("no result"); return r; }))
+      ).catch(() => null);
+      if (result) return result;
+    }
     throw new Error(
       isBlockedJobBoard(effectiveUrl)
         ? blockedJobBoardMessage(effectiveUrl, response.status)
