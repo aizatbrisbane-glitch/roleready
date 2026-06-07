@@ -285,12 +285,11 @@ async function fetchJoobleJobs({
   query: string;
   location?: string;
 }): Promise<GrabResult[]> {
-  // Always scope to Australia — Jooble is a global aggregator with no country endpoint
-  const joobleLocation = location
-    ? (location.toLowerCase().includes("australia") ? location : `${location}, Australia`)
-    : "Australia";
-
-  const body: Record<string, string | number> = { keywords: query, location: joobleLocation, page: 1 };
+  // Always search all of Australia so Jooble returns maximum results.
+  // City-level filtering is applied post-fetch via matchesRequestedLocation.
+  // Sending a specific city to Jooble causes it to return far fewer results than
+  // searching broadly and filtering ourselves.
+  const body: Record<string, string | number> = { keywords: query, location: "Australia", page: 1 };
 
   const res = await fetch(`https://jooble.org/api/${apiKey}`, {
     method: "POST",
