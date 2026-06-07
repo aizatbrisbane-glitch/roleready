@@ -280,7 +280,7 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
               </div>
             </section>
 
-            {jobDescriptionLooksShort && <JobDescriptionEditor applicationId={application.id} initialDescription={job.description} />}
+            {jobDescriptionLooksShort && !hasDocuments && <JobDescriptionEditor applicationId={application.id} initialDescription={job.description} />}
 
             <PostGenerationGuide applicationId={application.id} show={showWelcomeGuide} />
 
