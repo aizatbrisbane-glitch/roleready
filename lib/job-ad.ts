@@ -653,7 +653,6 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
     },
     redirect: "follow",
     cache: "no-store",
-    signal: AbortSignal.timeout(15000),
   });
 
   // After following redirects, use the final URL for blocked-domain detection
