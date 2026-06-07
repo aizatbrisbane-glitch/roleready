@@ -406,7 +406,7 @@ export async function GET(request: Request) {
 
   // Run Adzuna + Jooble in parallel
   const [adzunaSettled, joobleSettled] = await Promise.allSettled([
-    fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, where: locationParam, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 30, resultsPerPage: 25 }),
+    fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 30, resultsPerPage: 50 }),
     joobleApiKey
       ? fetchJoobleJobs({ apiKey: joobleApiKey, query: actualSearchQuery, location: locationParam })
       : Promise.resolve([]),
@@ -421,7 +421,7 @@ export async function GET(request: Request) {
   if (adzunaJobs.length === 0 && joobleJobs.length === 0 && keywords.jobTitle.trim()) {
     actualSearchQuery = keywords.jobTitle.trim();
     try {
-      adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, where: locationParam, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 60, resultsPerPage: 25 });
+      adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 60, resultsPerPage: 50 });
     } catch (e) {
       console.error("[grab] Adzuna fallback fetch failed:", e);
     }
@@ -435,21 +435,29 @@ export async function GET(request: Request) {
     }
   }
 
-  // Convert Adzuna results to GrabResult[]
-  const adzunaGrabResults: GrabResult[] = adzunaJobs.map((j) => ({
-    id: j.id,
-    title: j.title,
-    company: j.company.display_name,
-    location: j.location.display_name,
-    salaryMin: j.salary_min,
-    salaryMax: j.salary_max,
-    description: j.description,
-    jobUrl: j.redirect_url,
-    matchScore: 0,
-    matchReason: "",
-    postedAt: j.created,
-    source: "Adzuna",
-  }));
+  // Convert Adzuna results to GrabResult[], applying the same location filter as Jooble
+  const adzunaGrabResults: GrabResult[] = adzunaJobs
+    .filter((j) => {
+      const loc = j.location.display_name;
+      if (!loc) return true;
+      if (!isAustralianLocation(loc)) return false;
+      if (locationParam) return matchesRequestedLocation(loc, locationParam);
+      return true;
+    })
+    .map((j) => ({
+      id: j.id,
+      title: j.title,
+      company: j.company.display_name,
+      location: j.location.display_name,
+      salaryMin: j.salary_min,
+      salaryMax: j.salary_max,
+      description: j.description,
+      jobUrl: j.redirect_url,
+      matchScore: 0,
+      matchReason: "",
+      postedAt: j.created,
+      source: "Adzuna",
+    }));
 
   // Merge and deduplicate by normalised URL (strip query params / tracking)
   const seenUrls = new Set<string>();
