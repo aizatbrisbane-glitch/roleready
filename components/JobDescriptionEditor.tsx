@@ -40,14 +40,9 @@ export function JobDescriptionEditor({ applicationId, initialDescription }: Prop
 
   return (
     <section className="rounded-md border border-amber-300 bg-amber-50 p-4">
-      <h2 className="font-bold text-slate-900">Job description is too short</h2>
+      <h2 className="font-bold text-slate-900">Paste the full job description to get started</h2>
       <p className="mt-1 text-sm leading-6 text-amber-950">
-        The job site only returned a snippet. Paste the full job ad below so the AI can tailor your documents properly.
-        Next time, use the{" "}
-        <a href="/extension-import" className="font-semibold underline">
-          Chrome extension
-        </a>{" "}
-        from the job page to capture everything automatically.
+        We only got a snippet from the job site — the AI needs the full ad to tailor your resume and cover letter properly. Paste it below, then generate.
       </p>
       <textarea
         className="field mt-3 min-h-64 bg-white"
