@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, CheckCircle2, Star } from "lucide-react";
 import { PublicFooter } from "@/components/PublicFooter";
+import { CheckoutButton } from "@/components/CheckoutButton";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAccessState } from "@/lib/entitlements";
+import type { EntitlementPlanType } from "@/types/database";
 
 export const metadata: Metadata = {
   title: "Pricing | ApplyHQ",
@@ -23,7 +25,8 @@ const plans = [
       "Limited access to job matches"
     ],
     button: "Start Free",
-    href: "/login"
+    href: "/login",
+    planType: null as EntitlementPlanType | null,
   },
   {
     name: "7-Day Sprint",
@@ -37,7 +40,8 @@ const plans = [
       "Resume and cover letter tailoring"
     ],
     button: "Start Sprint",
-    href: "/login"
+    href: "/login",
+    planType: "sprint_7_day" as EntitlementPlanType,
   },
   {
     name: "30-Day Focus",
@@ -53,7 +57,8 @@ const plans = [
     ],
     button: "Start 30-Day Focus",
     href: "/login",
-    highlighted: true
+    highlighted: true,
+    planType: "focus_30_day" as EntitlementPlanType,
   },
   {
     name: "90-Day Partner",
@@ -67,7 +72,8 @@ const plans = [
       "Resume and cover letter tailoring"
     ],
     button: "Start 90-Day Partner",
-    href: "/login"
+    href: "/login",
+    planType: "partner_90_day" as EntitlementPlanType,
   }
 ];
 
@@ -152,17 +158,20 @@ export default async function PricingPage() {
                     ))}
                   </ul>
 
-                  <Link
-                    href={plan.href}
-                    className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition ${
-                      plan.highlighted
-                        ? "bg-[#2200ff] text-white shadow-[0_12px_28px_rgba(34,0,255,0.22)] hover:-translate-y-0.5 hover:bg-[#1a00cc]"
-                        : "border border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:border-slate-300"
-                    }`}
-                  >
-                    {plan.button}
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
+                  {plan.planType ? (
+                    <CheckoutButton
+                      planType={plan.planType as Exclude<EntitlementPlanType, "free" | "enterprise_90_day">}
+                      label={plan.button}
+                      highlighted={plan.highlighted}
+                    />
+                  ) : (
+                    <Link
+                      href="/"
+                      className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-500 transition hover:-translate-y-0.5 hover:border-slate-300"
+                    >
+                      Current plan
+                    </Link>
+                  )}
                 </article>
               ))}
             </div>

@@ -23,3 +23,13 @@ export function getSupabaseAdminConfig() {
 export function isSupabaseConfigured() {
   return Boolean(getSupabaseConfig());
 }
+
+export function getStripeConfig() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) return null;
+  return { secretKey };
+}
+
+export function getStripeWebhookSecret() {
+  return process.env.STRIPE_WEBHOOK_SECRET ?? null;
+}

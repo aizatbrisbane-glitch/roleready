@@ -109,6 +109,7 @@ export type Entitlement = {
   valid_from: string;
   valid_until: string;
   status: EntitlementStatus;
+  stripe_payment_id: string | null;
   created_at: string;
   updated_at: string;
 };
