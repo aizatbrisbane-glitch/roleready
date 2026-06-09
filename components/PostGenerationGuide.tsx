@@ -5,22 +5,22 @@ import { ArrowRight } from "lucide-react";
 
 const STEPS = [
   {
-    emoji: "📊",
     heading: "Check your match score",
     body: 'Click the "Match Analysis" tab to see how well you fit the role.',
   },
   {
-    emoji: "📄",
+    heading: "Review missing keywords",
+    body: 'Scroll down to "Opportunities to strengthen" — add any keywords that genuinely apply to your experience.',
+  },
+  {
     heading: "Review your documents",
     body: "Read through your tailored resume and cover letter in the tabs below.",
   },
   {
-    emoji: "⬇️",
     heading: "Download your files",
     body: "Use the Download buttons above to get your DOCX files ready to submit.",
   },
   {
-    emoji: "✅",
     heading: "Mark it Applied",
     body: 'Once submitted, change the status selector (top right) to "Applied" to track progress.',
   },
@@ -59,10 +59,12 @@ export function PostGenerationGuide({ applicationId, show }: { applicationId: st
         </button>
       </div>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        {STEPS.map((step) => (
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {STEPS.map((step, index) => (
           <div key={step.heading} className="rounded-2xl bg-white/70 px-4 py-4">
-            <span className="text-xl">{step.emoji}</span>
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2200ff] text-xs font-bold text-white">
+              {index + 1}
+            </span>
             <p className="mt-2 text-sm font-semibold text-slate-900">{step.heading}</p>
             <p className="mt-1 text-xs leading-5 text-slate-500">{step.body}</p>
           </div>
