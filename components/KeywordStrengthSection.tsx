@@ -38,7 +38,7 @@ export function KeywordStrengthSection({
   strengthenedKeywordSnippets,
   onDocumentUpdate,
 }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(missingKeywords.length > 0);
   const [showAll, setShowAll] = useState(false);
   const [states, setStates] = useState<Record<string, KeywordState>>(() => {
     const initial: Record<string, KeywordState> = {};
