@@ -39,6 +39,7 @@ export function KeywordStrengthSection({
   onDocumentUpdate,
 }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const [states, setStates] = useState<Record<string, KeywordState>>(() => {
     const initial: Record<string, KeywordState> = {};
     for (const kw of strengthenedKeywords) {
@@ -129,7 +130,7 @@ export function KeywordStrengthSection({
     <section className="rounded-[1.6rem] border border-slate-100 bg-white shadow-sm">
       <button
         type="button"
-        onClick={() => setIsOpen((o) => !o)}
+        onClick={() => { setIsOpen((o) => !o); setShowAll(false); }}
         className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left md:px-6"
       >
         <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
@@ -156,7 +157,7 @@ export function KeywordStrengthSection({
               : "No major keyword gaps were identified yet."}
           </p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {displayItems.map((item) => {
+            {(showAll ? displayItems : displayItems.slice(0, 3)).map((item) => {
               const state = getState(item);
               const isSuccess = state.phase === "success";
               const isExpanding = state.phase === "expanding";
@@ -289,6 +290,16 @@ export function KeywordStrengthSection({
               );
             })}
           </div>
+          {displayItems.length > 3 && (
+            <button
+              type="button"
+              onClick={() => setShowAll((v) => !v)}
+              className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-700"
+            >
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${showAll ? "rotate-180" : ""}`} />
+              {showAll ? "Show less" : `Show ${displayItems.length - 3} more`}
+            </button>
+          )}
         </div>
       )}
     </section>
