@@ -23,6 +23,7 @@
     "puppeteer-core": "^24.43.1",
     "react": "latest",
     "react-dom": "latest",
+    "resend": "^6.12.4",
     "stripe": "^22.2.0",
     "zod": "latest"
   },

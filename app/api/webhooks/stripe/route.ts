@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
+import { Resend } from "resend";
 import { getStripeClient } from "@/lib/stripe";
 import { getStripeWebhookSecret } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -43,12 +44,11 @@ export async function POST(request: Request) {
   }
 
   const session = event.data.object as Stripe.Checkout.Session;
-  const userId = session.metadata?.userId;
   const planType = session.metadata?.planType as EntitlementPlanType | undefined;
   const sessionId = session.id;
 
-  if (!userId || !planType) {
-    console.error("[stripe-webhook] Missing metadata", { userId, planType, sessionId });
+  if (!planType) {
+    console.error("[stripe-webhook] Missing planType metadata", { sessionId });
     return NextResponse.json({ error: "Missing metadata." }, { status: 400 });
   }
 
@@ -74,11 +74,56 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true });
   }
 
+  // Resolve user ID — either from metadata (logged-in checkout) or email (guest checkout)
+  let resolvedUserId = session.metadata?.userId ?? null;
+
+  if (!resolvedUserId) {
+    const customerEmail = session.customer_details?.email;
+    if (!customerEmail) {
+      console.error("[stripe-webhook] No userId or customer email", { sessionId });
+      return NextResponse.json({ error: "Cannot identify purchaser." }, { status: 400 });
+    }
+
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+
+    // Try to create a new user (email pre-confirmed — no Supabase email sent)
+    const { data: createData, error: createError } = await adminSupabase.auth.admin.createUser({
+      email: customerEmail,
+      email_confirm: true,
+    });
+
+    if (createData?.user?.id) {
+      // New user — generate a password-setup link and send a custom email via Resend
+      resolvedUserId = createData.user.id;
+      const { data: linkData } = await adminSupabase.auth.admin.generateLink({
+        type: "recovery",
+        email: customerEmail,
+        options: { redirectTo: `${appUrl}/auth/reset-password` },
+      });
+      const setupLink = linkData?.properties?.action_link;
+      if (setupLink) {
+        await sendPasswordSetupEmail(customerEmail, setupLink);
+      }
+    } else {
+      // User already exists — find their ID via recovery link (no email sent)
+      const { data: linkData, error: linkError } = await adminSupabase.auth.admin.generateLink({
+        type: "recovery",
+        email: customerEmail,
+        options: { redirectTo: `${appUrl}/auth/reset-password` },
+      });
+      if (linkError || !linkData?.user?.id) {
+        console.error("[stripe-webhook] Could not resolve user", { createError, linkError });
+        return NextResponse.json({ error: "Failed to resolve user account." }, { status: 500 });
+      }
+      resolvedUserId = linkData.user.id;
+    }
+  }
+
   // Revoke any existing active entitlement for this user
   await adminSupabase
     .from("entitlements")
     .update({ status: "revoked" })
-    .eq("user_id", userId)
+    .eq("user_id", resolvedUserId)
     .eq("status", "active");
 
   // Grant the new entitlement
@@ -87,7 +132,7 @@ export async function POST(request: Request) {
   validUntil.setDate(validUntil.getDate() + planConfig.days);
 
   const { error: insertError } = await adminSupabase.from("entitlements").insert({
-    user_id: userId,
+    user_id: resolvedUserId,
     plan_type: planType,
     application_limit: planConfig.limit,
     applications_used: 0,
@@ -102,6 +147,35 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
-  console.log(`[stripe-webhook] Granted ${planType} to user ${userId} (session ${sessionId})`);
+  console.log(`[stripe-webhook] Granted ${planType} to user ${resolvedUserId} (session ${sessionId})`);
   return NextResponse.json({ received: true });
+}
+
+async function sendPasswordSetupEmail(to: string, setupLink: string) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.warn("[stripe-webhook] RESEND_API_KEY not set — skipping password setup email");
+    return;
+  }
+  const resend = new Resend(apiKey);
+  await resend.emails.send({
+    from: "ApplyHQ <noreply@mail.applyhq.com.au>",
+    to,
+    subject: "Your ApplyHQ account is ready — set your password",
+    html: `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#1e293b">
+        <img src="https://applyhq.com.au/brand/applyhq-logo-indigo.svg" alt="ApplyHQ" style="height:40px;margin-bottom:32px" />
+        <h1 style="font-size:22px;font-weight:800;margin:0 0 12px">Your payment was successful.</h1>
+        <p style="font-size:15px;line-height:1.6;margin:0 0 24px;color:#475569">
+          Your access pass is active and ready to use. Click below to set your password and go straight to your dashboard.
+        </p>
+        <a href="${setupLink}" style="display:inline-block;background:#2200ff;color:#fff;font-weight:700;font-size:15px;padding:14px 28px;border-radius:9999px;text-decoration:none">
+          Set my password
+        </a>
+        <p style="font-size:13px;color:#94a3b8;margin:32px 0 0">
+          If you didn't make this purchase, you can safely ignore this email.
+        </p>
+      </div>
+    `,
+  });
 }

@@ -280,7 +280,7 @@ export default async function PricingPage() {
                 </ul>
 
                 <Link
-                  href={plan.href}
+                  href={plan.planType ? `/checkout/guest?plan=${plan.planType}` : "/login"}
                   className={`mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition ${
                     plan.highlighted
                       ? "bg-[#2200ff] text-white shadow-[0_16px_35px_rgba(34,0,255,0.24)] hover:-translate-y-0.5 hover:bg-[#1a00cc]"

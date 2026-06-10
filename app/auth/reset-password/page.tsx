@@ -35,20 +35,26 @@ export default function ResetPasswordPage() {
       }
     });
 
-    // PKCE flow: Supabase puts the code in the URL query string.
-    // Exchange it in-browser so no server-side cookie handoff is needed.
-    const code = new URLSearchParams(window.location.search).get("code");
+    const queryParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const code = queryParams.get("code");
+    const accessToken = hashParams.get("access_token");
+    const refreshToken = hashParams.get("refresh_token");
 
     if (code) {
-      // Remove the code from the URL so a refresh doesn't re-use it
+      // PKCE flow — exchange code for session
       window.history.replaceState({}, "", window.location.pathname);
       supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
         if (error) setExpired(true);
-        // onAuthStateChange fires SIGNED_IN / PASSWORD_RECOVERY → resolve()
+      });
+    } else if (accessToken && refreshToken) {
+      // Implicit flow — set session directly from hash tokens
+      window.history.replaceState({}, "", window.location.pathname);
+      supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken }).then(({ error }) => {
+        if (error) setExpired(true);
       });
     } else {
-      // No code — check for an existing session (e.g. user already went through callback)
-      // or wait briefly for the hash-based implicit flow
+      // No tokens — check for an existing session
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
           resolve();

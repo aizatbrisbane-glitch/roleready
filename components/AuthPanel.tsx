@@ -6,7 +6,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type Mode = "signin" | "signup" | "forgot";
 
-export function AuthPanel() {
+export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -48,7 +48,7 @@ export function AuthPanel() {
       setLoading(false);
       return;
     }
-    window.location.href = "/";
+    window.location.href = redirectTo;
   }
 
   async function createAccount(event: React.FormEvent<HTMLFormElement>) {
@@ -74,7 +74,7 @@ export function AuthPanel() {
     }
 
     if (data.session) {
-      window.location.href = "/";
+      window.location.href = redirectTo;
       return;
     }
 
@@ -99,7 +99,7 @@ export function AuthPanel() {
       return;
     }
 
-    window.location.href = "/";
+    window.location.href = redirectTo;
   }
 
   async function signInWithGoogle() {
@@ -107,7 +107,7 @@ export function AuthPanel() {
     if (!supabase) return;
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}` },
     });
   }
 

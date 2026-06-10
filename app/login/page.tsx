@@ -25,12 +25,14 @@ const benefits = [
   },
 ];
 
-export default async function LoginPage() {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ plan?: string }> }) {
   const supabase = isSupabaseConfigured() ? await createSupabaseServerClient() : null;
   const { data: { user } } = supabase
     ? await supabase.auth.getUser()
     : { data: { user: null } };
-  if (user) redirect("/");
+  const { plan } = await searchParams;
+  const redirectTo = plan ? `/checkout/initiate?plan=${plan}` : "/";
+  if (user) redirect(redirectTo);
   return (
     <main className="relative min-h-screen overflow-hidden bg-slate-50 px-5 py-8 text-slate-900 sm:px-8 lg:px-12">
       <div className="pointer-events-none absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-[#d4ccff]/60 blur-3xl" />
@@ -42,7 +44,7 @@ export default async function LoginPage() {
 
         <section className="grid flex-1 items-center gap-8 py-4 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:py-10">
           <div className="mx-auto w-full max-w-[610px] lg:order-2">
-            <AuthPanel />
+            <AuthPanel redirectTo={redirectTo} />
           </div>
 
           <div className="mx-auto w-full max-w-xl lg:order-1 lg:mx-0">
