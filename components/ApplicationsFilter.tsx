@@ -30,6 +30,19 @@ function shortDate(value: string | null) {
   return new Intl.DateTimeFormat("en-AU", { day: "numeric", month: "short" }).format(new Date(value));
 }
 
+function ExpiryBadge({ expiresAt }: { expiresAt: string }) {
+  const days = Math.ceil((new Date(expiresAt).getTime() - Date.now()) / 86400000);
+  const label = days < 0 ? "Closed" : days === 0 ? "Today" : days === 1 ? "Tomorrow" : `${shortDate(expiresAt)}`;
+  const cls = days < 0
+    ? "bg-slate-100 text-slate-400"
+    : days <= 3
+    ? "bg-rose-100 text-rose-700 font-semibold"
+    : days <= 7
+    ? "bg-amber-100 text-amber-700 font-semibold"
+    : "bg-slate-100 text-slate-600";
+  return <span className={`inline-block rounded-full px-2 py-0.5 text-xs ${cls}`}>{label}</span>;
+}
+
 function summaryBullets(text?: string | null) {
   const clean = text?.trim();
   if (!clean) return [];
@@ -235,6 +248,14 @@ function DesktopRow({ application, expanded, summaryState, onToggleSummary }: Ro
           {application.applied_at ? shortDate(application.applied_at) : <span className="text-slate-300">{EMPTY}</span>}
         </td>
 
+        <td className={`${tdBase} px-2 text-sm`}>
+          {job?.expires_at ? (
+            <ExpiryBadge expiresAt={job.expires_at} />
+          ) : (
+            <span className="text-slate-300">{EMPTY}</span>
+          )}
+        </td>
+
         <td className={`${tdBase} px-2`}>
           <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${statusPill[status] ?? "bg-slate-100 text-slate-600"}`}>
             {status}
@@ -421,6 +442,7 @@ export function ApplicationsFilter({ applications }: { applications: Application
               <col className="w-[150px]" />
               <col className="w-[120px]" />
               <col className="w-[85px]" />
+              <col className="w-[100px]" />
               <col className="w-[90px]" />
               <col className="w-[125px]" />
             </colgroup>
@@ -431,6 +453,7 @@ export function ApplicationsFilter({ applications }: { applications: Application
                 <th className="pb-1 px-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Recruiter</th>
                 <th className="pb-1 px-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Salary</th>
                 <th className="pb-1 px-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Applied</th>
+                <th className="pb-1 px-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Closes</th>
                 <th className="pb-1 px-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Status</th>
                 <th className="pb-1 pr-4" />
               </tr>
