@@ -9,6 +9,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { AuthPanel } from "@/components/AuthPanel";
+import { JobExpiryEditor } from "@/components/JobExpiryEditor";
 import { ApplicationDetailClient } from "@/components/ApplicationDetailClient";
 import { GenerateButton } from "@/components/GenerateButton";
 import { JobDescriptionEditor } from "@/components/JobDescriptionEditor";
@@ -211,6 +212,8 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
                     </a>
                   </>
                 ) : null}
+                <span className="text-slate-300">•</span>
+                <JobExpiryEditor jobId={job.id} expiresAt={job.expires_at ?? null} />
               </p>
               {displayJob.note ? (
                 <p className="mt-2 max-w-xl text-sm font-medium text-[#2200ff]">{displayJob.note}</p>

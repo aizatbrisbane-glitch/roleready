@@ -36,6 +36,7 @@ export async function POST(request: Request) {
     location: body.location,
     salary: body.salary,
     description: body.description,
+    expiresAt: null as string | null,
   };
 
   try {
@@ -48,7 +49,10 @@ export async function POST(request: Request) {
         location: fetched.location || body.location,
         salary: fetched.salary || body.salary,
         description: fetched.description,
+        expiresAt: fetched.expiresAt ?? null,
       };
+    } else {
+      jobDetails.expiresAt = fetched.expiresAt ?? null;
     }
   } catch {
     // Fall back to the Adzuna snippet — the application page will prompt the user to paste the full ad
@@ -65,6 +69,7 @@ export async function POST(request: Request) {
       job_url: body.jobUrl,
       description: jobDetails.description,
       source: detectJobSource(body.jobUrl),
+      expires_at: jobDetails.expiresAt,
     })
     .select("id")
     .single();

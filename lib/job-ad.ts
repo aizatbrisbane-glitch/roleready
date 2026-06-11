@@ -6,6 +6,7 @@ type JobAdDetails = {
   location: string;
   salary: string;
   description: string;
+  expiresAt: string | null;
 };
 
 // Job boards that commonly block server-side requests.
@@ -208,6 +209,19 @@ function nextDataJob(html: string): Partial<{
   }
 }
 
+function toIsoDate(value: unknown): string | null {
+  if (typeof value !== "string" || !value.trim()) return null;
+  // validThrough is typically "2026-06-30T00:00:00" or "2026-06-30"
+  const match = value.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (!match) return null;
+  const d = new Date(match[1]);
+  if (isNaN(d.getTime())) return null;
+  // Only return future or near-past dates (ignore obviously wrong dates)
+  const year = d.getFullYear();
+  if (year < 2020 || year > 2035) return null;
+  return match[1];
+}
+
 function htmlToText(html: string) {
   return decodeHtml(
     html
@@ -288,6 +302,7 @@ async function fetchLinkedInGuestApi(url: string): Promise<JobAdDetails | null> 
       location,
       salary: "",
       description: description.slice(0, 30000),
+      expiresAt: null,
     };
   } catch (e) {
     console.warn("[job-ad] LinkedIn guest API failed:", e);
@@ -351,6 +366,7 @@ async function fetchSeekJobApi(url: string): Promise<JobAdDetails | null> {
       ),
       salary: firstString(data?.salary, data?.salaryLabel),
       description: description.slice(0, 30000),
+      expiresAt: toIsoDate(data?.expiryDate ?? data?.listingDate ?? data?.closingDate),
     };
   } catch (e) {
     console.warn("[job-ad] Seek API fetch failed:", e);
@@ -398,6 +414,7 @@ async function fetchJobWithJina(url: string): Promise<JobAdDetails | null> {
       location,
       salary,
       description: text.slice(0, 30000),
+      expiresAt: null,
     };
   } catch (e) {
     console.warn("[job-ad] Jina fallback failed:", e);
@@ -568,7 +585,8 @@ async function fetchJobWithBrowser(url: string): Promise<JobAdDetails | null> {
       company: data.company || "Company from job ad",
       location: data.location || "",
       salary: data.salary || "",
-      description: htmlToText(data.description).slice(0, 30000)
+      description: htmlToText(data.description).slice(0, 30000),
+      expiresAt: null,
     };
   } catch (e) {
     console.error("[job-ad] browser fetch error:", e);
@@ -738,7 +756,8 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
     company: company || "Company from job ad",
     location,
     salary,
-    description: description.slice(0, 30000)
+    description: description.slice(0, 30000),
+    expiresAt: toIsoDate(structured?.validThrough),
   };
 
   // Redirect landed on a blocked domain and returned a challenge page with short/no content

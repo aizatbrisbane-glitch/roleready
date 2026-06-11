@@ -56,6 +56,7 @@ export type Job = {
   job_url: string;
   description: string;
   source: JobSource;
+  expires_at: string | null;
   created_at: string;
   updated_at: string;
 };
