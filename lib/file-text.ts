@@ -13,6 +13,13 @@ export async function extractTextFromFile(file: File) {
   }
 
   if (name.endsWith(".pdf")) {
+    // pdfjs-dist (used internally by pdf-parse v2) requires DOMMatrix which isn't
+    // a global in Node.js 18 serverless. Stub it before the dynamic import.
+    if (typeof (globalThis as Record<string, unknown>).DOMMatrix === "undefined") {
+      (globalThis as Record<string, unknown>).DOMMatrix = class DOMMatrix {
+        constructor(_init?: string | number[]) {}
+      };
+    }
     const { PDFParse } = await import("pdf-parse");
     const parser = new PDFParse({ data: Buffer.from(arrayBuffer) });
     try {
