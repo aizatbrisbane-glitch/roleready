@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "4mb"
     }
   },
-  serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core", "pdf-parse"],
+  serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"],
 };
 
 export default nextConfig;
