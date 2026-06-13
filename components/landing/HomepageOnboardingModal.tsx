@@ -127,6 +127,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
   const [verificationCode, setVerificationCode] = useState("");
   const [message, setMessage] = useState(initialMessage ?? "");
   const [confirmEmail, setConfirmEmail] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState("");
   const [extracting, setExtracting] = useState(false);
@@ -463,7 +464,14 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
         options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/` },
       });
       if (error) throw new Error(error.message);
-      setMessage("New code sent. Use the newest email only. Resending creates a new code and expires the old one.");
+      setMessage("New code sent. Check your inbox (and spam). It may take up to 30 seconds to arrive.");
+      setResendCooldown(60);
+      const interval = window.setInterval(() => {
+        setResendCooldown((prev) => {
+          if (prev <= 1) { window.clearInterval(interval); return 0; }
+          return prev - 1;
+        });
+      }, 1000);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not resend the code.");
     } finally {
@@ -538,11 +546,11 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
               )}
               <button
                 type="button"
-                disabled={loading}
+                disabled={loading || resendCooldown > 0}
                 onClick={resendVerificationCode}
                 className="w-full rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-600 transition hover:border-[#d4ccff] hover:text-[#2200ff] disabled:opacity-60"
               >
-                Resend code
+                {resendCooldown > 0 ? `Resend available in ${resendCooldown}s` : "Resend code"}
               </button>
             </form>
           </section>
