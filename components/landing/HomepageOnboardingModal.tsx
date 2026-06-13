@@ -7,7 +7,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 export const HOMEPAGE_ONBOARDING_DRAFT_KEY = "applyhq_home_onboarding_draft";
 export const GRAB_PREFILL_STORAGE_KEY = "applyhq_grab_prefill";
 
-type JobMode = "url" | "description" | "browse";
+type JobMode = "url" | "browse";
 
 export type StoredDraft = {
   resumeFileName?: string;
@@ -15,7 +15,7 @@ export type StoredDraft = {
   coverLetterFileName?: string;
   coverLetterFileKey?: string;
   email?: string;
-  jobMode?: JobMode;
+  jobMode?: JobMode | "description";
   jobUrl?: string;
   jobDescription?: string;
   browse?: {
@@ -115,9 +115,8 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
   const [resumeFileKey, setResumeFileKey] = useState(initialDraft?.resumeFileKey ?? "");
   const [coverLetterFile, setCoverLetterFile] = useState<File | null>(null);
   const [coverLetterFileKey, setCoverLetterFileKey] = useState(initialDraft?.coverLetterFileKey ?? "");
-  const [jobMode, setJobMode] = useState<JobMode>(initialDraft?.jobMode ?? "url");
+  const [jobMode, setJobMode] = useState<JobMode>(initialDraft?.jobMode === "browse" ? "browse" : "url");
   const [jobUrl, setJobUrl] = useState(initialDraft?.jobUrl ?? "");
-  const [jobDescription, setJobDescription] = useState(initialDraft?.jobDescription ?? "");
   const [browseKeywords, setBrowseKeywords] = useState(initialDraft?.browse?.keywords ?? "");
   const [browseLocation, setBrowseLocation] = useState(initialDraft?.browse?.location ?? "");
   const [browseWorkType, setBrowseWorkType] = useState(initialDraft?.browse?.workType ?? "");
@@ -185,7 +184,6 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       email,
       jobMode,
       jobUrl,
-      jobDescription,
       browse: {
         keywords: browseKeywords,
         location: browseLocation,
@@ -203,7 +201,6 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       email,
       initialDraft?.coverLetterFileName,
       initialDraft?.resumeFileName,
-      jobDescription,
       jobMode,
       jobUrl,
       resumeFile,
@@ -235,10 +232,6 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
   function validateJobIntent() {
     if (jobMode === "url" && !jobUrl.trim()) {
       setMessage("Paste the job URL first.");
-      return false;
-    }
-    if (jobMode === "description" && jobDescription.trim().length < 80) {
-      setMessage("Paste the full job description so ApplyHQ has enough context.");
       return false;
     }
     if (jobMode === "browse" && !browseKeywords.trim()) {
@@ -298,7 +291,6 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
     formData.append("resume_file", resumeFile);
     if (coverLetterFile) formData.append("cover_letter_file", coverLetterFile);
     if (jobMode === "url") formData.append("job_url", jobUrl.trim());
-    if (jobMode === "description") formData.append("job_description_fallback", jobDescription.trim());
 
     setLoadingStep("Saving your resume…");
     if (jobMode === "url") {
@@ -319,9 +311,9 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
     if (payload?.errorCode === JOB_TEXT_UNAVAILABLE) {
       setConfirmEmail(false);
       setStep(3);
-      setJobMode("description");
-      saveDraft({ ...currentDraft, jobMode: "description" });
-      setMessage("We could not read that job link. Paste the full job description below and continue.");
+      setJobMode("url");
+      saveDraft({ ...currentDraft, jobMode: "url" });
+      setMessage("We could not read that job link. Try the direct job ad URL instead of a search results page.");
       return;
     }
     if (!response.ok || !payload.applicationId) {
@@ -651,10 +643,9 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
             {step === 3 && (
               <section className="mt-5">
                 <h2 className="text-3xl font-black tracking-tight text-slate-900">What role do you want to apply for?</h2>
-                <div className="mt-5 grid gap-2 sm:grid-cols-3">
+                <div className="mt-5 grid gap-2 sm:grid-cols-2">
                   {[
                     ["url", "Paste Job URL"],
-                    ["description", "Paste Job Description"],
                     ["browse", "Browse Jobs With ApplyHQ"],
                   ].map(([value, label]) => (
                     <button
@@ -683,18 +674,6 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                       placeholder="https://..."
                       value={jobUrl}
                       onChange={(event) => setJobUrl(event.target.value)}
-                    />
-                  </label>
-                )}
-
-                {jobMode === "description" && (
-                  <label className="mt-5 block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Job description</span>
-                    <textarea
-                      className="min-h-44 w-full rounded-2xl border border-slate-200 px-4 py-3 text-base outline-none focus:ring-2 focus:ring-[#d4ccff]"
-                      placeholder="Paste the full job ad here..."
-                      value={jobDescription}
-                      onChange={(event) => setJobDescription(event.target.value)}
                     />
                   </label>
                 )}

@@ -8,7 +8,7 @@ export const maxDuration = 60;
 const JOB_TEXT_UNAVAILABLE = "JOB_TEXT_UNAVAILABLE";
 
 function unreadableFileMessage(fileName: string) {
-  return `I could not read text from ${fileName}. Please upload a DOCX file instead, or paste the text into the box below.`;
+  return `I could not read text from ${fileName}. Please upload a DOCX file instead.`;
 }
 
 async function saveMasterDocument({
@@ -87,10 +87,9 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const jobUrl = String(formData.get("job_url") ?? "").trim();
-  const fallbackDescription = String(formData.get("job_description_fallback") ?? "").trim();
 
-  if (!jobUrl && !fallbackDescription) {
-    return NextResponse.json({ error: "Paste a job ad link or the full job description first." }, { status: 400 });
+  if (!jobUrl) {
+    return NextResponse.json({ error: "Paste a job ad link first." }, { status: 400 });
   }
 
   try {
@@ -117,29 +116,16 @@ export async function POST(request: Request) {
     });
 
     let jobDetails;
-    if (!jobUrl) {
-      jobDetails = {
-        title: "Job from pasted description",
-        company: "Company from job ad",
-        location: "",
-        salary: "",
-        description: fallbackDescription
-      };
-    } else {
-      try {
-        jobDetails = await fetchJobAdDetails(jobUrl);
-        if (fallbackDescription && jobDetails.description.trim().length < 300) {
-          jobDetails.description = fallbackDescription;
-        }
-      } catch (error) {
-        if (!fallbackDescription) {
+    try {
+      jobDetails = await fetchJobAdDetails(jobUrl);
+    } catch (error) {
           if (isBlockedJobBoard(jobUrl)) {
             return NextResponse.json(
               {
                 errorCode: JOB_TEXT_UNAVAILABLE,
                 source: detectJobSource(jobUrl),
                 jobUrl,
-                error: "We couldn't read that page — Seek and LinkedIn block automated access. Paste the full job description below instead."
+                error: "We could not read that job link. Try the direct job ad URL instead of a search results page."
               },
               { status: 422 }
             );
@@ -147,18 +133,9 @@ export async function POST(request: Request) {
 
           throw new Error(error instanceof Error ? error.message : "Could not read this job link.");
         }
-        jobDetails = {
-          title: "Job from pasted link",
-          company: "Company from job ad",
-          location: "",
-          salary: "",
-          description: fallbackDescription
-        };
-      }
-    }
 
     if (!jobDetails.description.trim()) {
-      return NextResponse.json({ error: "I could not find job ad text. Paste the ad into the box below." }, { status: 400 });
+      return NextResponse.json({ error: "I could not find readable job ad text at that link. Try the direct job ad URL." }, { status: 400 });
     }
 
     const { data: job, error: jobError } = await supabase
