@@ -217,7 +217,7 @@ export function LandingPage() {
           <div className="relative z-10 px-8 pb-10 pt-24 sm:px-12 sm:pb-16 sm:pt-32 lg:px-16 lg:pt-36 lg:pb-24">
 
             {/* Headline — spans full width */}
-            <h1 className="text-center text-4xl font-black leading-[1.1] tracking-tight text-slate-900 sm:text-5xl lg:text-6xl xl:text-7xl">
+            <h1 className="text-center text-[2rem] font-black leading-[1.1] tracking-tight text-slate-900 sm:text-[2.7rem] lg:text-[3.375rem] xl:text-[4rem]">
               You don't have to suffer. <span className="text-[#2200ff]">Tailor your CV and cover letter to any job.</span>
             </h1>
 
