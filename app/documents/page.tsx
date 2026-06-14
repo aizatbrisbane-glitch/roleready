@@ -1,4 +1,4 @@
-import { FileText } from "lucide-react";
+﻿import { FileText } from "lucide-react";
 import { AuthPanel } from "@/components/AuthPanel";
 import { DocumentsForm } from "@/components/DocumentsForm";
 import { SetupNotice } from "@/components/SetupNotice";
@@ -46,7 +46,7 @@ export default async function DocumentsPage() {
             Keep your master documents ready.
           </h1>
           <p className="mt-2 max-w-2xl text-base leading-7 text-slate-600 md:mt-3 md:text-lg md:leading-8">
-            ApplyHQ uses these as the source material for tailored resumes and cover letters.
+            Koalapply uses these as the source material for tailored resumes and cover letters.
           </p>
         </div>
 

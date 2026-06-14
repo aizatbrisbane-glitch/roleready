@@ -1,4 +1,4 @@
-export type BlogCategory =
+﻿export type BlogCategory =
   | "Job Search"
   | "Resumes"
   | "Cover Letters"
@@ -46,7 +46,7 @@ export const blogArticles: BlogArticle[] = [
     title: "Why You're Not Getting Interviews (Even With Experience)",
     excerpt: "If your inbox is quiet despite strong experience, the problem is usually not your background. It is your job search process.",
     category: "Job Search",
-    author: "ApplyHQ",
+    author: "Koalapply",
     publishDate: "30 May 2026",
     readingTime: "9 min read",
     image: "/blog/not-getting-interviews.png",
@@ -123,7 +123,7 @@ export const blogArticles: BlogArticle[] = [
         paragraphs: [
           "If your job search feels like it's going nowhere despite your experience, the problem is almost certainly fixable.",
           "You likely need to tailor more, strengthen your achievement statements, apply smarter, track better and network more actively. None of these are complicated. But they do require a system, not just effort.",
-          "This is exactly what ApplyHQ is built for. It's a career command centre for Australian professionals who are serious about their search, helping you tailor resumes to specific roles, track applications across your pipeline and manage career transitions with structure that actually produces results.",
+          "This is exactly what Koalapply is built for. It's a career command centre for Australian professionals who are serious about their search, helping you tailor resumes to specific roles, track applications across your pipeline and manage career transitions with structure that actually produces results.",
           "Whether you're navigating a redundancy, looking to change direction or simply overdue for a better opportunity, having the right tools in your corner makes a measurable difference.",
           "Your experience is real. Now it's time to make sure it comes across that way."
         ]
@@ -137,7 +137,7 @@ export const blogArticles: BlogArticle[] = [
           "How important is it to tailor my resume for each job application in Australia? Very important. The Australian job market is currently highly competitive across white-collar sectors, and recruiters can tell immediately when a resume is generic. Even small adjustments can significantly improve your application's performance.",
           "How many jobs should I be applying for each week? More is not always better. A focused search of 8-15 well-matched, tailored applications typically outperforms 40-50 generic ones. Track your response rate and adjust accordingly.",
           "What should I track when managing my job applications? At minimum: the role title, company name, date applied, version of resume used and current status. Ideally, also note contact names, follow-up dates and any feedback received.",
-          "What is ApplyHQ? ApplyHQ is a career management platform designed for Australian professionals. It helps you tailor resumes to specific roles, organise and track your applications, prepare for interviews and manage career transitions all in one place."
+          "What is Koalapply? Koalapply is a career management platform designed for Australian professionals. It helps you tailor resumes to specific roles, organise and track your applications, prepare for interviews and manage career transitions all in one place."
         ]
       }
     ]
@@ -147,7 +147,7 @@ export const blogArticles: BlogArticle[] = [
     title: "The Hidden Cost of Using the Same Resume for Every Application",
     excerpt: "A generic resume feels efficient, but in a competitive market it can quietly cost you interviews. Here's why tailoring matters.",
     category: "Resumes",
-    author: "ApplyHQ",
+    author: "Koalapply",
     publishDate: "30 May 2026",
     readingTime: "8 min read",
     image: "/blog/hidden-cost-same-resume.png",
@@ -267,7 +267,7 @@ export const blogArticles: BlogArticle[] = [
         title: "Staying Organised Across Multiple Applications",
         paragraphs: [
           "One challenge of tailoring is keeping track of which version of your resume you've sent to which employer. If you're managing ten active applications across different roles and industries, it's easy to lose track.",
-          "This is where having a proper system matters. ApplyHQ is built for exactly this kind of organised, strategic job search. It helps you tailor resumes to specific roles, track every application across your pipeline and manage the full process from first application to final offer.",
+          "This is where having a proper system matters. Koalapply is built for exactly this kind of organised, strategic job search. It helps you tailor resumes to specific roles, track every application across your pipeline and manage the full process from first application to final offer.",
           "If you're serious about your job search, a career command centre beats a spreadsheet every time."
         ]
       },
@@ -285,14 +285,14 @@ export const blogArticles: BlogArticle[] = [
     ]
   },
   {
-    slug: "chatgpt-vs-claude-vs-applyhq-job-search",
-    title: "ChatGPT vs Claude vs ApplyHQ: Which One Should You Use For Your Job Search?",
-    excerpt: "ChatGPT, Claude and ApplyHQ solve different job search problems. Here's where each tool fits, and why the best approach often uses them together.",
+    slug: "chatgpt-vs-claude-vs-Koalapply-job-search",
+    title: "ChatGPT vs Claude vs Koalapply: Which One Should You Use For Your Job Search?",
+    excerpt: "ChatGPT, Claude and Koalapply solve different job search problems. Here's where each tool fits, and why the best approach often uses them together.",
     category: "Career Growth",
-    author: "ApplyHQ",
+    author: "Koalapply",
     publishDate: "30 May 2026",
     readingTime: "9 min read",
-    image: "/blog/chatgpt-vs-claude-vs-applyhq.png",
+    image: "/blog/chatgpt-vs-claude-vs-Koalapply.png",
     imageAlt: "Career technology tools compared for job seekers",
     sections: [
       {
@@ -302,7 +302,7 @@ export const blogArticles: BlogArticle[] = [
           "If you've been job hunting recently, you've almost certainly turned to AI at some point.",
           "Maybe you asked ChatGPT to help you rewrite a resume bullet point. Maybe you used Claude to draft a cover letter at 11pm when you had a deadline the next morning. Maybe you've experimented with both across half a dozen applications and still feel like something's missing from the process.",
           "AI has genuinely changed how people approach job searching. These tools are powerful, fast and accessible in a way that professional career coaching never was.",
-          "But the question of which tool to use is slightly the wrong one. ChatGPT, Claude and a dedicated career platform like ApplyHQ aren't really competing with each other. They solve different problems at different stages of the job search process."
+          "But the question of which tool to use is slightly the wrong one. ChatGPT, Claude and a dedicated career platform like Koalapply aren't really competing with each other. They solve different problems at different stages of the job search process."
         ]
       },
       {
@@ -364,7 +364,7 @@ export const blogArticles: BlogArticle[] = [
         title: "What a Dedicated Career Platform Does Differently",
         paragraphs: [
           "A career platform isn't primarily a writing tool. It's organisational and strategic infrastructure for your entire job search, from the first role you shortlist to the offer you accept.",
-          "This is where a tool like ApplyHQ operates in a fundamentally different space."
+          "This is where a tool like Koalapply operates in a fundamentally different space."
         ],
         bullets: [
           "A centralised career profile that you build once and draw from throughout your search.",
@@ -393,7 +393,7 @@ export const blogArticles: BlogArticle[] = [
         bullets: [
           "Use ChatGPT for quick drafts, brainstorming, interview practice and improving specific resume bullet points.",
           "Use Claude for detailed selection criteria, long-form writing, full document reviews and nuanced analysis.",
-          "Use ApplyHQ to track applications, manage resume versions, see your full pipeline and prepare for interviews with structure tied to each role."
+          "Use Koalapply to track applications, manage resume versions, see your full pipeline and prepare for interviews with structure tied to each role."
         ]
       },
       {
@@ -401,7 +401,7 @@ export const blogArticles: BlogArticle[] = [
         title: "The Best Approach: Complementary, Not Competing",
         paragraphs: [
           "Think of ChatGPT or Claude as your writing and thinking tools. They help you produce better output, faster.",
-          "Think of ApplyHQ as your career operating system: the infrastructure that organises everything, connects the dots and keeps your search moving forward with clarity and momentum.",
+          "Think of Koalapply as your career operating system: the infrastructure that organises everything, connects the dots and keeps your search moving forward with clarity and momentum.",
           "A well-written cover letter sent through a chaotic, untracked process is still less effective than it could be. A well-organised job search that produces mediocre application documents will also fall short. Quality output managed through a quality system is where consistently good results come from."
         ]
       },
@@ -409,10 +409,10 @@ export const blogArticles: BlogArticle[] = [
         id: "frequently-asked-questions",
         title: "Frequently Asked Questions",
         paragraphs: [
-          "Is ApplyHQ powered by AI? ApplyHQ incorporates AI to help with tasks like resume tailoring and application preparation, but it's built around a career management workflow that goes beyond what an AI chat tool offers.",
-          "Can I still use ChatGPT alongside ApplyHQ? Absolutely. Many ApplyHQ users use ChatGPT or Claude for specific writing tasks and manage tracking, organisation, pipeline management and interview prep through ApplyHQ.",
-          "Can I still use Claude alongside ApplyHQ? Yes. Claude is particularly useful for detailed document analysis, long-form writing and selection criteria drafting.",
-          "Is ApplyHQ replacing AI tools? No. ApplyHQ solves a different problem: the organisational, strategic and workflow challenges of running a serious job search over weeks or months.",
+          "Is Koalapply powered by AI? Koalapply incorporates AI to help with tasks like resume tailoring and application preparation, but it's built around a career management workflow that goes beyond what an AI chat tool offers.",
+          "Can I still use ChatGPT alongside Koalapply? Absolutely. Many Koalapply users use ChatGPT or Claude for specific writing tasks and manage tracking, organisation, pipeline management and interview prep through Koalapply.",
+          "Can I still use Claude alongside Koalapply? Yes. Claude is particularly useful for detailed document analysis, long-form writing and selection criteria drafting.",
+          "Is Koalapply replacing AI tools? No. Koalapply solves a different problem: the organisational, strategic and workflow challenges of running a serious job search over weeks or months.",
           "Why not just build my own prompts and manage everything in a spreadsheet? You can, but there is a real cost to building and maintaining that system yourself. A purpose-built career platform gives you a workflow designed around how job searching actually works."
         ]
       },
@@ -423,7 +423,7 @@ export const blogArticles: BlogArticle[] = [
           "ChatGPT is a powerful tool for job seekers. So is Claude. If you're not using either of them, you're probably working harder than you need to on writing tasks that AI handles well.",
           "But neither of them is a career management system. They don't remember your history, track your applications, manage your pipeline or give you a strategic overview of where your search stands.",
           "If your job search is serious, whether you're navigating a redundancy, making a career change or simply ready for something better, you need more than a fast writing tool. You need a system.",
-          "Use the AI tools for what they're great at. Use ApplyHQ for everything else. That combination is hard to beat."
+          "Use the AI tools for what they're great at. Use Koalapply for everything else. That combination is hard to beat."
         ]
       }
     ]
@@ -433,7 +433,7 @@ export const blogArticles: BlogArticle[] = [
     title: "How to Tailor Your Resume for Each Job Without Starting From Scratch",
     excerpt: "A practical system for turning one strong master resume into targeted applications that feel specific, relevant and easy to send.",
     category: "Resumes",
-    author: "ApplyHQ Team",
+    author: "Koalapply Team",
     publishDate: "30 May 2026",
     readingTime: "6 min read",
     image: "/landing/job-seeker-laptop.jpg",
@@ -480,7 +480,7 @@ export const blogArticles: BlogArticle[] = [
     title: "A Simple Job Search System That Keeps You Organised",
     excerpt: "How to track roles, follow-ups, documents and outcomes without turning your job search into another full-time job.",
     category: "Job Search",
-    author: "ApplyHQ Team",
+    author: "Koalapply Team",
     publishDate: "28 May 2026",
     readingTime: "5 min read",
     image: "/landing/team-laptop.jpg",
@@ -513,7 +513,7 @@ export const blogArticles: BlogArticle[] = [
     title: "How to Write a Cover Letter That Does Not Sound Generic",
     excerpt: "A modern cover letter should connect your experience to the role quickly, clearly and without filler.",
     category: "Cover Letters",
-    author: "ApplyHQ Team",
+    author: "Koalapply Team",
     publishDate: "26 May 2026",
     readingTime: "4 min read",
     image: "/landing/hero-job-seeker.png",
@@ -540,7 +540,7 @@ export const blogArticles: BlogArticle[] = [
     title: "Prepare Better STAR Answers Before Your Next Interview",
     excerpt: "Turn your experience into clear, confident stories that help interviewers understand how you work.",
     category: "Interviews",
-    author: "ApplyHQ Team",
+    author: "Koalapply Team",
     publishDate: "24 May 2026",
     readingTime: "7 min read",
     image: "/landing/job-seeker-laptop.jpg",
@@ -572,7 +572,7 @@ export const blogArticles: BlogArticle[] = [
     title: "What to Do in the First Week After Redundancy",
     excerpt: "A calm, practical checklist for protecting your energy, updating your story and restarting your search.",
     category: "Redundancy Support",
-    author: "ApplyHQ Team",
+    author: "Koalapply Team",
     publishDate: "22 May 2026",
     readingTime: "6 min read",
     image: "/landing/team-laptop.jpg",
@@ -600,7 +600,7 @@ export const blogArticles: BlogArticle[] = [
     title: "How to Compare Job Offers Beyond Salary",
     excerpt: "Salary matters, but the best offer is usually the one that fits your goals, lifestyle and growth path.",
     category: "Salary & Offers",
-    author: "ApplyHQ Team",
+    author: "Koalapply Team",
     publishDate: "20 May 2026",
     readingTime: "5 min read",
     image: "/landing/hero-job-seeker.png",

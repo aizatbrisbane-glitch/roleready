@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, CheckCircle2, Star } from "lucide-react";
 import { PublicFooter } from "@/components/PublicFooter";
@@ -9,15 +9,15 @@ import { getAccessState } from "@/lib/entitlements";
 import type { EntitlementPlanType } from "@/types/database";
 
 export const metadata: Metadata = {
-  title: "Pricing | ApplyHQ",
-  description: "Choose the ApplyHQ plan that matches your job search."
+  title: "Pricing | Koalapply",
+  description: "Choose the Koalapply plan that matches your job search."
 };
 
 const plans = [
   {
     name: "Free",
     price: "$0",
-    description: "Try ApplyHQ and keep a lightweight view of your job search.",
+    description: "Try Koalapply and keep a lightweight view of your job search.",
     features: [
       "1 free application",
       "1 month credit validity",
@@ -80,7 +80,7 @@ const plans = [
 const faqs = [
   {
     question: "Why not just use ChatGPT or Claude?",
-    answer: "ChatGPT and Claude are excellent AI tools, and many people already use them to help write resumes and cover letters. The challenge is that finding a new job involves much more than generating text. You still need to search for suitable opportunities, tailor your resume for every application, track where you've applied, prepare for interviews, compare offers, manage multiple document versions, and keep everything organised throughout your job search. ApplyHQ brings that entire workflow together in one place. Instead of starting from a blank prompt every time, ApplyHQ maintains your career profile, understands your experience, tracks your applications, stores tailored documents, prepares interview responses, and helps guide you through every stage of your career transition. Think of ChatGPT and Claude as powerful AI engines. ApplyHQ is the career platform built around those capabilities, designed specifically to help you find, secure, and succeed in your next role."
+    answer: "ChatGPT and Claude are excellent AI tools, and many people already use them to help write resumes and cover letters. The challenge is that finding a new job involves much more than generating text. You still need to search for suitable opportunities, tailor your resume for every application, track where you've applied, prepare for interviews, compare offers, manage multiple document versions, and keep everything organised throughout your job search. Koalapply brings that entire workflow together in one place. Instead of starting from a blank prompt every time, Koalapply maintains your career profile, understands your experience, tracks your applications, stores tailored documents, prepares interview responses, and helps guide you through every stage of your career transition. Think of ChatGPT and Claude as powerful AI engines. Koalapply is the career platform built around those capabilities, designed specifically to help you find, secure, and succeed in your next role."
   },
   {
     question: "Can I cancel anytime?",
@@ -119,11 +119,11 @@ export default async function PricingPage() {
               <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Ready to apply more?</h1>
               {access.planType === "free" ? (
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  You are on the free plan — <span className="font-semibold">{access.applicationsRemaining} of {access.applicationLimit} application</span> remaining. Pick a pass to keep going.
+                  You are on the free plan â€” <span className="font-semibold">{access.applicationsRemaining} of {access.applicationLimit} application</span> remaining. Pick a pass to keep going.
                 </p>
               ) : (
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  You are on the <span className="font-semibold">{access.planLabel}</span> — <span className="font-semibold">{access.applicationsRemaining}</span> applications remaining.
+                  You are on the <span className="font-semibold">{access.planLabel}</span> â€” <span className="font-semibold">{access.applicationsRemaining}</span> applications remaining.
                 </p>
               )}
             </div>
@@ -177,7 +177,7 @@ export default async function PricingPage() {
             </div>
 
             <p className="border-t border-slate-100 px-7 py-5 text-center text-xs text-slate-400 sm:px-10">
-              One-off passes — no subscription, no auto-renewal.
+              One-off passes â€” no subscription, no auto-renewal.
             </p>
           </div>
         </div>

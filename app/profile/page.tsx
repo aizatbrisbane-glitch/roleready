@@ -1,4 +1,4 @@
-import { Settings } from "lucide-react";
+﻿import { Settings } from "lucide-react";
 import { AuthPanel } from "@/components/AuthPanel";
 import { ProfileSettingsForm } from "@/components/ProfileSettingsForm";
 import { SetupNotice } from "@/components/SetupNotice";
@@ -40,7 +40,7 @@ export default async function ProfilePage() {
             Profile settings
           </p>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-5xl">
-            Tell ApplyHQ what you&apos;re aiming for.
+            Tell Koalapply what you&apos;re aiming for.
           </h1>
           <p className="mt-2 max-w-2xl text-base leading-7 text-slate-600 md:mt-3 md:text-lg md:leading-8">
             Your details and preferences help shape better matches and stronger applications.
@@ -56,7 +56,7 @@ export default async function ProfilePage() {
               Better details, better matches.
             </h2>
             <p className="mt-3 text-sm leading-7 text-slate-600">
-              Keep your target roles, locations, and industries current so ApplyHQ can find fresher opportunities and tailor with more context.
+              Keep your target roles, locations, and industries current so Koalapply can find fresher opportunities and tailor with more context.
             </p>
           </aside>
         </div>

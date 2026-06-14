@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { Resend } from "resend";
 import { getStripeClient } from "@/lib/stripe";
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Admin client unavailable." }, { status: 500 });
   }
 
-  // Idempotency — prevent double-grant if Stripe retries
+  // Idempotency â€” prevent double-grant if Stripe retries
   const { data: existing } = await adminSupabase
     .from("entitlements")
     .select("id")
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true });
   }
 
-  // Resolve user ID — either from metadata (logged-in checkout) or email (guest checkout)
+  // Resolve user ID â€” either from metadata (logged-in checkout) or email (guest checkout)
   let resolvedUserId = session.metadata?.userId ?? null;
 
   if (!resolvedUserId) {
@@ -86,14 +86,14 @@ export async function POST(request: Request) {
 
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
-    // Try to create a new user (email pre-confirmed — no Supabase email sent)
+    // Try to create a new user (email pre-confirmed â€” no Supabase email sent)
     const { data: createData, error: createError } = await adminSupabase.auth.admin.createUser({
       email: customerEmail,
       email_confirm: true,
     });
 
     if (createData?.user?.id) {
-      // New user — generate a password-setup link and send a custom email via Resend
+      // New user â€” generate a password-setup link and send a custom email via Resend
       resolvedUserId = createData.user.id;
       const { data: linkData } = await adminSupabase.auth.admin.generateLink({
         type: "recovery",
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
         await sendPasswordSetupEmail(customerEmail, setupLink);
       }
     } else {
-      // User already exists — find their ID via recovery link (no email sent)
+      // User already exists â€” find their ID via recovery link (no email sent)
       const { data: linkData, error: linkError } = await adminSupabase.auth.admin.generateLink({
         type: "recovery",
         email: customerEmail,
@@ -154,14 +154,14 @@ export async function POST(request: Request) {
 async function sendPasswordSetupEmail(to: string, setupLink: string) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    console.warn("[stripe-webhook] RESEND_API_KEY not set — skipping password setup email");
+    console.warn("[stripe-webhook] RESEND_API_KEY not set â€” skipping password setup email");
     return;
   }
   const resend = new Resend(apiKey);
   await resend.emails.send({
-    from: "ApplyHQ <noreply@mail.applyhq.com.au>",
+    from: "Koalapply <noreply@mail.applyhq.com.au>",
     to,
-    subject: "Your ApplyHQ account is ready — set your password",
+    subject: "Your Koalapply account is ready â€” set your password",
     html: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#1e293b">
         <img src="https://koalapply.com.au/brand/koalapply-logo.png" alt="Koalapply" style="height:40px;margin-bottom:32px" />

@@ -1,22 +1,22 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
 import { legalDetails } from "@/lib/legal";
 
 export const metadata: Metadata = {
-  title: "Refund Policy | ApplyHQ",
-  description: "Refund information for ApplyHQ passes.",
+  title: "Refund Policy | Koalapply",
+  description: "Refund information for Koalapply passes.",
 };
 
 export default function RefundsPage() {
   return (
     <LegalPage
       title="Refund Policy"
-      intro="This policy explains how refunds are handled for ApplyHQ paid passes."
+      intro="This policy explains how refunds are handled for Koalapply paid passes."
       sections={[
         {
           title: "One-off passes",
           body: [
-            "ApplyHQ paid plans are one-off passes rather than recurring subscriptions. There is no ongoing subscription to cancel.",
+            "Koalapply paid plans are one-off passes rather than recurring subscriptions. There is no ongoing subscription to cancel.",
             "Pass details, including credit limits and access periods, are shown on the pricing page before purchase.",
           ],
         },

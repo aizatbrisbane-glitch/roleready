@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { CheckCircle2, MousePointer2 } from "lucide-react";
@@ -86,7 +86,7 @@ export default function InviteSetupPage() {
       if (isNew) {
         setReady(true);
       } else {
-        // Existing user — no password setup needed, just redirect to dashboard
+        // Existing user â€” no password setup needed, just redirect to dashboard
         setDone(true);
         setTimeout(() => { window.location.href = "/"; }, 1800);
       }
@@ -138,7 +138,7 @@ export default function InviteSetupPage() {
             {done ? <CheckCircle2 className="h-8 w-8" /> : <MousePointer2 className="h-8 w-8 fill-[#d4ccff]" />}
           </div>
           <h1 className="mt-6 text-3xl font-bold tracking-tight text-slate-900">
-            {done ? "You're all set." : "Set up your ApplyHQ account"}
+            {done ? "You're all set." : "Set up your Koalapply account"}
           </h1>
           <p className="mt-3 text-sm leading-6 text-slate-600">
             {done
@@ -153,7 +153,7 @@ export default function InviteSetupPage() {
           </div>
         ) : done ? (
           <p className="mt-7 rounded-2xl bg-emerald-50 px-4 py-3 text-center text-sm font-semibold text-emerald-700">
-            Redirecting to ApplyHQ...
+            Redirecting to Koalapply...
           </p>
         ) : !ready ? (
           <p className="mt-7 text-center text-sm text-slate-500 animate-pulse">Verifying invite...</p>

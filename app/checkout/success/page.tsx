@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Payment Successful | ApplyHQ",
+  title: "Payment Successful | Koalapply",
 };
 
 export default async function CheckoutSuccessPage({
@@ -28,7 +28,7 @@ export default async function CheckoutSuccessPage({
               Your access pass has been activated.
             </p>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              <strong>New here?</strong> Check the email you used at checkout — we&apos;ve sent you a link to set your password.
+              <strong>New here?</strong> Check the email you used at checkout â€” we&apos;ve sent you a link to set your password.
             </p>
             <p className="mt-2 text-sm leading-6 text-slate-600">
               <strong>Already have an account?</strong> Just log in below.

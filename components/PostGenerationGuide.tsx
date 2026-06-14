@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
@@ -10,7 +10,7 @@ const STEPS = [
   },
   {
     heading: "Review missing keywords",
-    body: 'Scroll down to "Opportunities to strengthen" — add any keywords that genuinely apply to your experience.',
+    body: 'Scroll down to "Opportunities to strengthen" â€” add any keywords that genuinely apply to your experience.',
   },
   {
     heading: "Review your documents",
@@ -27,7 +27,7 @@ const STEPS = [
 ];
 
 export function PostGenerationGuide({ applicationId, show }: { applicationId: string; show: boolean }) {
-  const storageKey = `applyhq_welcomed_${applicationId}`;
+  const storageKey = `Koalapply_welcomed_${applicationId}`;
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export function PostGenerationGuide({ applicationId, show }: { applicationId: st
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#2200ff]">What&apos;s next</p>
-          <h2 className="mt-1 text-lg font-bold text-slate-900">Your application is ready — here&apos;s what to do</h2>
+          <h2 className="mt-1 text-lg font-bold text-slate-900">Your application is ready â€” here&apos;s what to do</h2>
         </div>
         <button
           type="button"

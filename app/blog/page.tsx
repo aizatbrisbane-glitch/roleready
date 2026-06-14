@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { blogArticles, blogCategories, getFeaturedArticle } from "@/lib/blog";
@@ -7,7 +7,7 @@ import { NewsletterSignup } from "@/components/blog/NewsletterSignup";
 import { PublicFooter } from "@/components/PublicFooter";
 
 export const metadata: Metadata = {
-  title: "Career Advice & Insights | ApplyHQ",
+  title: "Career Advice & Insights | Koalapply",
   description: "Practical advice to help you find jobs, prepare applications, ace interviews and grow your career.",
 };
 

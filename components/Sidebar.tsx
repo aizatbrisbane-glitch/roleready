@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -22,7 +22,7 @@ type SidebarProps = {
 };
 
 function initialsFrom(name?: string | null, email?: string | null) {
-  const source = name || email || "ApplyHQ";
+  const source = name || email || "Koalapply";
   return source
     .split(/\s+|@/)
     .filter(Boolean)

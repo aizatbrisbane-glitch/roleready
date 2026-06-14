@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, Eye, FileText, Loader2, UploadCloud, X } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
-export const HOMEPAGE_ONBOARDING_DRAFT_KEY = "applyhq_home_onboarding_draft";
-export const GRAB_PREFILL_STORAGE_KEY = "applyhq_grab_prefill";
+export const HOMEPAGE_ONBOARDING_DRAFT_KEY = "Koalapply_home_onboarding_draft";
+export const GRAB_PREFILL_STORAGE_KEY = "Koalapply_grab_prefill";
 
 type JobMode = "url" | "browse";
 
@@ -36,7 +36,7 @@ type Props = {
 
 const acceptedDocumentTypes = [".pdf", ".docx"];
 const EMAIL_OTP_LENGTH = 6;
-const DRAFT_DB_NAME = "applyhq-onboarding-drafts";
+const DRAFT_DB_NAME = "Koalapply-onboarding-drafts";
 const DRAFT_STORE_NAME = "files";
 const JOB_TEXT_UNAVAILABLE = "JOB_TEXT_UNAVAILABLE";
 
@@ -255,7 +255,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       documentData.append("resume_file", resumeFile);
       if (coverLetterFile) documentData.append("cover_letter_file", coverLetterFile);
 
-      setLoadingStep("Saving your resume…");
+      setLoadingStep("Saving your resumeâ€¦");
       const documentResponse = await fetch("/api/profile/documents", {
         method: "POST",
         body: documentData,
@@ -292,7 +292,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
     if (coverLetterFile) formData.append("cover_letter_file", coverLetterFile);
     if (jobMode === "url") formData.append("job_url", jobUrl.trim());
 
-    setLoadingStep("Saving your resume…");
+    setLoadingStep("Saving your resumeâ€¦");
     if (jobMode === "url") {
       window.setTimeout(() => {
         setLoadingStep("Reading the job ad...");
@@ -302,11 +302,11 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       method: "POST",
       body: formData,
     });
-    setLoadingStep("Creating your application…");
+    setLoadingStep("Creating your applicationâ€¦");
     const payload = await response.json();
 
     if (response.status === 401) {
-      throw new Error("Your session expired — please sign in again and retry.");
+      throw new Error("Your session expired â€” please sign in again and retry.");
     }
     if (payload?.errorCode === JOB_TEXT_UNAVAILABLE) {
       setConfirmEmail(false);
@@ -353,16 +353,16 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
 
       saveDraft(currentDraft);
 
-      // Try signing in first — handles returning users without sending an OTP.
+      // Try signing in first â€” handles returning users without sending an OTP.
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInData?.session) {
-        // Returning user successfully signed in — skip OTP.
+        // Returning user successfully signed in â€” skip OTP.
         setIsAuthenticated(true);
         await submitAuthenticated();
         return;
       }
 
-      // New user (or wrong password for returning user) — attempt sign-up.
+      // New user (or wrong password for returning user) â€” attempt sign-up.
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -413,7 +413,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
     }
 
     setLoading(true);
-    setLoadingStep("Verifying your code…");
+    setLoadingStep("Verifying your codeâ€¦");
     try {
       const supabase = createSupabaseBrowserClient();
       if (!supabase) throw new Error("Supabase is not configured.");
@@ -646,7 +646,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                 <div className="mt-5 grid gap-2 sm:grid-cols-2">
                   {[
                     ["url", "Paste Job URL"],
-                    ["browse", "Browse Jobs With ApplyHQ"],
+                    ["browse", "Browse Jobs With Koalapply"],
                   ].map(([value, label]) => (
                     <button
                       key={value}

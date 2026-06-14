@@ -1,4 +1,4 @@
-import { AuthPanel } from "@/components/AuthPanel";
+﻿import { AuthPanel } from "@/components/AuthPanel";
 import { EnterpriseAdminPanel, type EnterpriseAdminRow } from "@/components/EnterpriseAdminPanel";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { SetupNotice } from "@/components/SetupNotice";
@@ -53,7 +53,7 @@ export default async function EnterprisePage() {
             No admin access yet.
           </h1>
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            This dashboard is available to organisation owners and admins. Employee access still works from the main ApplyHQ dashboard.
+            This dashboard is available to organisation owners and admins. Employee access still works from the main Koalapply dashboard.
           </p>
         </div>
       </main>

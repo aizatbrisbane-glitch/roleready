@@ -1,10 +1,10 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
 import { legalDetails } from "@/lib/legal";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | ApplyHQ",
-  description: "How ApplyHQ collects, uses and protects personal information.",
+  title: "Privacy Policy | Koalapply",
+  description: "How Koalapply collects, uses and protects personal information.",
 };
 
 export default function PrivacyPage() {
@@ -16,7 +16,7 @@ export default function PrivacyPage() {
         {
           title: "Information we collect",
           body: [
-            "We may collect account details, contact information, resumes, cover letters, job descriptions, application notes, generated documents and other information you provide while using ApplyHQ.",
+            "We may collect account details, contact information, resumes, cover letters, job descriptions, application notes, generated documents and other information you provide while using Koalapply.",
             "We may also collect basic technical information such as device, browser, log and usage data to operate, secure and improve the service.",
           ],
         },
@@ -30,14 +30,14 @@ export default function PrivacyPage() {
         {
           title: "AI processing",
           body: [
-            "ApplyHQ uses AI services to generate and tailor career documents. Information from your profile, uploaded documents and job ads may be sent to AI providers where needed to produce requested outputs.",
+            "Koalapply uses AI services to generate and tailor career documents. Information from your profile, uploaded documents and job ads may be sent to AI providers where needed to produce requested outputs.",
             "You should review all AI-generated content before using it in a job application.",
           ],
         },
         {
           title: "Disclosure",
           body: [
-            "We may share information with service providers that help us host, secure, analyse, process payments for, or operate ApplyHQ. We may also disclose information if required by law or to protect the rights, safety and security of users or the service.",
+            "We may share information with service providers that help us host, secure, analyse, process payments for, or operate Koalapply. We may also disclose information if required by law or to protect the rights, safety and security of users or the service.",
           ],
         },
         {

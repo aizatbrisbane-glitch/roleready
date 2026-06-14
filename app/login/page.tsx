@@ -39,7 +39,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <div className="pointer-events-none absolute right-0 top-0 h-80 w-80 rounded-full bg-violet-100/40 blur-3xl" />
       <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-7xl flex-col">
         <header className="flex items-center justify-between py-4">
-          <img src="/brand/koalapply-logo.png" alt="Koalapply" className="h-24 w-auto sm:h-28" />
+          <img src="/brand/koalapply-logo.png" alt="Koalapply" className="h-32 w-auto sm:h-40" />
         </header>
 
         <section className="grid flex-1 items-center gap-8 py-4 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:py-10">
@@ -56,7 +56,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
               </span>
             </h1>
             <p className="mt-6 max-w-md text-base leading-7 text-slate-600 sm:text-xl sm:leading-9 lg:mt-8">
-              ApplyHQ helps you find the right roles and apply with confidence.
+              Koalapply helps you find the right roles and apply with confidence.
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-3 lg:mt-10 lg:block lg:space-y-7">

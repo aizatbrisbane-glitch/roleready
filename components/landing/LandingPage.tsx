@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -41,7 +41,7 @@ const steps = [
   {
     icon: Sparkles,
     title: "AI tailors your documents",
-    body: "Your resume and cover letter, rewritten to match — in seconds.",
+    body: "Your resume and cover letter, rewritten to match â€” in seconds.",
     color: "bg-violet-50 text-violet-600",
     badge: "bg-violet-100 text-violet-800",
   },
@@ -154,30 +154,30 @@ export function LandingPage() {
       <style jsx global>{`
         html { scroll-behavior: smooth; }
 
-        @keyframes applyhq-float {
+        @keyframes Koalapply-float {
           0%, 100% { transform: translateY(0); }
           50%       { transform: translateY(-8px); }
         }
-        @keyframes applyhq-fade-up {
+        @keyframes Koalapply-fade-up {
           from { opacity: 0; transform: translateY(18px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        @keyframes applyhq-pop-in {
+        @keyframes Koalapply-pop-in {
           0% { opacity: 0; transform: translateY(16px) scale(0.94); }
           70% { opacity: 1; transform: translateY(-3px) scale(1.015); }
           100% { opacity: 1; transform: translateY(0) scale(1); }
         }
-        .applyhq-fade-up  { animation: applyhq-fade-up 760ms ease-out both; }
-        .applyhq-float    { animation: applyhq-float 5.5s ease-in-out infinite; }
-        .applyhq-float-2  { animation: applyhq-float 6.5s ease-in-out infinite 0.8s; }
-        .applyhq-float-3  { animation: applyhq-float 7s ease-in-out infinite 1.6s; }
-        .applyhq-pop-in   { animation: applyhq-pop-in 620ms cubic-bezier(.2,.9,.2,1) 260ms both; }
+        .Koalapply-fade-up  { animation: Koalapply-fade-up 760ms ease-out both; }
+        .Koalapply-float    { animation: Koalapply-float 5.5s ease-in-out infinite; }
+        .Koalapply-float-2  { animation: Koalapply-float 6.5s ease-in-out infinite 0.8s; }
+        .Koalapply-float-3  { animation: Koalapply-float 7s ease-in-out infinite 1.6s; }
+        .Koalapply-pop-in   { animation: Koalapply-pop-in 620ms cubic-bezier(.2,.9,.2,1) 260ms both; }
         @media (prefers-reduced-motion: reduce) {
-          .applyhq-fade-up,
-          .applyhq-float,
-          .applyhq-float-2,
-          .applyhq-float-3,
-          .applyhq-pop-in {
+          .Koalapply-fade-up,
+          .Koalapply-float,
+          .Koalapply-float-2,
+          .Koalapply-float-3,
+          .Koalapply-pop-in {
             animation: none !important;
           }
         }
@@ -185,10 +185,10 @@ export function LandingPage() {
 
       <main>
 
-        {/* ── Hero (header lives inside so nav overlays the image) ── */}
-        <section className="applyhq-fade-up relative overflow-hidden" style={{ background: "#f5f3f0" }}>
+        {/* â”€â”€ Hero (header lives inside so nav overlays the image) â”€â”€ */}
+        <section className="Koalapply-fade-up relative overflow-hidden" style={{ background: "#f5f3f0" }}>
 
-          {/* Nav overlay — sits on top of the photo background */}
+          {/* Nav overlay â€” sits on top of the photo background */}
           <header className="absolute inset-x-0 top-0 z-20">
             <div className="flex items-center justify-between px-8 py-6 sm:px-12 lg:px-16">
               <Link href="/" className="inline-flex items-center">
@@ -213,10 +213,10 @@ export function LandingPage() {
             </div>
           </header>
 
-          {/* Full-width content — top padding clears the overlaid nav */}
+          {/* Full-width content â€” top padding clears the overlaid nav */}
           <div className="relative z-10 px-8 pb-10 pt-24 sm:px-12 sm:pb-16 sm:pt-32 lg:px-16 lg:pt-36 lg:pb-24">
 
-            {/* Headline — spans full width */}
+            {/* Headline â€” spans full width */}
             <h1 className="text-center text-4xl font-black leading-[1.1] tracking-tight text-slate-900 sm:text-5xl lg:text-6xl xl:text-7xl">
               You don't have to suffer. <span className="text-[#2200ff]">Tailor your CV and cover letter to any job.</span>
             </h1>
@@ -244,7 +244,7 @@ export function LandingPage() {
                 {/* TikTok-style overlay text */}
                 <p className="absolute top-5 left-5 right-5 text-center text-xl font-black leading-tight tracking-tight text-black">
                   <span className="box-decoration-clone bg-white px-2 py-1 leading-[1.7]">
-                    POV: you not rewriting CVs and Covers manually 😌
+                    POV: you not rewriting CVs and Covers manually ðŸ˜Œ
                   </span>
                 </p>
                 {/* Slideshow dots */}
@@ -267,7 +267,7 @@ export function LandingPage() {
                   event.preventDefault();
                   handleHeroFile(event.dataTransfer.files?.[0]);
                 }}
-                className="applyhq-pop-in flex flex-col items-center justify-center rounded-[1.5rem] border-2 border-dashed border-[#b9adff] bg-white/95 p-6 text-center shadow-[0_28px_90px_rgba(34,0,255,0.16)] backdrop-blur transition hover:-translate-y-0.5 hover:border-[#2200ff] sm:rounded-[2.25rem] sm:p-12"
+                className="Koalapply-pop-in flex flex-col items-center justify-center rounded-[1.5rem] border-2 border-dashed border-[#b9adff] bg-white/95 p-6 text-center shadow-[0_28px_90px_rgba(34,0,255,0.16)] backdrop-blur transition hover:-translate-y-0.5 hover:border-[#2200ff] sm:rounded-[2.25rem] sm:p-12"
               >
                 <input
                   ref={resumeInputRef}
@@ -280,7 +280,7 @@ export function LandingPage() {
                   <UploadCloud className="h-9 w-9 sm:h-14 sm:w-14" />
                 </span>
                 <p className="mt-4 text-2xl font-black tracking-tight text-slate-900 sm:mt-6 sm:text-4xl">Drop your resume here. See what it could look like.</p>
-                <p className="mt-3 text-base font-semibold text-slate-500">PDF or DOCX · Max 4 MB</p>
+                <p className="mt-3 text-base font-semibold text-slate-500">PDF or DOCX Â· Max 4 MB</p>
                 <button
                   type="button"
                   onClick={(event) => {
@@ -303,8 +303,8 @@ export function LandingPage() {
 
         </section>
 
-        {/* ── Trusted by ── */}
-        <section className="applyhq-fade-up mx-auto mt-20 max-w-5xl px-5 pb-4 sm:px-8 lg:px-10">
+        {/* â”€â”€ Trusted by â”€â”€ */}
+        <section className="Koalapply-fade-up mx-auto mt-20 max-w-5xl px-5 pb-4 sm:px-8 lg:px-10">
           <p className="text-center text-sm font-semibold text-slate-400 uppercase tracking-[0.18em]">
             Trusted by job seekers at
           </p>
@@ -317,8 +317,8 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* ── Stats ── */}
-        <section className="applyhq-fade-up mx-auto mt-12 max-w-4xl px-5 pb-20 sm:px-8 lg:px-10">
+        {/* â”€â”€ Stats â”€â”€ */}
+        <section className="Koalapply-fade-up mx-auto mt-12 max-w-4xl px-5 pb-20 sm:px-8 lg:px-10">
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {stats.map(({ icon: Icon, value, label, period, iconCls }) => (
               <div key={label} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
@@ -333,8 +333,8 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* ── How it works ── */}
-        <section id="how-it-works" className="applyhq-fade-up bg-white px-5 py-28 sm:px-8 lg:px-10 lg:py-36">
+        {/* â”€â”€ How it works â”€â”€ */}
+        <section id="how-it-works" className="Koalapply-fade-up bg-white px-5 py-28 sm:px-8 lg:px-10 lg:py-36">
           <div className="mx-auto max-w-6xl">
             <div className="mb-5 flex justify-center">
               <LimeSwoop />
@@ -362,8 +362,8 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* ── Electric blue CTA band ── */}
-        <section id="blog" className="applyhq-fade-up bg-slate-50 px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
+        {/* â”€â”€ Electric blue CTA band â”€â”€ */}
+        <section id="blog" className="Koalapply-fade-up bg-slate-50 px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
           <div className="mx-auto max-w-7xl">
             <div className="mb-9 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
@@ -411,19 +411,19 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section className="applyhq-fade-up bg-[#2200ff] px-5 py-20 sm:px-8 lg:px-10">
+        <section className="Koalapply-fade-up bg-[#2200ff] px-5 py-20 sm:px-8 lg:px-10">
           <div className="mx-auto max-w-4xl text-center">
-            {/* Emoji decorations — brand brief style */}
+            {/* Emoji decorations â€” brand brief style */}
             <div className="mb-6 flex items-center justify-center gap-6">
-              <span className="inline-block -rotate-12 text-4xl" aria-hidden="true">🤞</span>
+              <span className="inline-block -rotate-12 text-4xl" aria-hidden="true">ðŸ¤ž</span>
               <LimeSwoop />
-              <span className="inline-block rotate-12 text-4xl" aria-hidden="true">⚡</span>
+              <span className="inline-block rotate-12 text-4xl" aria-hidden="true">âš¡</span>
             </div>
             <h2 className="text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl">
               Stop applying. Start landing.
             </h2>
             <p className="mx-auto mt-5 max-w-xl text-lg leading-8 text-white/80">
-              Smart job seekers use ApplyHQ to apply better, track everything, and actually hear back. Your turn.
+              Smart job seekers use Koalapply to apply better, track everything, and actually hear back. Your turn.
             </p>
             <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
               <Link
@@ -437,8 +437,8 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* ── Pricing / CTA ── */}
-        <section id="pricing" className="applyhq-fade-up bg-slate-50 px-5 py-24 sm:px-8 lg:px-10 lg:py-32">
+        {/* â”€â”€ Pricing / CTA â”€â”€ */}
+        <section id="pricing" className="Koalapply-fade-up bg-slate-50 px-5 py-24 sm:px-8 lg:px-10 lg:py-32">
           <div className="mx-auto grid max-w-7xl items-center gap-10 overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#ece8ff]/80 via-white to-[#d4ccff]/40 shadow-[0_30px_100px_rgba(34,0,255,0.08)] md:grid-cols-[0.95fr_1.05fr]">
             <div className="p-8 sm:p-12 lg:p-16">
               <h2 className="text-4xl font-black leading-tight tracking-tight text-slate-900 sm:text-5xl">

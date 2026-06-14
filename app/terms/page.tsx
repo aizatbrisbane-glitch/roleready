@@ -1,10 +1,10 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
 import { legalDetails } from "@/lib/legal";
 
 export const metadata: Metadata = {
-  title: "Terms of Use | ApplyHQ",
-  description: "Terms for using ApplyHQ.",
+  title: "Terms of Use | Koalapply",
+  description: "Terms for using Koalapply.",
 };
 
 export default function TermsPage() {
@@ -16,14 +16,14 @@ export default function TermsPage() {
         {
           title: "Use of the service",
           body: [
-            "You must use ApplyHQ lawfully and provide accurate information where it matters, including when creating job application documents.",
+            "You must use Koalapply lawfully and provide accurate information where it matters, including when creating job application documents.",
             "You are responsible for reviewing, editing and approving any documents or suggestions before submitting them to employers or recruiters.",
           ],
         },
         {
           title: "AI-generated content",
           body: [
-            "ApplyHQ may use AI to help draft, rewrite, summarise and tailor content. AI outputs can be incomplete, inaccurate or unsuitable for a particular role.",
+            "Koalapply may use AI to help draft, rewrite, summarise and tailor content. AI outputs can be incomplete, inaccurate or unsuitable for a particular role.",
             "We do not guarantee interviews, job offers or employment outcomes.",
           ],
         },

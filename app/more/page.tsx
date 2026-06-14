@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { ArrowRight, Bookmark, Building2, FileText, Settings } from "lucide-react";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { SetupNotice } from "@/components/SetupNotice";
@@ -78,7 +78,7 @@ export default async function MorePage() {
             More
           </p>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-5xl">
-            Your ApplyHQ space.
+            Your Koalapply space.
           </h1>
           <p className="mt-2 text-base leading-7 text-slate-600">Manage the parts that support every application.</p>
         </div>

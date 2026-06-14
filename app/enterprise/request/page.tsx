@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { Building2, CheckCircle2, ShieldCheck } from "lucide-react";
 import { EnterpriseRequestForm } from "@/components/EnterpriseRequestForm";
 
 export const metadata: Metadata = {
-  title: "Enterprise Request | ApplyHQ",
-  description: "Request ApplyHQ Enterprise access for your organisation.",
+  title: "Enterprise Request | Koalapply",
+  description: "Request Koalapply Enterprise access for your organisation.",
 };
 
 const benefits = [
@@ -35,7 +35,7 @@ export default function EnterpriseRequestPage() {
             <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#ece8ff] text-[#2200ff]">
               <Building2 className="h-6 w-6" />
             </span>
-            <p className="mt-6 text-sm font-semibold uppercase tracking-[0.16em] text-slate-400">ApplyHQ Enterprise</p>
+            <p className="mt-6 text-sm font-semibold uppercase tracking-[0.16em] text-slate-400">Koalapply Enterprise</p>
             <h1 className="mt-3 text-4xl font-black leading-tight tracking-tight text-slate-900 sm:text-5xl">
               Support employees through their next career move.
             </h1>

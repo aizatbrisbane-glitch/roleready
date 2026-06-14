@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -28,7 +28,7 @@ async function sendExistingUserInviteEmail({
     body: JSON.stringify({
       from,
       to: email,
-      subject: `You're invited to ${safeOrgName} on ApplyHQ`,
+      subject: `You're invited to ${safeOrgName} on Koalapply`,
       html: `
         <div style="margin:0;padding:0;background:#f6f7fb;font-family:Arial,Helvetica,sans-serif;color:#061333;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f7fb;padding:40px 16px;">
@@ -45,7 +45,7 @@ async function sendExistingUserInviteEmail({
                     <td style="padding:12px 40px 40px;text-align:center;">
                       <h1 style="margin:0 0 14px;font-size:26px;line-height:1.2;color:#061333;">Accept your enterprise access</h1>
                       <p style="margin:0 auto 28px;max-width:390px;font-size:16px;line-height:1.6;color:#405476;">
-                        ${safeOrgName} has invited you to use ApplyHQ. Accept the invite to join their enterprise workspace.
+                        ${safeOrgName} has invited you to use Koalapply. Accept the invite to join their enterprise workspace.
                       </p>
                       <a href="${actionLink}" style="display:inline-block;background:#2f00ff;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:16px 34px;border-radius:999px;">
                         Accept invitation
@@ -61,7 +61,7 @@ async function sendExistingUserInviteEmail({
           </table>
         </div>
       `,
-      text: `${safeOrgName} has invited you to use ApplyHQ.\n\nAccept invitation: ${actionLink}\n\nIf you weren't expecting this invite, you can ignore this email.`,
+      text: `${safeOrgName} has invited you to use Koalapply.\n\nAccept invitation: ${actionLink}\n\nIf you weren't expecting this invite, you can ignore this email.`,
     }),
   });
 
@@ -121,7 +121,7 @@ export async function POST(request: Request) {
   const userExists = Boolean(invitation?.user_exists);
 
   if (userExists) {
-    // Don't use generateLink — it auto-sends a Supabase email on top of ours.
+    // Don't use generateLink â€” it auto-sends a Supabase email on top of ours.
     // Existing users can sign in normally and land on /auth/invite to accept.
     const emailResult = await sendExistingUserInviteEmail({
       email,

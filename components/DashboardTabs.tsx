@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -78,7 +78,7 @@ function cachedMatchToGrabResult(row: CachedGrabbedJob): GrabResult {
 function formatSalary(min?: number, max?: number) {
   if (!min && !max) return "";
   const fmt = (n: number) => `$${Math.round(n / 1000)}k`;
-  if (min && max) return `${fmt(min)} – ${fmt(max)}`;
+  if (min && max) return `${fmt(min)} â€“ ${fmt(max)}`;
   if (min) return `From ${fmt(min)}`;
   return `Up to ${fmt(max!)}`;
 }
@@ -147,14 +147,14 @@ function GrabbedMatchCard({
           <span>{job.company}</span>
           {job.location && (
             <>
-              <span className="text-slate-300">•</span>
+              <span className="text-slate-300">â€¢</span>
               <MapPin className="h-3 w-3 text-slate-400" />
               <span>{job.location}</span>
             </>
           )}
           {job.source && (
             <>
-              <span className="text-slate-300">•</span>
+              <span className="text-slate-300">â€¢</span>
               <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-400">{job.source}</span>
             </>
           )}
@@ -175,7 +175,7 @@ function GrabbedMatchCard({
           </span>
           <p className="mt-0.5 hidden items-center gap-1 text-xs text-slate-500 sm:flex sm:justify-end">
             {label}
-            <span title="Estimated match — full analysis runs when you generate your application." className="cursor-help">
+            <span title="Estimated match â€” full analysis runs when you generate your application." className="cursor-help">
               <Info className="h-3 w-3 text-slate-400" />
             </span>
           </p>
@@ -196,7 +196,7 @@ function GrabbedMatchCard({
             onClick={() => onImport(job)}
             className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#2200ff] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a00cc] disabled:opacity-70 sm:min-h-0 sm:flex-none"
           >
-            {importing ? "Starting…" : "Tailor & Apply"} <ArrowRight className="h-3.5 w-3.5" />
+            {importing ? "Startingâ€¦" : "Tailor & Apply"} <ArrowRight className="h-3.5 w-3.5" />
           </button>
         )}
 
@@ -249,7 +249,7 @@ export function DashboardTabs({
   const [importing, setImporting] = useState<Record<string, boolean>>({});
   const [imported, setImported] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState<Record<string, boolean>>({});
-  const [saved, setSaved] = useState<Record<string, string>>(savedByUrl); // jobUrl → applicationId
+  const [saved, setSaved] = useState<Record<string, string>>(savedByUrl); // jobUrl â†’ applicationId
   const [showAllMatches, setShowAllMatches] = useState(false);
   const [mobilePreferencesOpen, setMobilePreferencesOpen] = useState(false);
 
@@ -273,7 +273,7 @@ export function DashboardTabs({
     if (!resumeFileName) return;
     setLoadingMatches(true);
     setMatchError("");
-    setMatchNotice(force ? "Searching…" : "Checking today's matches…");
+    setMatchNotice(force ? "Searchingâ€¦" : "Checking today's matchesâ€¦");
 
     try {
       const params = new URLSearchParams();
@@ -375,7 +375,7 @@ export function DashboardTabs({
         setSaved((prev) => ({ ...prev, [job.jobUrl]: payload.applicationId }));
       }
     } catch {
-      // silently fail — user can retry
+      // silently fail â€” user can retry
     } finally {
       setSaving((prev) => ({ ...prev, [job.jobUrl]: false }));
     }
@@ -395,7 +395,7 @@ export function DashboardTabs({
       if (prefill.location) setLocationQuery(prefill.location);
       if (prefill.salaryMin) setSalaryMin(prefill.salaryMin);
       if (prefill.workType) setWorkTypes(new Set([prefill.workType]));
-      setMatchNotice("Your saved job search is ready. Hit Refresh matches when you want ApplyHQ to scan roles.");
+      setMatchNotice("Your saved job search is ready. Hit Refresh matches when you want Koalapply to scan roles.");
     } catch {
       // Ignore malformed browser-only draft data.
     } finally {
@@ -419,7 +419,7 @@ export function DashboardTabs({
       {/* Greeting */}
       <div className="mb-6 md:mb-10">
         <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-5xl">
-          {getGreeting()}{name ? `, ${name}` : ""} 👋
+          {getGreeting()}{name ? `, ${name}` : ""} ðŸ‘‹
         </h1>
         {accessState ? (
           <div className="mt-4 inline-flex flex-wrap items-center gap-2 rounded-2xl border border-slate-100 bg-white px-4 py-3 text-sm font-semibold text-slate-600 shadow-sm">
@@ -442,7 +442,7 @@ export function DashboardTabs({
           {/* Section header */}
           <div className="mb-4 px-1">
             <h2 className="text-2xl font-bold tracking-tight text-slate-900">
-              Find jobs that match your resume ✨
+              Find jobs that match your resume âœ¨
             </h2>
             <p className="mt-1 text-sm leading-6 text-slate-500">
               Top matches discovered from live job boards and scored against your resume.
@@ -542,7 +542,7 @@ export function DashboardTabs({
                 className="inline-flex items-center gap-2 rounded-full bg-[#2200ff] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a00cc] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loadingMatches ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                {loadingMatches ? "Searching…" : "Refresh matches"}
+                {loadingMatches ? "Searchingâ€¦" : "Refresh matches"}
               </button>
             </div>
           </div>
@@ -561,7 +561,7 @@ export function DashboardTabs({
               <div className="rounded-[1.75rem] border border-slate-100 bg-white px-6 py-12 text-center shadow-sm">
                 <h3 className="mt-4 text-xl font-bold text-slate-900">Add your resume to unlock matches.</h3>
                 <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">
-                  Once your master resume is saved, ApplyHQ can refresh your best job matches automatically.
+                  Once your master resume is saved, Koalapply can refresh your best job matches automatically.
                 </p>
                 <Link href="/documents" className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#2200ff] px-5 py-3 text-sm font-semibold text-white hover:bg-[#1a00cc]">
                   Add documents <ArrowRight className="h-4 w-4" />

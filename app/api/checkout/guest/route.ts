@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getStripeClient } from "@/lib/stripe";
 
 const PLAN_CONFIG: Record<string, { name: string; amountAud: number; desc: string }> = {
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
             currency: "aud",
             unit_amount: plan.amountAud,
             product_data: {
-              name: `ApplyHQ — ${plan.name}`,
+              name: `Koalapply â€” ${plan.name}`,
               description: plan.desc,
             },
           },

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Camera, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -16,7 +16,7 @@ export function ProfileSettingsForm({ profile, userEmail }: Props) {
   const [loading, setLoading] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const initials = useMemo(() => {
-    const source = profile?.name || userEmail || "ApplyHQ";
+    const source = profile?.name || userEmail || "Koalapply";
     return source
       .split(/\s+/)
       .filter(Boolean)
@@ -58,7 +58,7 @@ export function ProfileSettingsForm({ profile, userEmail }: Props) {
           <div className="min-w-0">
             <h2 className="text-lg font-semibold text-slate-900">Profile picture</h2>
             <p className="mt-1 text-sm leading-6 text-slate-600">
-              Add a friendly photo for your ApplyHQ workspace.
+              Add a friendly photo for your Koalapply workspace.
             </p>
           </div>
         </div>

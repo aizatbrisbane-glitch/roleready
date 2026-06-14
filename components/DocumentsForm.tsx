@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRef, useState } from "react";
 import { Download, Eye, FileText, Mail, Pencil } from "lucide-react";
@@ -136,7 +136,7 @@ export function DocumentsForm({ masterResume, masterCoverLetter }: Props) {
               </span>
               <div>
                 <h2 className="text-xl font-bold text-slate-900">Master resume</h2>
-                <p className="mt-1 text-sm leading-6 text-slate-600">This is the source ApplyHQ uses to tailor each application.</p>
+                <p className="mt-1 text-sm leading-6 text-slate-600">This is the source Koalapply uses to tailor each application.</p>
               </div>
             </div>
             <ModeToggle mode={resumeMode} onChange={setResumeMode} />
@@ -171,7 +171,7 @@ export function DocumentsForm({ masterResume, masterCoverLetter }: Props) {
                   ? hasMarkdown(resumeText)
                     ? <ResumeRenderer content={resumeText} />
                     : <PlainTextPreview content={resumeText} />
-                  : <p className="px-7 py-10 text-sm italic text-slate-400">No resume text yet — switch to Edit to add content.</p>
+                  : <p className="px-7 py-10 text-sm italic text-slate-400">No resume text yet â€” switch to Edit to add content.</p>
                 }
               </div>
             </>
@@ -221,7 +221,7 @@ export function DocumentsForm({ masterResume, masterCoverLetter }: Props) {
                   ? hasMarkdown(coverText)
                     ? <CoverLetterRenderer content={coverText} />
                     : <PlainTextPreview content={coverText} />
-                  : <p className="px-7 py-10 text-sm italic text-slate-400">No cover letter text yet — switch to Edit to add content.</p>
+                  : <p className="px-7 py-10 text-sm italic text-slate-400">No cover letter text yet â€” switch to Edit to add content.</p>
                 }
               </div>
             </>

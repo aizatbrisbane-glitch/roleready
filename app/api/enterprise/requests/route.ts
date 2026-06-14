@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const MAX_TEXT_LENGTH = 1200;
@@ -73,7 +73,7 @@ async function sendSalesEmail({
       body: JSON.stringify({
         from,
         to,
-        subject: `New ApplyHQ enterprise request: ${companyName}`,
+        subject: `New Koalapply enterprise request: ${companyName}`,
         text: lines.join("\n"),
       }),
     });

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getStripeClient } from "@/lib/stripe";
 import type { EntitlementPlanType } from "@/types/database";
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
             currency: "aud",
             unit_amount: plan.amountAud,
             product_data: {
-              name: `ApplyHQ — ${plan.name}`,
+              name: `Koalapply â€” ${plan.name}`,
               description: plan.desc,
             },
           },
