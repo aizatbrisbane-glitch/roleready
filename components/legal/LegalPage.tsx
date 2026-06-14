@@ -19,7 +19,7 @@ export function LegalPage({ title, intro, sections }: LegalPageProps) {
       <header className="border-b border-slate-100 bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-5 sm:px-8">
           <Link href="/" className="inline-flex items-center">
-            <img src="/brand/applyhq-logo-indigo.svg" alt="ApplyHQ" className="h-12 w-auto" />
+            <img src="/brand/koalapply-logo.png" alt="Koalapply" className="h-24 w-auto sm:h-28" />
           </Link>
           <Link href="/login" className="rounded-full bg-[#2200ff] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1a00cc]">
             Start free

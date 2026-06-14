@@ -121,41 +121,12 @@ export async function POST(request: Request) {
   const userExists = Boolean(invitation?.user_exists);
 
   if (userExists) {
-    const linkResult = await adminSupabase.auth.admin.generateLink({
-        type: "magiclink",
-        email,
-        options: {
-          redirectTo,
-          data: {
-            organization_id: organizationId,
-            organization_name: invitation?.organization_name,
-            enterprise_invitation_id: invitation?.invitation_id,
-          },
-        },
-      });
-
-    if (linkResult.error) {
-      return NextResponse.json({
-        ok: true,
-        action: "invite_recorded",
-        warning: `Invite saved, but the email could not be sent: ${linkResult.error.message}`,
-      });
-    }
-
-    const actionLink = linkResult.data.properties?.action_link;
-
-    if (!actionLink) {
-      return NextResponse.json({
-        ok: true,
-        action: "invite_recorded",
-        warning: "Invite saved, but the existing-user invite link could not be generated.",
-      });
-    }
-
+    // Don't use generateLink — it auto-sends a Supabase email on top of ours.
+    // Existing users can sign in normally and land on /auth/invite to accept.
     const emailResult = await sendExistingUserInviteEmail({
       email,
       organizationName: invitation?.organization_name,
-      actionLink,
+      actionLink: redirectTo,
     });
 
     if (emailResult.error) {

@@ -192,7 +192,7 @@ export function LandingPage() {
           <header className="absolute inset-x-0 top-0 z-20">
             <div className="flex items-center justify-between px-8 py-6 sm:px-12 lg:px-16">
               <Link href="/" className="inline-flex items-center">
-                <img src="/brand/applyhq-logo-indigo.svg" alt="ApplyHQ" className="h-12 w-auto sm:h-14" />
+                <img src="/brand/koalapply-logo.png" alt="Koalapply" className="h-28 w-auto sm:h-36" />
               </Link>
 
               <nav className="hidden items-center gap-9 text-sm font-medium text-slate-700 md:flex">

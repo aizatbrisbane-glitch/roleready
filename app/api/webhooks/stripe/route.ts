@@ -164,7 +164,7 @@ async function sendPasswordSetupEmail(to: string, setupLink: string) {
     subject: "Your ApplyHQ account is ready — set your password",
     html: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#1e293b">
-        <img src="https://applyhq.com.au/brand/applyhq-logo-indigo.svg" alt="ApplyHQ" style="height:40px;margin-bottom:32px" />
+        <img src="https://koalapply.com.au/brand/koalapply-logo.png" alt="Koalapply" style="height:40px;margin-bottom:32px" />
         <h1 style="font-size:22px;font-weight:800;margin:0 0 12px">Your payment was successful.</h1>
         <p style="font-size:15px;line-height:1.6;margin:0 0 24px;color:#475569">
           Your access pass is active and ready to use. Click below to set your password and go straight to your dashboard.

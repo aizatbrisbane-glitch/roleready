@@ -27,6 +27,7 @@ export default function InviteSetupPage() {
       const tokenHash = queryParams.get("token_hash") ?? hashParams.get("token_hash");
       const accessToken = queryParams.get("access_token") ?? hashParams.get("access_token");
       const refreshToken = queryParams.get("refresh_token") ?? hashParams.get("refresh_token");
+      let isNew = false;
 
       if (tokenHash) {
         window.history.replaceState({}, "", window.location.pathname);
@@ -40,6 +41,7 @@ export default function InviteSetupPage() {
           setExpired(true);
           return;
         }
+        isNew = true;
       } else if (code) {
         window.history.replaceState({}, "", window.location.pathname);
         const { error } = await activeSupabase.auth.exchangeCodeForSession(code);
@@ -49,6 +51,7 @@ export default function InviteSetupPage() {
           setExpired(true);
           return;
         }
+        isNew = true;
       } else if (accessToken && refreshToken) {
         window.history.replaceState({}, "", window.location.pathname);
         const { error } = await activeSupabase.auth.setSession({
@@ -61,13 +64,13 @@ export default function InviteSetupPage() {
           setExpired(true);
           return;
         }
+        isNew = true;
       }
 
       const { data: { session } } = await activeSupabase.auth.getSession();
 
       if (!session) {
-        setMessage("Invite session is missing. Open the latest enterprise invite email link.");
-        setExpired(true);
+        window.location.href = `/login?redirect=/auth/invite`;
         return;
       }
 
@@ -80,7 +83,13 @@ export default function InviteSetupPage() {
         return;
       }
 
-      setReady(true);
+      if (isNew) {
+        setReady(true);
+      } else {
+        // Existing user — no password setup needed, just redirect to dashboard
+        setDone(true);
+        setTimeout(() => { window.location.href = "/"; }, 1800);
+      }
     }
 
     verifyInvite(supabase);
@@ -100,15 +109,6 @@ export default function InviteSetupPage() {
     const supabase = createSupabaseBrowserClient();
     if (!supabase) {
       setMessage("Supabase is not configured.");
-      setLoading(false);
-      return;
-    }
-
-    const acceptResponse = await fetch("/api/enterprise/invitations/accept", { method: "POST" });
-    const acceptPayload = await acceptResponse.json().catch(() => null);
-
-    if (!acceptResponse.ok) {
-      setMessage(acceptPayload?.error ?? "Unable to accept this enterprise invite.");
       setLoading(false);
       return;
     }
@@ -142,7 +142,7 @@ export default function InviteSetupPage() {
           </h1>
           <p className="mt-3 text-sm leading-6 text-slate-600">
             {done
-              ? "Your password is saved and your enterprise access is active."
+              ? "Your enterprise access is active."
               : "Create a password to finish accepting your enterprise invite."}
           </p>
         </div>
@@ -151,12 +151,12 @@ export default function InviteSetupPage() {
           <div className="mt-7 rounded-2xl bg-rose-50 px-4 py-3 text-sm leading-6 text-rose-700">
             {message || "This invite link is expired or invalid. Ask your organisation admin to send a new invite."}
           </div>
-        ) : !ready ? (
-          <p className="mt-7 text-center text-sm text-slate-500 animate-pulse">Verifying invite...</p>
         ) : done ? (
           <p className="mt-7 rounded-2xl bg-emerald-50 px-4 py-3 text-center text-sm font-semibold text-emerald-700">
             Redirecting to ApplyHQ...
           </p>
+        ) : !ready ? (
+          <p className="mt-7 text-center text-sm text-slate-500 animate-pulse">Verifying invite...</p>
         ) : (
           <form onSubmit={finishSetup} className="mt-7 space-y-4">
             <label className="block space-y-1.5">

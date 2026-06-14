@@ -25,13 +25,13 @@ const benefits = [
   },
 ];
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ plan?: string }> }) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ plan?: string; redirect?: string }> }) {
   const supabase = isSupabaseConfigured() ? await createSupabaseServerClient() : null;
   const { data: { user } } = supabase
     ? await supabase.auth.getUser()
     : { data: { user: null } };
-  const { plan } = await searchParams;
-  const redirectTo = plan ? `/checkout/initiate?plan=${plan}` : "/";
+  const { plan, redirect: redirectParam } = await searchParams;
+  const redirectTo = plan ? `/checkout/initiate?plan=${plan}` : (redirectParam ?? "/");
   if (user) redirect(redirectTo);
   return (
     <main className="relative min-h-screen overflow-hidden bg-slate-50 px-5 py-8 text-slate-900 sm:px-8 lg:px-12">
@@ -39,7 +39,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <div className="pointer-events-none absolute right-0 top-0 h-80 w-80 rounded-full bg-violet-100/40 blur-3xl" />
       <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-7xl flex-col">
         <header className="flex items-center justify-between py-4">
-          <img src="/brand/applyhq-logo-indigo.svg" alt="ApplyHQ" className="h-12 w-auto sm:h-14" />
+          <img src="/brand/koalapply-logo.png" alt="Koalapply" className="h-24 w-auto sm:h-28" />
         </header>
 
         <section className="grid flex-1 items-center gap-8 py-4 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:py-10">

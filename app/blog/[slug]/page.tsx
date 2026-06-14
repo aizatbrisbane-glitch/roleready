@@ -42,7 +42,7 @@ export default async function BlogArticlePage({ params }: Props) {
       <header className="border-b border-slate-100 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
           <Link href="/" className="inline-flex items-center">
-            <Image src="/brand/applyhq-logo-indigo.svg" alt="ApplyHQ" width={168} height={56} className="h-12 w-auto sm:h-14" priority />
+            <Image src="/brand/koalapply-logo.png" alt="Koalapply" width={168} height={56} className="h-24 w-auto sm:h-28" priority />
           </Link>
           <Link href="/blog" className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-[#2200ff]">
             <ArrowLeft className="h-4 w-4" /> Blog
