@@ -307,7 +307,6 @@ export function DashboardTabs({
 
       const nextMatches = payload.jobs ?? [];
       setMatches(nextMatches);
-      setKeywordQuery(payload.searchQuery ?? keywordQuery);
       setShowAllMatches(false);
       setMatchNotice(
         nextMatches.length > 0
