@@ -423,10 +423,11 @@ export function DashboardTabs({
         </h1>
         {accessState ? (
           accessState.planType === "free" && accessState.applicationsRemaining === 0 ? (
-            <div className="mt-4 inline-flex flex-col rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm shadow-sm">
+            <div className="mt-4 inline-flex flex-wrap items-center gap-2 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm shadow-sm">
               <span className="font-bold text-rose-700">Free Plan &nbsp;·&nbsp; Limit Reached</span>
-              <span className="mt-0.5 text-slate-500">1 free generation per month.</span>
-              <Link href="/pricing" className="mt-1 font-semibold text-[#2200ff] hover:underline">Upgrade to create more</Link>
+              <span className="text-slate-300">|</span>
+              <span className="text-slate-500">1 free generation per month.</span>
+              <Link href="/pricing" className="font-semibold text-[#2200ff] hover:underline">Upgrade to create more</Link>
             </div>
           ) : (
             <div className="mt-4 inline-flex flex-wrap items-center gap-2 rounded-2xl border border-slate-100 bg-white px-4 py-3 text-sm font-semibold text-slate-600 shadow-sm">
