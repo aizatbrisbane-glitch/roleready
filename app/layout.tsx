@@ -26,8 +26,8 @@ export const metadata: Metadata = {
   title: "Koalapply â€” Your Career Companion",
   description: "Tailored resumes and cover letters for every job ad, powered by AI.",
   icons: {
-    icon: "/brand/koalapply-logo.png",
-    apple: "/brand/koalapply-logo.png"
+    icon: "/brand/koalapply-favicon.png",
+    apple: "/brand/koalapply-favicon.png"
   }
 };
 
