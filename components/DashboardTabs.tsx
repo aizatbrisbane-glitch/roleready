@@ -442,7 +442,7 @@ export function DashboardTabs({
           {/* Section header */}
           <div className="mb-4 px-1">
             <h2 className="text-2xl font-bold tracking-tight text-slate-900">
-              Find jobs that match your resume âœ¨
+              Find jobs that match your resume ✨
             </h2>
             <p className="mt-1 text-sm leading-6 text-slate-500">
               Top matches discovered from live job boards and scored against your resume.

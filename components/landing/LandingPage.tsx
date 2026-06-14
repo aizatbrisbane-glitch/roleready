@@ -244,7 +244,7 @@ export function LandingPage() {
                 {/* TikTok-style overlay text */}
                 <p className="absolute top-5 left-5 right-5 text-center text-xl font-black leading-tight tracking-tight text-black">
                   <span className="box-decoration-clone bg-white px-2 py-1 leading-[1.7]">
-                    POV: you not rewriting CVs and Covers manually ðŸ˜Œ
+                    POV: you not rewriting CVs and Covers manually 😌
                   </span>
                 </p>
                 {/* Slideshow dots */}
@@ -280,7 +280,7 @@ export function LandingPage() {
                   <UploadCloud className="h-9 w-9 sm:h-14 sm:w-14" />
                 </span>
                 <p className="mt-4 text-2xl font-black tracking-tight text-slate-900 sm:mt-6 sm:text-4xl">Drop your resume here. See what it could look like.</p>
-                <p className="mt-3 text-base font-semibold text-slate-500">PDF or DOCX Â· Max 4 MB</p>
+                <p className="mt-3 text-base font-semibold text-slate-500">PDF or DOCX · Max 4 MB</p>
                 <button
                   type="button"
                   onClick={(event) => {
@@ -415,9 +415,9 @@ export function LandingPage() {
           <div className="mx-auto max-w-4xl text-center">
             {/* Emoji decorations — brand brief style */}
             <div className="mb-6 flex items-center justify-center gap-6">
-              <span className="inline-block -rotate-12 text-4xl" aria-hidden="true">ðŸ¤ž</span>
+              <span className="inline-block -rotate-12 text-4xl" aria-hidden="true">🤞</span>
               <LimeSwoop />
-              <span className="inline-block rotate-12 text-4xl" aria-hidden="true">âš¡</span>
+              <span className="inline-block rotate-12 text-4xl" aria-hidden="true">⚡</span>
             </div>
             <h2 className="text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl">
               Stop applying. Start landing.
