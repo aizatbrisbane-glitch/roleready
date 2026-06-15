@@ -336,8 +336,12 @@ async function fetchSeekJobApi(url: string): Promise<JobAdDetails | null> {
           Accept: "application/json, text/plain, */*",
           "Accept-Language": "en-AU,en;q=0.9",
           Referer: `https://au.seek.com/job/${jobId}`,
+          Origin: "https://au.seek.com",
+          "seek-request-brand": "aus",
+          "X-Seek-Site": "candidate",
           "sec-fetch-mode": "cors",
           "sec-fetch-site": "same-site",
+          "sec-fetch-dest": "empty",
         },
         signal: AbortSignal.timeout(15000),
       }
@@ -370,6 +374,73 @@ async function fetchSeekJobApi(url: string): Promise<JobAdDetails | null> {
     };
   } catch (e) {
     console.warn("[job-ad] Seek API fetch failed:", e);
+    return null;
+  }
+}
+
+// ─── Seek direct page fetch (parses SSR __NEXT_DATA__ without a browser) ─────
+
+async function fetchSeekDirectPage(url: string): Promise<JobAdDetails | null> {
+  const jobId = extractSeekJobId(url);
+  if (!jobId) return null;
+
+  const directUrl = `https://au.seek.com/job/${jobId}`;
+  try {
+    const res = await fetch(directUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-AU,en;q=0.9",
+        "Cache-Control": "no-cache",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+        "Upgrade-Insecure-Requests": "1",
+      },
+      signal: AbortSignal.timeout(15000),
+    });
+
+    if (!res.ok) return null;
+    const html = await res.text();
+    if (!html || html.length < 500 || looksLikeBlockedPage(html)) return null;
+
+    const ndResult = nextDataJob(html);
+    if (ndResult?.description && ndResult.description.trim().length >= 100) {
+      console.log(`[job-ad] Seek direct page ok — jobId: ${jobId}, desc length: ${ndResult.description.length}`);
+      return {
+        title: ndResult.title || "Job from SEEK",
+        company: ndResult.company || "Company from job ad",
+        location: ndResult.location || "",
+        salary: ndResult.salary || "",
+        description: ndResult.description.slice(0, 30000),
+        expiresAt: null,
+      };
+    }
+
+    const structured = scriptJson(html);
+    if (structured?.description) {
+      const description = htmlToText(String(structured.description));
+      if (description.trim().length >= 100) {
+        console.log(`[job-ad] Seek direct page (LD+JSON) ok — jobId: ${jobId}, desc length: ${description.length}`);
+        return {
+          title: structured.title ? decodeHtml(String(structured.title)) : "Job from SEEK",
+          company: structured.hiringOrganization?.name ? decodeHtml(String(structured.hiringOrganization.name)) : "Company from job ad",
+          location: structured.jobLocation?.address?.addressLocality
+            ? decodeHtml(String(structured.jobLocation.address.addressLocality))
+            : structured.jobLocation?.address?.addressRegion
+              ? decodeHtml(String(structured.jobLocation.address.addressRegion))
+              : "",
+          salary: "",
+          description: description.slice(0, 30000),
+          expiresAt: toIsoDate(structured.validThrough),
+        };
+      }
+    }
+
+    return null;
+  } catch (e) {
+    console.warn("[job-ad] Seek direct page fetch failed:", e);
     return null;
   }
 }
@@ -690,14 +761,33 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
     const isLinkedIn = hostname.includes("linkedin.com");
 
     if (isSeek) {
+      // Try fast API methods in parallel first (typically complete in <5s)
+      const [apiResult, directResult] = await Promise.allSettled([
+        fetchSeekJobApi(jobUrl),
+        fetchSeekDirectPage(jobUrl),
+      ]);
+      const fastResult =
+        (apiResult.status === "fulfilled" && apiResult.value) ||
+        (directResult.status === "fulfilled" && directResult.value);
+      if (fastResult) return fastResult;
+
+      // Fall back to Jina then browser
+      const jinaResult = await fetchJobWithJina(jobUrl);
+      if (jinaResult) return jinaResult;
+
       const browserResult = await fetchJobWithBrowser(jobUrl);
       if (browserResult) return browserResult;
+
+      throw new Error(blockedJobBoardMessage(jobUrl));
+    }
+
+    if (isLinkedIn) {
+      const linkedInResult = await fetchLinkedInGuestApi(jobUrl);
+      if (linkedInResult) return linkedInResult;
     }
 
     const fetchers: Promise<JobAdDetails | null>[] = [fetchJobWithJina(jobUrl)];
     if (!isSeek) fetchers.push(fetchJobWithBrowser(jobUrl));
-    if (isSeek) fetchers.push(fetchSeekJobApi(jobUrl));
-    if (isLinkedIn) fetchers.unshift(fetchLinkedInGuestApi(jobUrl));
 
     const result = await Promise.any(
       fetchers.map((p) => p.then((r) => { if (!r) throw new Error("no result"); return r; }))
@@ -732,25 +822,34 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
   const effectiveUrl = isBlockedJobBoard(finalUrl) ? finalUrl : jobUrl;
 
   if (!response.ok) {
-    // Redirect landed on a blocked domain (e.g. Adzuna → Seek) — run parallel fallbacks
+    // Redirect landed on a blocked domain (e.g. Adzuna → Seek) — run fallbacks
     if (isBlockedJobBoard(effectiveUrl)) {
       const hostname = new URL(effectiveUrl).hostname;
-      const isSeek = hostname.includes("seek.");
-      const isLinkedIn = hostname.includes("linkedin.com");
+      const isSeekRedirect = hostname.includes("seek.");
+      const isLinkedInRedirect = hostname.includes("linkedin.com");
 
-      if (isSeek) {
+      if (isLinkedInRedirect) {
+        const r = await fetchLinkedInGuestApi(effectiveUrl);
+        if (r) return r;
+      }
+
+      if (isSeekRedirect) {
+        const [apiResult, directResult] = await Promise.allSettled([
+          fetchSeekJobApi(effectiveUrl),
+          fetchSeekDirectPage(effectiveUrl),
+        ]);
+        const fastResult =
+          (apiResult.status === "fulfilled" && apiResult.value) ||
+          (directResult.status === "fulfilled" && directResult.value);
+        if (fastResult) return fastResult;
+      }
+
+      const jinaResult = await fetchJobWithJina(effectiveUrl);
+      if (jinaResult) return jinaResult;
+      if (!isSeekRedirect) {
         const browserResult = await fetchJobWithBrowser(effectiveUrl);
         if (browserResult) return browserResult;
       }
-
-      const fetchers: Promise<JobAdDetails | null>[] = [fetchJobWithJina(effectiveUrl)];
-      if (!isSeek) fetchers.push(fetchJobWithBrowser(effectiveUrl));
-      if (isSeek) fetchers.push(fetchSeekJobApi(effectiveUrl));
-      if (isLinkedIn) fetchers.unshift(fetchLinkedInGuestApi(effectiveUrl));
-      const result = await Promise.any(
-        fetchers.map((p) => p.then((r) => { if (!r) throw new Error("no result"); return r; }))
-      ).catch(() => null);
-      if (result) return result;
     }
     throw new Error(
       isBlockedJobBoard(effectiveUrl)
@@ -823,22 +922,32 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
   // Redirect landed on a blocked domain and returned a challenge page with short/no content
   if (result.description.trim().length < 300 && isBlockedJobBoard(effectiveUrl)) {
     const hostname = new URL(effectiveUrl).hostname;
-    console.log(`[job-ad] redirect hit blocked site (${hostname}), trying parallel fallbacks…`);
-    const isSeek = hostname.includes("seek.");
-    const isLinkedIn = hostname.includes("linkedin.com");
-    if (isSeek) {
-      const browserResult = await fetchJobWithBrowser(effectiveUrl);
-      if (browserResult) return browserResult;
+    console.log(`[job-ad] redirect hit blocked site (${hostname}), trying fallbacks…`);
+    const isSeekFallback = hostname.includes("seek.");
+    const isLinkedInFallback = hostname.includes("linkedin.com");
+
+    if (isLinkedInFallback) {
+      const r = await fetchLinkedInGuestApi(effectiveUrl);
+      if (r) return r;
     }
 
-    const fetchers: Promise<JobAdDetails | null>[] = [fetchJobWithJina(effectiveUrl)];
-    if (!isSeek) fetchers.push(fetchJobWithBrowser(effectiveUrl));
-    if (isSeek) fetchers.push(fetchSeekJobApi(effectiveUrl));
-    if (isLinkedIn) fetchers.unshift(fetchLinkedInGuestApi(effectiveUrl));
-    const fallback = await Promise.any(
-      fetchers.map((p) => p.then((r) => { if (!r) throw new Error("no result"); return r; }))
-    ).catch(() => null);
-    if (fallback) return fallback;
+    if (isSeekFallback) {
+      const [apiResult, directResult] = await Promise.allSettled([
+        fetchSeekJobApi(effectiveUrl),
+        fetchSeekDirectPage(effectiveUrl),
+      ]);
+      const fastResult =
+        (apiResult.status === "fulfilled" && apiResult.value) ||
+        (directResult.status === "fulfilled" && directResult.value);
+      if (fastResult) return fastResult;
+    }
+
+    const jinaFallback = await fetchJobWithJina(effectiveUrl);
+    if (jinaFallback) return jinaFallback;
+    if (!isSeekFallback) {
+      const browserFallback = await fetchJobWithBrowser(effectiveUrl);
+      if (browserFallback) return browserFallback;
+    }
     throw new Error(blockedJobBoardMessage(effectiveUrl));
   }
 
