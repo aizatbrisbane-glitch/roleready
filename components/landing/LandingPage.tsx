@@ -48,7 +48,7 @@ const steps = [
   {
     icon: Download,
     title: "Download & apply",
-    body: "Export, hit send, and track every application in one place.",
+    body: "Export ATS-friendly documents, hit send, and track every application in one place.",
     color: "bg-amber-50 text-amber-700",
     badge: "bg-amber-100 text-amber-900",
   },
@@ -291,10 +291,16 @@ export function LandingPage() {
                 >
                   Tailor My Resume for FREE
                 </button>
-                <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-slate-400 sm:mt-3 sm:text-sm">
-                  <ShieldCheck className="h-4 w-4" />
-                  No credit card required
-                </p>
+                <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 sm:mt-3">
+                  <p className="inline-flex items-center gap-1.5 text-xs text-slate-400 sm:text-sm">
+                    <ShieldCheck className="h-4 w-4" />
+                    No credit card required
+                  </p>
+                  <p className="inline-flex items-center gap-1.5 text-xs text-slate-400 sm:text-sm">
+                    <Zap className="h-4 w-4" />
+                    ATS-friendly PDFs
+                  </p>
+                </div>
               </div>
 
             </div>
