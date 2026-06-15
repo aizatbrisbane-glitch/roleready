@@ -310,141 +310,6 @@ async function fetchLinkedInGuestApi(url: string): Promise<JobAdDetails | null> 
   }
 }
 
-// ─── Seek Chalice API (tries Seek's internal JSON API before scraping) ────────
-
-function extractSeekJobId(url: string): string | null {
-  try {
-    const u = new URL(url);
-    const pathMatch = u.pathname.match(/^\/job\/(\d+)/);
-    if (pathMatch) return pathMatch[1];
-    const qp = u.searchParams.get("jobId");
-    if (qp) return qp;
-  } catch { /* ignore */ }
-  return null;
-}
-
-async function fetchSeekJobApi(url: string): Promise<JobAdDetails | null> {
-  const jobId = extractSeekJobId(url);
-  if (!jobId) return null;
-
-  try {
-    const res = await fetch(
-      `https://chalice-experience.seek.com.au/jobs/${jobId}?locale=en-AU`,
-      {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-          Accept: "application/json, text/plain, */*",
-          "Accept-Language": "en-AU,en;q=0.9",
-          Referer: `https://au.seek.com/job/${jobId}`,
-          Origin: "https://au.seek.com",
-          "seek-request-brand": "aus",
-          "X-Seek-Site": "candidate",
-          "sec-fetch-mode": "cors",
-          "sec-fetch-site": "same-site",
-          "sec-fetch-dest": "empty",
-        },
-        signal: AbortSignal.timeout(15000),
-      }
-    );
-
-    if (!res.ok) return null;
-    const data = await res.json();
-
-    const rawDescription = String(data?.content ?? data?.description ?? data?.jobDescription ?? "");
-    const description = htmlToText(rawDescription);
-    if (description.trim().length < 100) return null;
-
-    console.log(`[job-ad] Seek API ok — jobId: ${jobId}, desc length: ${description.length}`);
-
-    return {
-      title: firstString(data?.title, data?.roleName) || "Job from SEEK",
-      company: firstString(
-        nestedString(data, "advertiser", "description"),
-        nestedString(data, "advertiser", "name"),
-        data?.companyName
-      ) || "Company from job ad",
-      location: firstString(
-        data?.locationLabel,
-        nestedString(data, "location", "label"),
-        nestedString(data, "location", "description")
-      ),
-      salary: firstString(data?.salary, data?.salaryLabel),
-      description: description.slice(0, 30000),
-      expiresAt: toIsoDate(data?.expiryDate ?? data?.listingDate ?? data?.closingDate),
-    };
-  } catch (e) {
-    console.warn("[job-ad] Seek API fetch failed:", e);
-    return null;
-  }
-}
-
-// ─── Seek direct page fetch (parses SSR __NEXT_DATA__ without a browser) ─────
-
-async function fetchSeekDirectPage(url: string): Promise<JobAdDetails | null> {
-  const jobId = extractSeekJobId(url);
-  if (!jobId) return null;
-
-  const directUrl = `https://au.seek.com/job/${jobId}`;
-  try {
-    const res = await fetch(directUrl, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-AU,en;q=0.9",
-        "Cache-Control": "no-cache",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-        "Upgrade-Insecure-Requests": "1",
-      },
-      signal: AbortSignal.timeout(15000),
-    });
-
-    if (!res.ok) return null;
-    const html = await res.text();
-    if (!html || html.length < 500 || looksLikeBlockedPage(html)) return null;
-
-    const ndResult = nextDataJob(html);
-    if (ndResult?.description && ndResult.description.trim().length >= 100) {
-      console.log(`[job-ad] Seek direct page ok — jobId: ${jobId}, desc length: ${ndResult.description.length}`);
-      return {
-        title: ndResult.title || "Job from SEEK",
-        company: ndResult.company || "Company from job ad",
-        location: ndResult.location || "",
-        salary: ndResult.salary || "",
-        description: ndResult.description.slice(0, 30000),
-        expiresAt: null,
-      };
-    }
-
-    const structured = scriptJson(html);
-    if (structured?.description) {
-      const description = htmlToText(String(structured.description));
-      if (description.trim().length >= 100) {
-        console.log(`[job-ad] Seek direct page (LD+JSON) ok — jobId: ${jobId}, desc length: ${description.length}`);
-        return {
-          title: structured.title ? decodeHtml(String(structured.title)) : "Job from SEEK",
-          company: structured.hiringOrganization?.name ? decodeHtml(String(structured.hiringOrganization.name)) : "Company from job ad",
-          location: structured.jobLocation?.address?.addressLocality
-            ? decodeHtml(String(structured.jobLocation.address.addressLocality))
-            : structured.jobLocation?.address?.addressRegion
-              ? decodeHtml(String(structured.jobLocation.address.addressRegion))
-              : "",
-          salary: "",
-          description: description.slice(0, 30000),
-          expiresAt: toIsoDate(structured.validThrough),
-        };
-      }
-    }
-
-    return null;
-  } catch (e) {
-    console.warn("[job-ad] Seek direct page fetch failed:", e);
-    return null;
-  }
-}
-
 // ─── Jina AI Reader fallback (used in serverless / production) ─────────────
 
 async function fetchJobWithJina(url: string): Promise<JobAdDetails | null> {
@@ -498,6 +363,63 @@ async function fetchJobWithJina(url: string): Promise<JobAdDetails | null> {
 }
 
 // ─── Puppeteer-core browser fallback (local dev only) ──────────────────────
+
+async function fetchJobWithFirecrawl(url: string): Promise<JobAdDetails | null> {
+  const apiKey = process.env.FIRECRAWL_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const res = await fetch("https://api.firecrawl.dev/v2/scrape", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        url,
+        formats: ["markdown"],
+        onlyMainContent: true,
+        timeout: 60000,
+      }),
+      signal: AbortSignal.timeout(45000),
+    });
+
+    if (!res.ok) {
+      console.warn(`[job-ad] Firecrawl failed with HTTP ${res.status}`);
+      return null;
+    }
+
+    const data = await res.json();
+    const text = String(data?.data?.markdown ?? data?.markdown ?? "");
+    if (!text || text.trim().length < 300) return null;
+    if (looksLikeBlockedPage(text)) return null;
+
+    const metadataTitle = String(data?.data?.metadata?.title ?? data?.metadata?.title ?? "");
+    const titleMatch = text.match(/^#\s+(.+)$/m) ?? text.match(/^Title:\s*(.+)$/m);
+    const rawTitle = titleMatch?.[1]?.trim() || metadataTitle;
+    const title = rawTitle
+      .replace(/\s*[|\-\u2013\u2014]\s*(SEEK|LinkedIn|Indeed|Jora|Adzuna)[\s\S]*$/i, "")
+      .trim() || "Job from link";
+
+    const companyMatch = text.match(/(?:^|\n)(?:Company|Advertiser|Employer):\s*(.+)/i);
+    const locationMatch = text.match(/(?:^|\n)(?:Location|Where):\s*(.+)/i);
+    const salaryMatch = text.match(/(?:^|\n)(?:Salary|Pay|Remuneration):\s*(.+)/i);
+
+    console.log(`[job-ad] Firecrawl fetch ok - title: "${title}", length: ${text.length}`);
+
+    return {
+      title,
+      company: companyMatch?.[1]?.trim() || "Company from job ad",
+      location: locationMatch?.[1]?.trim() || "",
+      salary: salaryMatch?.[1]?.trim() || "",
+      description: text.slice(0, 30000),
+      expiresAt: null,
+    };
+  } catch (e) {
+    console.warn("[job-ad] Firecrawl fallback failed:", e);
+    return null;
+  }
+}
 
 const CHROME_PATHS = [
   "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
@@ -733,6 +655,16 @@ async function fetchWithScrapingFallbacks(url: string): Promise<JobAdDetails | n
 
 // ─── Main export ────────────────────────────────────────────────────────────
 
+async function fetchSeekWithFallbacks(url: string): Promise<JobAdDetails | null> {
+  const firecrawlResult = await fetchJobWithFirecrawl(url);
+  if (firecrawlResult) return firecrawlResult;
+
+  const jinaResult = await fetchJobWithJina(url);
+  if (jinaResult) return jinaResult;
+
+  return fetchJobWithBrowser(url);
+}
+
 export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
   // Fragments (#hash) are browser-only and break server-side fetches / Jina
   jobUrl = jobUrl.split("#")[0];
@@ -761,23 +693,8 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
     const isLinkedIn = hostname.includes("linkedin.com");
 
     if (isSeek) {
-      // Try fast API methods in parallel first (typically complete in <5s)
-      const [apiResult, directResult] = await Promise.allSettled([
-        fetchSeekJobApi(jobUrl),
-        fetchSeekDirectPage(jobUrl),
-      ]);
-      const fastResult =
-        (apiResult.status === "fulfilled" && apiResult.value) ||
-        (directResult.status === "fulfilled" && directResult.value);
-      if (fastResult) return fastResult;
-
-      // Fall back to Jina then browser
-      const jinaResult = await fetchJobWithJina(jobUrl);
-      if (jinaResult) return jinaResult;
-
-      const browserResult = await fetchJobWithBrowser(jobUrl);
-      if (browserResult) return browserResult;
-
+      const seekResult = await fetchSeekWithFallbacks(jobUrl);
+      if (seekResult) return seekResult;
       throw new Error(blockedJobBoardMessage(jobUrl));
     }
 
@@ -834,19 +751,11 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
       }
 
       if (isSeekRedirect) {
-        const [apiResult, directResult] = await Promise.allSettled([
-          fetchSeekJobApi(effectiveUrl),
-          fetchSeekDirectPage(effectiveUrl),
-        ]);
-        const fastResult =
-          (apiResult.status === "fulfilled" && apiResult.value) ||
-          (directResult.status === "fulfilled" && directResult.value);
-        if (fastResult) return fastResult;
-      }
-
-      const jinaResult = await fetchJobWithJina(effectiveUrl);
-      if (jinaResult) return jinaResult;
-      if (!isSeekRedirect) {
+        const seekResult = await fetchSeekWithFallbacks(effectiveUrl);
+        if (seekResult) return seekResult;
+      } else {
+        const jinaResult = await fetchJobWithJina(effectiveUrl);
+        if (jinaResult) return jinaResult;
         const browserResult = await fetchJobWithBrowser(effectiveUrl);
         if (browserResult) return browserResult;
       }
@@ -932,19 +841,11 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
     }
 
     if (isSeekFallback) {
-      const [apiResult, directResult] = await Promise.allSettled([
-        fetchSeekJobApi(effectiveUrl),
-        fetchSeekDirectPage(effectiveUrl),
-      ]);
-      const fastResult =
-        (apiResult.status === "fulfilled" && apiResult.value) ||
-        (directResult.status === "fulfilled" && directResult.value);
-      if (fastResult) return fastResult;
-    }
-
-    const jinaFallback = await fetchJobWithJina(effectiveUrl);
-    if (jinaFallback) return jinaFallback;
-    if (!isSeekFallback) {
+      const seekResult = await fetchSeekWithFallbacks(effectiveUrl);
+      if (seekResult) return seekResult;
+    } else {
+      const jinaFallback = await fetchJobWithJina(effectiveUrl);
+      if (jinaFallback) return jinaFallback;
       const browserFallback = await fetchJobWithBrowser(effectiveUrl);
       if (browserFallback) return browserFallback;
     }
