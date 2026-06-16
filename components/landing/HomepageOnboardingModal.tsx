@@ -707,15 +707,28 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                   </div>
                 )}
 
-                <div className="mt-6 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={continueFromJobStep}
-                    disabled={loading}
-                    className="inline-flex items-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-sm font-bold text-white shadow-[0_12px_32px_rgba(34,0,255,0.22)] disabled:opacity-60"
-                  >
-                    {isAuthenticated ? "Create application" : "Continue"} <ArrowRight className="h-4 w-4" />
-                  </button>
+                <div className="mt-6 space-y-3">
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={continueFromJobStep}
+                      disabled={loading}
+                      className="inline-flex items-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-sm font-bold text-white shadow-[0_12px_32px_rgba(34,0,255,0.22)] disabled:opacity-60"
+                    >
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                      {loading ? (loadingStep || "Working...") : isAuthenticated ? "Create application" : "Continue"}
+                    </button>
+                  </div>
+                  {loading && (
+                    <div className="rounded-2xl bg-[#ece8ff]/60 px-4 py-3">
+                      <div className="h-1 w-full overflow-hidden rounded-full bg-[#d4ccff]">
+                        <div className="h-full w-1/3 rounded-full bg-[#2200ff] animate-[indeterminate_1.8s_ease-in-out_infinite]" />
+                      </div>
+                      <p className="mt-2 text-xs text-slate-500">
+                        {loadingStep === "Reading the job ad..." ? "Reading the job ad can take 15–30 seconds — hang tight!" : "This usually takes less than a minute."}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </section>
             )}
@@ -746,8 +759,18 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                     className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-4 text-base font-bold text-white shadow-[0_12px_32px_rgba(34,0,255,0.22)] disabled:opacity-60"
                   >
                     {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="h-5 w-5" />}
-                    {loading ? "Setting things up..." : "Create free account"}
+                    {loading ? (loadingStep || "Setting things up...") : "Create free account"}
                   </button>
+                  {loading && (
+                    <div className="rounded-2xl bg-[#ece8ff]/60 px-4 py-3">
+                      <div className="h-1 w-full overflow-hidden rounded-full bg-[#d4ccff]">
+                        <div className="h-full w-1/3 rounded-full bg-[#2200ff] animate-[indeterminate_1.8s_ease-in-out_infinite]" />
+                      </div>
+                      <p className="mt-2 text-xs text-slate-500">
+                        {loadingStep === "Reading the job ad..." ? "Reading the job ad can take 15–30 seconds — hang tight!" : "This usually takes less than a minute."}
+                      </p>
+                    </div>
+                  )}
                 </form>
               </section>
             )}
