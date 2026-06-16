@@ -96,6 +96,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Choose an organization and enter an employee email." }, { status: 400 });
   }
 
+  const { data: org } = await supabase.from("organizations").select("status").eq("id", organizationId).maybeSingle();
+  if (org?.status !== "active") {
+    return NextResponse.json({ error: "This organisation is deactivated. Contact Koalapply to reactivate." }, { status: 403 });
+  }
+
   const { data: invitationRows, error: invitationError } = await supabase.rpc("enterprise_create_employee_invitation", {
     p_organization_id: organizationId,
     p_email: email,

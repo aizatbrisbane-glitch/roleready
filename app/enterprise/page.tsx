@@ -63,7 +63,7 @@ export default async function EnterprisePage() {
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-5 pb-36 md:px-8 md:py-10 md:pb-10 xl:px-10">
       <div className="mx-auto max-w-[1320px] overflow-x-clip">
-        <EnterpriseAdminPanel rows={rows} />
+        <EnterpriseAdminPanel rows={rows} currentUserId={user.id} />
       </div>
     </main>
   );

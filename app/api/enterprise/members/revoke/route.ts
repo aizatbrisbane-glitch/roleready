@@ -24,6 +24,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Choose an employee to revoke." }, { status: 400 });
   }
 
+  const { data: org } = await supabase.from("organizations").select("status").eq("id", organizationId).maybeSingle();
+  if (org?.status !== "active") {
+    return NextResponse.json({ error: "This organisation is deactivated. Contact Koalapply to reactivate." }, { status: 403 });
+  }
+
   const { error } = await supabase.rpc("enterprise_revoke_employee", {
     p_organization_id: organizationId,
     p_user_id: userId,

@@ -87,7 +87,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </Link>
 
                 <nav className="flex items-center gap-1">
-                  {planType === "free" && (
+                  {!showEnterpriseAdmin && planType === "free" && (
                     <Link
                       href="/pricing"
                       className="inline-flex items-center gap-1 rounded-full bg-[#ece8ff] px-3 py-1.5 text-xs font-semibold text-[#2200ff] transition hover:bg-[#ddd8ff]"
@@ -103,12 +103,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : initials}
                   </Link>
                   <SignOutButton />
-                  <Link
-                    href="/jobs/new"
-                    className="inline-flex items-center gap-1.5 rounded-full bg-[#2200ff] px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-[#1a00cc]"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Link>
+                  {!showEnterpriseAdmin && (
+                    <Link
+                      href="/jobs/new"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-[#2200ff] px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-[#1a00cc]"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Link>
+                  )}
                 </nav>
               </div>
             </header>
@@ -116,7 +118,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
           {children}
 
-          {authed && <MobileNav />}
+          {authed && <MobileNav showEnterpriseAdmin={showEnterpriseAdmin} />}
         </div>
       </body>
     </html>

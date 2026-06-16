@@ -31,13 +31,16 @@ function initialsFrom(name?: string | null, email?: string | null) {
     .join("");
 }
 
+const enterpriseNavItems = [
+  { href: "/enterprise", label: "Enterprise", icon: Building2 },
+  { href: "/profile",    label: "Settings",   icon: Settings },
+];
+
 export function Sidebar({ userName, userEmail, avatarUrl, showEnterpriseAdmin, planType }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const initials = initialsFrom(userName, userEmail);
-  const visibleNavItems = showEnterpriseAdmin
-    ? [...navItems, { href: "/enterprise", label: "Enterprise", icon: Building2 }]
-    : navItems;
+  const visibleNavItems = showEnterpriseAdmin ? enterpriseNavItems : navItems;
 
   async function signOut() {
     const supabase = createSupabaseBrowserClient();
@@ -73,18 +76,20 @@ export function Sidebar({ userName, userEmail, avatarUrl, showEnterpriseAdmin, p
           );
         })}
 
-        <div className="pt-2">
-          <Link
-            href="/jobs/new"
-            className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-500 transition duration-200 hover:bg-slate-50 hover:text-[#2200ff]"
-          >
-            <Plus className="h-4.5 w-4.5 shrink-0" />
-            Add Job
-          </Link>
-        </div>
+        {!showEnterpriseAdmin && (
+          <div className="pt-2">
+            <Link
+              href="/jobs/new"
+              className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-500 transition duration-200 hover:bg-slate-50 hover:text-[#2200ff]"
+            >
+              <Plus className="h-4.5 w-4.5 shrink-0" />
+              Add Job
+            </Link>
+          </div>
+        )}
       </nav>
 
-      {planType === "free" && (
+      {!showEnterpriseAdmin && planType === "free" && (
         <div className="mx-4 mb-3 rounded-2xl bg-[#ece8ff] p-4">
           <p className="text-xs font-black text-[#2200ff]">Need to apply more?</p>
           <p className="mt-1 text-xs leading-5 text-[#4422cc]">You have 1 free application per month. Upgrade for up to 150.</p>

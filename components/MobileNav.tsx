@@ -2,17 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bookmark, FileText, Home, Menu } from "lucide-react";
+import { Bookmark, Building2, FileText, Home, Menu, Settings } from "lucide-react";
 
-const items = [
+const jobSeekerItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/applications", label: "Applications", icon: FileText },
   { href: "/saved", label: "Saved", icon: Bookmark },
   { href: "/more", label: "More", icon: Menu, activePaths: ["/more", "/documents", "/profile", "/enterprise"] },
 ];
 
-export function MobileNav() {
+const enterpriseItems = [
+  { href: "/enterprise", label: "Enterprise", icon: Building2 },
+  { href: "/more", label: "More", icon: Menu, activePaths: ["/more", "/profile"] },
+];
+
+export function MobileNav({ showEnterpriseAdmin }: { showEnterpriseAdmin?: boolean }) {
   const pathname = usePathname();
+  const items = showEnterpriseAdmin ? enterpriseItems : jobSeekerItems;
 
   return (
     <nav

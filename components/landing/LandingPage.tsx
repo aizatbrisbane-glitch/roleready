@@ -312,7 +312,7 @@ export function LandingPage() {
         {/* â"€â"€ Trusted by â"€â"€ */}
         <section className="Koalapply-fade-up mx-auto mt-20 max-w-5xl px-5 pb-4 sm:px-8 lg:px-10">
           <p className="text-center text-sm font-semibold text-slate-400 uppercase tracking-[0.18em]">
-            Trusted by job seekers at
+            Job seekers using Koalapply apply to roles at
           </p>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-x-10 gap-y-5">
             {trustLabels.map(({ name, color }) => (
