@@ -155,6 +155,11 @@ export type Reference = {
   updated_at: string;
 };
 
+export type InterviewQuestion = {
+  question: string;
+  star: { situation: string; task: string; action: string; result: string };
+};
+
 export type Application = {
   id: string;
   user_id: string;
@@ -178,6 +183,7 @@ export type Application = {
   strengthened_keyword_snippets: Record<string, string>;
   reference_ids: string[];
   include_references_in_cv: boolean;
+  interview_questions: InterviewQuestion[] | null;
   created_at: string;
   updated_at: string;
 };

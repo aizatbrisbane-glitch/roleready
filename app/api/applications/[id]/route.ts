@@ -29,6 +29,7 @@ export async function PATCH(request: Request, { params }: Props) {
 
   if ("reference_ids" in body) update.reference_ids = Array.isArray(body.reference_ids) ? body.reference_ids : [];
   if ("include_references_in_cv" in body) update.include_references_in_cv = Boolean(body.include_references_in_cv);
+  if ("interview_questions" in body) update.interview_questions = body.interview_questions;
 
   // Update salary on the linked job if provided
   if ("salary" in body) {

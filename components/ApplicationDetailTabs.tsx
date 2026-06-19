@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, Banknote, BookOpen, CheckCircle2, ChevronDown, Download, Lightbulb, MapPin, Sparkles, TrendingUp, User, UserCheck } from "lucide-react";
+import { AlertTriangle, Banknote, BookOpen, CheckCircle2, ChevronDown, Download, Lightbulb, MapPin, Sparkles, Star, TrendingUp, User, UserCheck } from "lucide-react";
 import { CoverLetterRenderer, ResumeRenderer } from "@/components/ResumeRenderer";
-import type { Reference } from "@/types/database";
+import type { ApplicationStatus, InterviewQuestion, Reference } from "@/types/database";
 
 type AnalysisSection = { heading: string; bullets: string[]; body: string };
 
@@ -64,7 +64,7 @@ function sectionColors(heading: string) {
   return "bg-slate-50 border-slate-100";
 }
 
-export type Tab = "notes" | "analysis" | "resume" | "cover" | "jd" | "refs";
+export type Tab = "notes" | "analysis" | "resume" | "cover" | "jd" | "refs" | "interview";
 
 type Props = {
   applicationId: string;
@@ -81,6 +81,8 @@ type Props = {
   initialNotes: string | null;
   initialReferenceIds: string[];
   initialIncludeReferencesInCv: boolean;
+  status: ApplicationStatus;
+  initialInterviewQuestions: InterviewQuestion[] | null;
   activeTab: Tab;
   onTabChange: (tab: Tab) => void;
   openAccordion: Tab | null;
@@ -90,13 +92,20 @@ type Props = {
 
 const LOCATION_TYPES = ["Not specified", "Remote", "Hybrid", "On-site"];
 
-const TAB_LABELS: { id: Tab; label: string }[] = [
+const BASE_TAB_LABELS: { id: Tab; label: string }[] = [
   { id: "notes", label: "Key Notes" },
   { id: "analysis", label: "Match Analysis" },
   { id: "resume", label: "Tailored Resume" },
   { id: "cover", label: "Cover Letter" },
   { id: "jd", label: "Job Description" },
   { id: "refs", label: "References" },
+];
+
+const STAR_LABELS: { key: keyof InterviewQuestion["star"]; label: string; chip: string }[] = [
+  { key: "situation", label: "Situation", chip: "bg-[#ece8ff] text-[#2200ff]" },
+  { key: "task",      label: "Task",      chip: "bg-amber-50 text-amber-700" },
+  { key: "action",    label: "Action",    chip: "bg-emerald-50 text-emerald-700" },
+  { key: "result",    label: "Result",    chip: "bg-blue-50 text-blue-700" },
 ];
 
 export function ApplicationDetailTabs({
@@ -114,6 +123,8 @@ export function ApplicationDetailTabs({
   initialNotes,
   initialReferenceIds,
   initialIncludeReferencesInCv,
+  status,
+  initialInterviewQuestions,
   activeTab,
   onTabChange,
   openAccordion,
@@ -138,6 +149,21 @@ export function ApplicationDetailTabs({
   const [selectedRefIds, setSelectedRefIds] = useState<string[]>(initialReferenceIds);
   const [includeRefsInCv, setIncludeRefsInCv] = useState(initialIncludeReferencesInCv);
   const [refsSaving, setRefsSaving] = useState(false);
+
+  const [interviewQuestions, setInterviewQuestions] = useState<InterviewQuestion[]>(initialInterviewQuestions ?? []);
+  const [editedQuestions, setEditedQuestions] = useState<InterviewQuestion[]>(initialInterviewQuestions ?? []);
+  const [openQuestionIndex, setOpenQuestionIndex] = useState<number | null>(null);
+  const [interviewGenerating, setInterviewGenerating] = useState(false);
+  const [interviewSaving, setInterviewSaving] = useState(false);
+  const [interviewError, setInterviewError] = useState("");
+  const [interviewSaveMessage, setInterviewSaveMessage] = useState("");
+  const [interviewContext, setInterviewContext] = useState("");
+
+  const showInterviewPulse = status === "Interview" && interviewQuestions.length === 0;
+
+  const tabLabels = status === "Interview"
+    ? [...BASE_TAB_LABELS, { id: "interview" as Tab, label: "Interview Prep" }]
+    : BASE_TAB_LABELS;
 
   useEffect(() => {
     if (!highlightKeyword) return;
@@ -232,6 +258,62 @@ export function ApplicationDetailTabs({
     const next = !includeRefsInCv;
     setIncludeRefsInCv(next);
     saveRefs(selectedRefIds, next);
+  }
+
+  async function generateInterviewPrep() {
+    setInterviewGenerating(true);
+    setInterviewError("");
+    try {
+      const res = await fetch(`/api/applications/${applicationId}/interview-prep`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ context: interviewContext || null }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setInterviewError(data?.error ?? "Generation failed. Try again.");
+      } else {
+        const qs: InterviewQuestion[] = data.questions ?? [];
+        setInterviewQuestions(qs);
+        setEditedQuestions(qs);
+        setOpenQuestionIndex(0);
+      }
+    } catch {
+      setInterviewError("Network error. Try again.");
+    } finally {
+      setInterviewGenerating(false);
+    }
+  }
+
+  async function saveInterviewQuestions() {
+    setInterviewSaving(true);
+    setInterviewSaveMessage("");
+    try {
+      const res = await fetch(`/api/applications/${applicationId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ interview_questions: editedQuestions }),
+      });
+      if (res.ok) {
+        setInterviewQuestions(editedQuestions);
+        setInterviewSaveMessage("Saved.");
+      } else {
+        setInterviewSaveMessage("Failed to save. Try again.");
+      }
+    } catch {
+      setInterviewSaveMessage("Failed to save. Try again.");
+    } finally {
+      setInterviewSaving(false);
+      setTimeout(() => setInterviewSaveMessage(""), 2500);
+    }
+  }
+
+  function updateStarField(qIndex: number, field: keyof InterviewQuestion["star"], value: string) {
+    setEditedQuestions((prev) =>
+      prev.map((q, i) =>
+        i === qIndex ? { ...q, star: { ...q.star, [field]: value } } : q
+      )
+    );
   }
 
   function renderContent(tab: Tab) {
@@ -454,6 +536,109 @@ export function ApplicationDetailTabs({
       </div>
     );
 
+    if (tab === "interview") return (
+      <div className="p-5 md:p-6">
+        {interviewQuestions.length === 0 ? (
+          <div className="flex flex-col items-center gap-4 py-8 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#ece8ff] text-[#2200ff]">
+              <Sparkles className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="font-semibold text-slate-900">Prepare for your interview</p>
+                <p className="mt-1 max-w-sm text-sm text-slate-500">
+                Generate 4–5 likely questions with STAR answers drafted from your resume — then edit them to match your own words.
+              </p>
+              <p className="text-xs text-slate-400">Free — included with your plan.</p>
+            </div>
+            <div className="w-full max-w-sm">
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.13em] text-slate-400">
+                Anything not in your resume?
+              </label>
+              <textarea
+                value={interviewContext}
+                onChange={(e) => setInterviewContext(e.target.value)}
+                rows={3}
+                className="field resize-none text-sm"
+                placeholder="Specific projects, team sizes, metrics, or outcomes that aren't captured in your resume..."
+              />
+              <p className="mt-1 text-xs text-slate-400">Optional — helps generate more specific answers.</p>
+            </div>
+            {interviewError && <p className="text-sm text-rose-600">{interviewError}</p>}
+            <button
+              type="button"
+              onClick={generateInterviewPrep}
+              disabled={interviewGenerating}
+              className="inline-flex items-center gap-2 rounded-full bg-[#2200ff] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(34,0,255,0.2)] transition hover:-translate-y-0.5 hover:bg-[#1a00cc] disabled:opacity-60 disabled:translate-y-0"
+            >
+              <Sparkles className="h-4 w-4" />
+              {interviewGenerating ? "Generating…" : "Generate interview questions"}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {editedQuestions.map((q, qIndex) => {
+              const isOpen = openQuestionIndex === qIndex;
+              return (
+                <div key={qIndex} className="overflow-hidden rounded-2xl border border-slate-100 bg-white">
+                  <button
+                    type="button"
+                    className={`flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition ${isOpen ? "bg-[#ece8ff]" : "hover:bg-slate-50"}`}
+                    onClick={() => setOpenQuestionIndex(isOpen ? null : qIndex)}
+                  >
+                    <span className={`text-sm font-semibold ${isOpen ? "text-[#2200ff]" : "text-slate-900"}`}>
+                      {qIndex + 1}. {q.question}
+                    </span>
+                    <ChevronDown className={`h-4 w-4 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180 text-[#2200ff]" : "text-slate-400"}`} />
+                  </button>
+                  {isOpen && (
+                    <div className="space-y-4 border-t border-slate-100 px-5 py-5">
+                      {STAR_LABELS.map(({ key, label, chip }) => (
+                        <div key={key}>
+                          <div className="mb-1.5 flex items-center gap-2">
+                            <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${chip}`}>{label[0]}</span>
+                            <span className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-400">{label}</span>
+                          </div>
+                          <textarea
+                            value={q.star[key]}
+                            onChange={(e) => updateStarField(qIndex, key, e.target.value)}
+                            rows={3}
+                            className="field resize-none"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {interviewError && <p className="text-sm text-rose-600">{interviewError}</p>}
+
+            <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
+              <button
+                type="button"
+                onClick={saveInterviewQuestions}
+                disabled={interviewSaving}
+                className="btn-primary"
+              >
+                {interviewSaving ? "Saving…" : "Save changes"}
+              </button>
+              <button
+                type="button"
+                onClick={generateInterviewPrep}
+                disabled={interviewGenerating}
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-60"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                {interviewGenerating ? "Regenerating…" : "Regenerate"}
+              </button>
+              {interviewSaveMessage && <span className="text-sm text-slate-500">{interviewSaveMessage}</span>}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+
     if (tab === "refs") return (
       <div className="p-5 md:p-6">
         <div className="flex items-center gap-2 mb-4">
@@ -530,15 +715,19 @@ export function ApplicationDetailTabs({
 
       {/* ── Mobile accordion (hidden md+) ── */}
       <div className="divide-y divide-slate-100 md:hidden">
-        {TAB_LABELS.map(({ id, label }) => {
+        {tabLabels.map(({ id, label }) => {
           const isOpen = openAccordion === id;
+          const pulse = id === "interview" && showInterviewPulse;
           return (
             <div key={id}>
               <button
                 className={`flex w-full items-center justify-between px-5 py-4 text-left transition ${isOpen ? "bg-[#ece8ff]" : "hover:bg-slate-50"}`}
                 onClick={() => onAccordionChange(isOpen ? null : id)}
               >
-                <span className={`text-sm font-semibold ${isOpen ? "text-[#2200ff]" : "text-slate-900"}`}>{label}</span>
+                <span className={`flex items-center gap-1.5 text-sm font-semibold ${isOpen ? "text-[#2200ff]" : "text-slate-900"}`}>
+                  {label}
+                  {pulse && <Star className="h-3.5 w-3.5 animate-bounce fill-amber-400 text-amber-400" />}
+                </span>
                 <ChevronDown className={`h-4 w-4 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180 text-[#2200ff]" : "text-slate-400"}`} />
               </button>
               {isOpen && (
@@ -554,17 +743,23 @@ export function ApplicationDetailTabs({
       {/* ── Desktop tabs (hidden below md) ── */}
       <div className="hidden md:block">
         <div className="flex gap-1 overflow-x-auto border-b border-slate-100 bg-white px-4 py-3 scrollbar-none">
-          {TAB_LABELS.map(({ id, label }) => (
-            <button
-              key={id}
-              onClick={() => onTabChange(id)}
-              className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition ${
-                activeTab === id ? "bg-[#2200ff] text-white shadow-sm" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+          {tabLabels.map(({ id, label }) => {
+            const pulse = id === "interview" && showInterviewPulse;
+            return (
+              <button
+                key={id}
+                onClick={() => onTabChange(id)}
+                className={`relative shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+                  activeTab === id ? "bg-[#2200ff] text-white shadow-sm" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                }`}
+              >
+                <span className="flex items-center gap-1">
+                  {label}
+                  {pulse && <Star className="h-3 w-3 animate-bounce fill-amber-400 text-amber-400" />}
+                </span>
+              </button>
+            );
+          })}
         </div>
         {renderContent(activeTab)}
       </div>

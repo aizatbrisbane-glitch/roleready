@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { KeywordStrengthSection } from "@/components/KeywordStrengthSection";
 import { ApplicationDetailTabs } from "@/components/ApplicationDetailTabs";
 import type { Tab } from "@/components/ApplicationDetailTabs";
-import type { EntitlementPlanType } from "@/types/database";
+import type { ApplicationStatus, EntitlementPlanType, InterviewQuestion } from "@/types/database";
 
 export type DocumentUpdate = {
   resume: string | null;
@@ -29,6 +29,8 @@ type Props = {
   initialNotes: string | null;
   initialReferenceIds: string[];
   initialIncludeReferencesInCv: boolean;
+  status: ApplicationStatus;
+  initialInterviewQuestions: InterviewQuestion[] | null;
   planType: EntitlementPlanType;
   hasTailoredResume: boolean;
   hasCoverLetter: boolean;
@@ -52,6 +54,8 @@ export function ApplicationDetailClient({
   initialNotes,
   initialReferenceIds,
   initialIncludeReferencesInCv,
+  status,
+  initialInterviewQuestions,
   planType,
   hasTailoredResume,
   hasCoverLetter,
@@ -64,6 +68,15 @@ export function ApplicationDetailClient({
   const [coverLetter, setCoverLetter] = useState(initialCoverLetter);
   const [highlightKeyword, setHighlightKeyword] = useState<string | null>(null);
   const isMounted = useRef(false);
+  const prevStatusRef = useRef(status);
+
+  useEffect(() => {
+    if (prevStatusRef.current !== "Interview" && status === "Interview") {
+      setActiveTab("interview");
+      setOpenAccordion("interview");
+    }
+    prevStatusRef.current = status;
+  }, [status]);
 
   useEffect(() => {
     if (!isMounted.current) { isMounted.current = true; return; }
@@ -129,6 +142,8 @@ export function ApplicationDetailClient({
         initialNotes={initialNotes}
         initialReferenceIds={initialReferenceIds}
         initialIncludeReferencesInCv={initialIncludeReferencesInCv}
+        status={status}
+        initialInterviewQuestions={initialInterviewQuestions}
         activeTab={activeTab}
         onTabChange={setActiveTab}
         openAccordion={openAccordion}
