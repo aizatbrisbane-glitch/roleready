@@ -1,10 +1,11 @@
 ﻿import { FileText } from "lucide-react";
 import { AuthPanel } from "@/components/AuthPanel";
 import { DocumentsForm } from "@/components/DocumentsForm";
+import { ReferencesForm } from "@/components/ReferencesForm";
 import { SetupNotice } from "@/components/SetupNotice";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { MasterCoverLetter, MasterResume } from "@/types/database";
+import type { MasterCoverLetter, MasterResume, Reference } from "@/types/database";
 
 export default async function DocumentsPage() {
   const configured = isSupabaseConfigured();
@@ -29,9 +30,10 @@ export default async function DocumentsPage() {
     );
   }
 
-  const [{ data: masterResume }, { data: masterCoverLetter }] = await Promise.all([
+  const [{ data: masterResume }, { data: masterCoverLetter }, { data: references }] = await Promise.all([
     supabase.from("master_resumes").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("master_cover_letters").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+    supabase.from("references").select("*").eq("user_id", user.id).order("name"),
   ]);
 
   return (
@@ -51,6 +53,9 @@ export default async function DocumentsPage() {
         </div>
 
         <DocumentsForm masterResume={masterResume as MasterResume | null} masterCoverLetter={masterCoverLetter as MasterCoverLetter | null} />
+        <div className="mt-6">
+          <ReferencesForm initialRefs={(references ?? []) as Reference[]} />
+        </div>
       </div>
     </main>
   );

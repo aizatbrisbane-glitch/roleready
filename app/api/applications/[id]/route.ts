@@ -22,10 +22,13 @@ export async function PATCH(request: Request, { params }: Props) {
   }
 
   const body = await request.json();
-  const update: Record<string, string | null> = {};
+  const update: Record<string, unknown> = {};
   for (const field of KEY_NOTES_FIELDS) {
     if (field in body) update[field] = body[field] ?? null;
   }
+
+  if ("reference_ids" in body) update.reference_ids = Array.isArray(body.reference_ids) ? body.reference_ids : [];
+  if ("include_references_in_cv" in body) update.include_references_in_cv = Boolean(body.include_references_in_cv);
 
   // Update salary on the linked job if provided
   if ("salary" in body) {

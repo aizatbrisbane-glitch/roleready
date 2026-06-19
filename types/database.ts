@@ -143,6 +143,18 @@ export type EnterpriseInvitation = {
   updated_at: string;
 };
 
+export type Reference = {
+  id: string;
+  user_id: string;
+  name: string;
+  position: string | null;
+  company: string | null;
+  phone: string | null;
+  email: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Application = {
   id: string;
   user_id: string;
@@ -164,6 +176,8 @@ export type Application = {
   strengthen_count: number;
   strengthened_keywords: string[];
   strengthened_keyword_snippets: Record<string, string>;
+  reference_ids: string[];
+  include_references_in_cv: boolean;
   created_at: string;
   updated_at: string;
 };

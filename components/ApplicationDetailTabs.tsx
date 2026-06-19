@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, Banknote, BookOpen, CheckCircle2, ChevronDown, Download, Lightbulb, MapPin, Sparkles, TrendingUp, User } from "lucide-react";
+import { AlertTriangle, Banknote, BookOpen, CheckCircle2, ChevronDown, Download, Lightbulb, MapPin, Sparkles, TrendingUp, User, UserCheck } from "lucide-react";
 import { CoverLetterRenderer, ResumeRenderer } from "@/components/ResumeRenderer";
+import type { Reference } from "@/types/database";
 
 type AnalysisSection = { heading: string; bullets: string[]; body: string };
 
@@ -63,7 +64,7 @@ function sectionColors(heading: string) {
   return "bg-slate-50 border-slate-100";
 }
 
-export type Tab = "notes" | "analysis" | "resume" | "cover" | "jd";
+export type Tab = "notes" | "analysis" | "resume" | "cover" | "jd" | "refs";
 
 type Props = {
   applicationId: string;
@@ -78,6 +79,8 @@ type Props = {
   initialLocationType: string | null;
   initialOtherNotes: string | null;
   initialNotes: string | null;
+  initialReferenceIds: string[];
+  initialIncludeReferencesInCv: boolean;
   activeTab: Tab;
   onTabChange: (tab: Tab) => void;
   openAccordion: Tab | null;
@@ -93,6 +96,7 @@ const TAB_LABELS: { id: Tab; label: string }[] = [
   { id: "resume", label: "Tailored Resume" },
   { id: "cover", label: "Cover Letter" },
   { id: "jd", label: "Job Description" },
+  { id: "refs", label: "References" },
 ];
 
 export function ApplicationDetailTabs({
@@ -108,6 +112,8 @@ export function ApplicationDetailTabs({
   initialLocationType,
   initialOtherNotes,
   initialNotes,
+  initialReferenceIds,
+  initialIncludeReferencesInCv,
   activeTab,
   onTabChange,
   openAccordion,
@@ -126,6 +132,12 @@ export function ApplicationDetailTabs({
   const [summarising, setSummarising] = useState(false);
   const [summariseError, setSummariseError] = useState("");
   const roleSummaryRef = useRef<HTMLTextAreaElement>(null);
+
+  const [allRefs, setAllRefs] = useState<Reference[]>([]);
+  const [refsLoaded, setRefsLoaded] = useState(false);
+  const [selectedRefIds, setSelectedRefIds] = useState<string[]>(initialReferenceIds);
+  const [includeRefsInCv, setIncludeRefsInCv] = useState(initialIncludeReferencesInCv);
+  const [refsSaving, setRefsSaving] = useState(false);
 
   useEffect(() => {
     if (!highlightKeyword) return;
@@ -189,6 +201,37 @@ export function ApplicationDetailTabs({
       setSaving(false);
       setTimeout(() => setSaveMessage(""), 2500);
     }
+  }
+
+  async function loadRefs() {
+    if (refsLoaded) return;
+    const res = await fetch("/api/profile/references");
+    if (res.ok) setAllRefs(await res.json());
+    setRefsLoaded(true);
+  }
+
+  async function saveRefs(refIds: string[], includeInCv: boolean) {
+    setRefsSaving(true);
+    await fetch(`/api/applications/${applicationId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reference_ids: refIds, include_references_in_cv: includeInCv }),
+    });
+    setRefsSaving(false);
+  }
+
+  function toggleRef(refId: string) {
+    const next = selectedRefIds.includes(refId)
+      ? selectedRefIds.filter((id) => id !== refId)
+      : [...selectedRefIds, refId];
+    setSelectedRefIds(next);
+    saveRefs(next, includeRefsInCv);
+  }
+
+  function toggleIncludeInCv() {
+    const next = !includeRefsInCv;
+    setIncludeRefsInCv(next);
+    saveRefs(selectedRefIds, next);
   }
 
   function renderContent(tab: Tab) {
@@ -408,6 +451,74 @@ export function ApplicationDetailTabs({
         <div className="mx-auto w-full max-w-[794px] bg-white px-10 py-10 shadow-[0_2px_16px_rgba(0,0,0,0.10)] md:px-16 md:py-14">
           <p className="whitespace-pre-wrap text-sm leading-7 text-slate-700">{jobDescription}</p>
         </div>
+      </div>
+    );
+
+    if (tab === "refs") return (
+      <div className="p-5 md:p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <UserCheck className="h-4 w-4 text-[#2200ff]" />
+          <p className="text-sm font-semibold text-slate-900">Which referees did you supply for this role?</p>
+        </div>
+
+        {!refsLoaded && (
+          <button
+            type="button"
+            onClick={loadRefs}
+            className="text-sm text-[#2200ff] underline"
+          >
+            Load my saved referees
+          </button>
+        )}
+
+        {refsLoaded && allRefs.length === 0 && (
+          <p className="text-sm text-slate-400 italic">
+            No referees saved yet. Add them in{" "}
+            <a href="/documents" className="text-[#2200ff] underline">Documents</a>.
+          </p>
+        )}
+
+        {refsLoaded && allRefs.length > 0 && (
+          <div className="space-y-2">
+            {allRefs.map((ref) => (
+              <label key={ref.id} className="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 transition hover:bg-[#ece8ff]/40">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#2200ff] focus:ring-[#d4ccff]"
+                  checked={selectedRefIds.includes(ref.id)}
+                  onChange={() => toggleRef(ref.id)}
+                />
+                <div className="min-w-0">
+                  <p className="font-semibold text-slate-900">{ref.name}</p>
+                  {(ref.position || ref.company) && (
+                    <p className="text-xs text-slate-500">{[ref.position, ref.company].filter(Boolean).join(", ")}</p>
+                  )}
+                  <p className="text-xs text-slate-400">{[ref.phone, ref.email].filter(Boolean).join(" · ")}</p>
+                </div>
+              </label>
+            ))}
+
+            <div className="mt-4 border-t border-slate-100 pt-4">
+              <label className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 transition ${selectedRefIds.length === 0 ? "cursor-not-allowed opacity-50" : "border-slate-100 bg-slate-50 hover:bg-[#ece8ff]/40"}`}>
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#2200ff] focus:ring-[#d4ccff]"
+                  checked={includeRefsInCv}
+                  disabled={selectedRefIds.length === 0}
+                  onChange={toggleIncludeInCv}
+                />
+                <div>
+                  <p className="font-semibold text-slate-900">Include references in generated CV</p>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    When checked, selected referees will appear as a References section at the bottom of your tailored resume on the next generation.
+                  </p>
+                </div>
+              </label>
+            </div>
+
+            {refsSaving && <p className="text-xs text-slate-400">Saving…</p>}
+          </div>
+        )}
       </div>
     );
 

@@ -68,39 +68,52 @@ async function withTimeout<T>(promise: Promise<T>, label: string) {
   }
 }
 
+type Referee = { name: string; position: string | null; company: string | null; phone: string | null; email: string | null };
+
 function buildPrompt({
   profile,
   masterResume,
   masterCoverLetter,
-  job
+  job,
+  referees,
 }: {
   profile: Profile | null;
   masterResume: MasterResume;
   masterCoverLetter: MasterCoverLetter | null;
   job: NonNullable<ApplicationWithJob["jobs"]>;
+  referees?: Referee[];
 }) {
+  const outputRules = [
+    "Tailored resume must use concrete wording from the master resume.",
+    "Put the most job-relevant skills and achievements near the top.",
+    "Do not add skills, tools, certifications, companies, achievements, or metrics unless present in the master resume.",
+    "If a job requirement is missing or weak, list it in missingKeywords instead of pretending it exists.",
+    "Cover letter must sound natural, specific to this company and role, and be under 350 words.",
+    "Never use em dashes (—) anywhere in the resume or cover letter. Use a comma, colon, or period instead.",
+    "Never use any of these words or phrases: dynamic, innovative, passionate, results-driven, detail-oriented, proven track record, leverage, utilize, spearhead, champion, delve, tapestry, transformative.",
+    "Cover letter opening must not start with 'I am writing to' or 'I am excited to apply'. Open with a specific, concrete observation about the company or role drawn from the job ad instead.",
+    "Vary sentence length in the cover letter: mix short direct sentences with longer ones. Do not write three or more consecutive sentences of similar length or structure.",
+    "Cover letter closing paragraph must be one sentence only, plain and direct — no flowery sign-offs.",
+    "Avoid generic phrases like 'I am excited to apply' unless followed by a specific reason from the job ad.",
+    "Format matchExplanation using exactly these four section headings in this exact order, with no extra words in the heading: ## Summary, ## Strengths, ## Gaps, ## Recommendation. Summary: 2-3 sentences on overall fit. Strengths: 3 to 4 bullet points starting with '- ', each citing a specific piece of resume evidence. Gaps: 2 to 3 bullet points starting with '- ', each naming a specific missing or weak area. Recommendation: 1-2 sentences on how to position the application. Do not add any text before ## Summary. Do not repeat any section.",
+    "Format tailoredResume in markdown: use # for the candidate name, ## for every section heading (e.g. ## EXPERIENCE), ### for each job title / employer / date line, - for every bullet point, and **text** for bold emphasis. Do NOT use ---, <hr>, horizontal rules, extra blank lines between bullets, or any other visual separators. One blank line between sections only. Do NOT use emoji or markdown links — write contact details as plain text only (e.g. 'Phone: 0422 178 121 | Email: user@example.com | LinkedIn: linkedin.com/in/username').",
+    "Format coverLetter in markdown: use # for the candidate name header, then immediately a plain-text contact line using the profile data (e.g. 'Phone: ... | Email: ... | LinkedIn: ...') and if present a second line for location — exactly as the resume contact block is formatted. Then plain paragraphs separated by a single blank line. No bullet points, no section headings, no horizontal rules.",
+  ];
+
+  if (referees && referees.length > 0) {
+    outputRules.push(
+      "The candidate has chosen to include referees. Append a ## REFERENCES section at the very end of the tailored resume. List each referee on its own line in this format: **Name** | Position, Company | Phone | Email. Omit any field that is blank."
+    );
+  }
+
   return JSON.stringify({
     task: "Create a highly specific tailored application package.",
-    outputRules: [
-      "Tailored resume must use concrete wording from the master resume.",
-      "Put the most job-relevant skills and achievements near the top.",
-      "Do not add skills, tools, certifications, companies, achievements, or metrics unless present in the master resume.",
-      "If a job requirement is missing or weak, list it in missingKeywords instead of pretending it exists.",
-      "Cover letter must sound natural, specific to this company and role, and be under 350 words.",
-      "Never use em dashes (—) anywhere in the resume or cover letter. Use a comma, colon, or period instead.",
-      "Never use any of these words or phrases: dynamic, innovative, passionate, results-driven, detail-oriented, proven track record, leverage, utilize, spearhead, champion, delve, tapestry, transformative.",
-      "Cover letter opening must not start with 'I am writing to' or 'I am excited to apply'. Open with a specific, concrete observation about the company or role drawn from the job ad instead.",
-      "Vary sentence length in the cover letter: mix short direct sentences with longer ones. Do not write three or more consecutive sentences of similar length or structure.",
-      "Cover letter closing paragraph must be one sentence only, plain and direct — no flowery sign-offs.",
-      "Avoid generic phrases like 'I am excited to apply' unless followed by a specific reason from the job ad.",
-      "Format matchExplanation using exactly these four section headings in this exact order, with no extra words in the heading: ## Summary, ## Strengths, ## Gaps, ## Recommendation. Summary: 2-3 sentences on overall fit. Strengths: 3 to 4 bullet points starting with '- ', each citing a specific piece of resume evidence. Gaps: 2 to 3 bullet points starting with '- ', each naming a specific missing or weak area. Recommendation: 1-2 sentences on how to position the application. Do not add any text before ## Summary. Do not repeat any section.",
-      "Format tailoredResume in markdown: use # for the candidate name, ## for every section heading (e.g. ## EXPERIENCE), ### for each job title / employer / date line, - for every bullet point, and **text** for bold emphasis. Do NOT use ---, <hr>, horizontal rules, extra blank lines between bullets, or any other visual separators. One blank line between sections only. Do NOT use emoji or markdown links — write contact details as plain text only (e.g. 'Phone: 0422 178 121 | Email: user@example.com | LinkedIn: linkedin.com/in/username').",
-      "Format coverLetter in markdown: use # for the candidate name header, then immediately a plain-text contact line using the profile data (e.g. 'Phone: ... | Email: ... | LinkedIn: ...') and if present a second line for location — exactly as the resume contact block is formatted. Then plain paragraphs separated by a single blank line. No bullet points, no section headings, no horizontal rules."
-    ],
+    outputRules,
     profile,
     masterResumeText: masterResume.resume_text,
     masterCoverLetterText: masterCoverLetter?.cover_letter_text ?? "",
-    job
+    job,
+    ...(referees && referees.length > 0 ? { referees } : {}),
   });
 }
 
@@ -248,7 +261,7 @@ export async function POST(request: Request, { params }: Props) {
     supabase.from("applications").select("*, jobs(*)").eq("id", id).eq("user_id", user.id).maybeSingle(),
     supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     supabase.from("master_resumes").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
-    supabase.from("master_cover_letters").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1).maybeSingle()
+    supabase.from("master_cover_letters").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
   ]);
 
   const app = application as ApplicationWithJob | null;
@@ -278,11 +291,23 @@ export async function POST(request: Request, { params }: Props) {
     return NextResponse.json({ error: generationLimitMessage(access) }, { status: 402 });
   }
 
+  const appRecord = app as ApplicationWithJob & { reference_ids?: string[]; include_references_in_cv?: boolean };
+  let referees: Referee[] | undefined;
+  if (appRecord.include_references_in_cv && appRecord.reference_ids && appRecord.reference_ids.length > 0) {
+    const { data: refRows } = await supabase
+      .from("references")
+      .select("name, position, company, phone, email")
+      .in("id", appRecord.reference_ids)
+      .eq("user_id", user.id);
+    if (refRows && refRows.length > 0) referees = refRows as Referee[];
+  }
+
   const prompt = buildPrompt({
     profile: profile as Profile | null,
     masterResume: masterResume as MasterResume,
     masterCoverLetter: masterCoverLetter as MasterCoverLetter | null,
-    job: app.jobs
+    job: app.jobs,
+    referees,
   });
 
   let generated: GeneratedApplication;

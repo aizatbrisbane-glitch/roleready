@@ -27,6 +27,8 @@ type Props = {
   initialLocationType: string | null;
   initialOtherNotes: string | null;
   initialNotes: string | null;
+  initialReferenceIds: string[];
+  initialIncludeReferencesInCv: boolean;
   planType: EntitlementPlanType;
   hasTailoredResume: boolean;
   hasCoverLetter: boolean;
@@ -48,6 +50,8 @@ export function ApplicationDetailClient({
   initialLocationType,
   initialOtherNotes,
   initialNotes,
+  initialReferenceIds,
+  initialIncludeReferencesInCv,
   planType,
   hasTailoredResume,
   hasCoverLetter,
@@ -123,6 +127,8 @@ export function ApplicationDetailClient({
         initialLocationType={initialLocationType}
         initialOtherNotes={initialOtherNotes}
         initialNotes={initialNotes}
+        initialReferenceIds={initialReferenceIds}
+        initialIncludeReferencesInCv={initialIncludeReferencesInCv}
         activeTab={activeTab}
         onTabChange={setActiveTab}
         openAccordion={openAccordion}

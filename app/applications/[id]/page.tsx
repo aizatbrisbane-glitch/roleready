@@ -302,6 +302,8 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
               initialLocationType={application.location_type}
               initialOtherNotes={application.other_notes}
               initialNotes={application.notes}
+              initialReferenceIds={application.reference_ids ?? []}
+              initialIncludeReferencesInCv={application.include_references_in_cv ?? false}
               planType={access.planType}
               hasTailoredResume={!!application.tailored_resume}
               hasCoverLetter={!!application.cover_letter}
