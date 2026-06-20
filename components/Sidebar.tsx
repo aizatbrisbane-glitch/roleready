@@ -55,7 +55,7 @@ export function Sidebar({ userName, userEmail, avatarUrl, showEnterpriseAdmin, p
     <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-30 md:flex md:w-60 md:flex-col md:border-r md:border-slate-100 md:bg-white">
       {/* Logo */}
       <div className="flex h-20 items-center px-7">
-        <img src="/brand/koalapply-logo.png" alt="Koalapply" className="h-20 w-auto" />
+        <img src="/brand/koalapply-logo.png" alt="Koalapply" className="h-11 w-auto" />
       </div>
 
       {/* Nav items */}

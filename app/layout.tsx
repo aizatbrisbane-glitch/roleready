@@ -83,7 +83,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <header className="sticky top-0 z-30 border-b border-slate-100 bg-white/95 backdrop-blur md:hidden">
               <div className="flex items-center justify-between px-4 py-3">
                 <Link href="/" className="flex items-center gap-2.5">
-                  <img src="/brand/koalapply-logo.png" alt="Koalapply" className="h-16 w-auto" />
+                  <img src="/brand/koalapply-logo.png" alt="Koalapply" className="h-10 w-auto" />
                 </Link>
 
                 <nav className="flex items-center gap-1">

@@ -20,7 +20,7 @@ export default function BlogPage() {
       <header className="border-b border-slate-100 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
           <Link href="/" className="inline-flex items-center">
-            <Image src="/brand/koalapply-logo.png" alt="Koalapply" width={168} height={56} className="h-24 w-auto sm:h-28" priority />
+            <Image src="/brand/koalapply-logo.png" alt="Koalapply" width={168} height={56} className="h-12 w-auto sm:h-14" priority />
           </Link>
 
           <nav className="hidden items-center gap-9 text-sm font-medium text-slate-700 md:flex">

@@ -193,7 +193,7 @@ export default async function PricingPage() {
         <header className="border-b border-slate-100 bg-white/95 backdrop-blur">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
             <Link href="/" className="inline-flex items-center">
-              <img src="/brand/koalapply-logo.png" alt="Koalapply" className="h-24 w-auto sm:h-28" />
+              <img src="/brand/koalapply-logo.png" alt="Koalapply" className="h-12 w-auto sm:h-14" />
             </Link>
 
             <nav className="hidden items-center gap-9 text-sm font-medium text-slate-700 md:flex">

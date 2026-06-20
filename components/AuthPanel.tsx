@@ -137,7 +137,7 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
       <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-[0_32px_100px_rgba(34,0,255,0.1)] sm:p-9 lg:p-12">
         <div className="text-center">
           <div className="mx-auto">
-            <img src="/brand/koalapply-logo.png" alt="Koalapply" className="h-24 w-auto" />
+            <img src="/brand/koalapply-logo.png" alt="Koalapply" className="h-14 w-auto" />
           </div>
           <h1 className="mt-7 text-3xl font-bold text-slate-900">Check your email</h1>
           <p className="mt-3 text-base leading-7 text-slate-600">
