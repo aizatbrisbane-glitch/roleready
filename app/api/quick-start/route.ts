@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { extractTextFromFile } from "@/lib/file-text";
-import { fetchJobAdDetails, detectJobSource, isBlockedJobBoard } from "@/lib/job-ad";
+import { fetchJobAdDetails, detectJobSource, isBlockedJobBoard, normaliseJobUrl } from "@/lib/job-ad";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const maxDuration = 60;
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
   }
 
   const formData = await request.formData();
-  const jobUrl = String(formData.get("job_url") ?? "").trim();
+  const jobUrl = normaliseJobUrl(String(formData.get("job_url") ?? "").trim());
 
   if (!jobUrl) {
     return NextResponse.json({ error: "Paste a job ad link first." }, { status: 400 });

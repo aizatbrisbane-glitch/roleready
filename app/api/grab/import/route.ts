@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchJobAdDetails, detectJobSource } from "@/lib/job-ad";
+import { fetchJobAdDetails, detectJobSource, normaliseJobUrl } from "@/lib/job-ad";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const maxDuration = 60;
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
       company: jobDetails.company,
       location: jobDetails.location,
       salary: jobDetails.salary,
-      job_url: body.jobUrl,
+      job_url: normaliseJobUrl(body.jobUrl ?? ""),
       description: jobDetails.description,
       source: detectJobSource(body.jobUrl),
       expires_at: jobDetails.expiresAt,

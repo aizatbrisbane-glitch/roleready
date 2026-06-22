@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { fetchJobAdDetails } from "@/lib/job-ad";
+import { fetchJobAdDetails, normaliseJobUrl } from "@/lib/job-ad";
 import type { JobSource } from "@/types/database";
 
 export const preferredRegion = ["syd1"];
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const source = String(formData.get("source") ?? "Manual") as JobSource;
-  const jobUrl = String(formData.get("job_url") ?? "");
+  const jobUrl = normaliseJobUrl(String(formData.get("job_url") ?? ""));
   let description = String(formData.get("description") ?? "");
 
   if (jobUrl && description.trim().length < 300) {

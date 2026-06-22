@@ -13,6 +13,25 @@ type JobAdDetails = {
 // "seek.com" catches both au.seek.com (new domain) and any other seek.com subdomains.
 const BLOCKED_DOMAINS = ["seek.com.au", "seek.co.nz", "seek.com", "linkedin.com", "indeed.com", "jora.com", "jora.com.au"];
 
+// Normalise job board URLs so search-results-page URLs become direct listing URLs.
+// e.g. SEEK adds ?jobId=92726265 to search URLs when viewing a job in the side panel.
+export function normaliseJobUrl(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return trimmed;
+  try {
+    const url = new URL(trimmed.startsWith("http") ? trimmed : `https://${trimmed}`);
+    if (url.hostname.includes("seek.com")) {
+      const jobId = url.searchParams.get("jobId");
+      if (jobId && /^\d+$/.test(jobId)) {
+        return `${url.origin}/job/${jobId}`;
+      }
+    }
+    return trimmed;
+  } catch {
+    return trimmed;
+  }
+}
+
 export function isBlockedJobBoard(url: string): boolean {
   try {
     const host = new URL(url).hostname.replace(/^www\./, "").toLowerCase();

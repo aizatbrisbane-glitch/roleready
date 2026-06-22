@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { normaliseJobUrl } from "@/lib/job-ad";
 import type { JobSource } from "@/types/database";
 
 const VALID_SOURCES: JobSource[] = ["Manual", "SEEK", "LinkedIn", "Adzuna", "Other"];
@@ -79,7 +80,7 @@ export async function POST(request: Request) {
       company: String(company),
       location: String(location ?? ""),
       salary: String(salary ?? ""),
-      job_url: String(jobUrl ?? ""),
+      job_url: normaliseJobUrl(String(jobUrl ?? "")),
       description: String(description ?? ""),
       source: sanitiseSource(source),
     })
