@@ -72,14 +72,21 @@ function extractJobAd() {
     "main"
   ], 200) || clean(document.body.innerText);
 
-  // On SEEK, jobs open in a side panel without changing the address bar URL.
-  // Try to extract the actual job listing URL from the DOM first.
-  const seekJobAnchor = Array.from(document.querySelectorAll('a[href*="/job/"]'))
-    .find(a => /\/job\/\d+/.test(a.getAttribute('href') || ''));
-  const seekHref = seekJobAnchor?.getAttribute('href') ?? '';
-  const resolvedUrl = seekHref
-    ? (seekHref.startsWith('http') ? seekHref : `${window.location.origin}${seekHref}`)
-    : window.location.href;
+  // On SEEK, clicking a job in search results adds ?jobId=XXXXXXX to the URL
+  // without navigating to the actual job page. Build the canonical job URL from that.
+  let resolvedUrl = window.location.href;
+  const seekJobIdParam = new URLSearchParams(window.location.search).get('jobId');
+  if (seekJobIdParam && /^\d+$/.test(seekJobIdParam)) {
+    resolvedUrl = `${window.location.origin}/job/${seekJobIdParam}`;
+  } else {
+    // Fallback: look for a direct /job/12345 link in the DOM
+    const seekJobAnchor = Array.from(document.querySelectorAll('a[href*="/job/"]'))
+      .find(a => /\/job\/\d+/.test(a.getAttribute('href') || ''));
+    const seekHref = seekJobAnchor?.getAttribute('href') ?? '';
+    if (seekHref) {
+      resolvedUrl = seekHref.startsWith('http') ? seekHref : `${window.location.origin}${seekHref}`;
+    }
+  }
 
   return {
     title: clean(title),
