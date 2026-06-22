@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowRight, BarChart2, Bookmark, Building2, FileText, Home, LayoutDashboard, LogOut, Plus, Settings, Users } from "lucide-react";
+import { ArrowRight, BarChart2, Bookmark, Building2, FileText, Home, LayoutDashboard, LogOut, Plus, Settings, Users, Zap } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 const navItems = [
@@ -19,6 +19,10 @@ type SidebarProps = {
   avatarUrl?: string | null;
   showEnterpriseAdmin?: boolean;
   planType?: string | null;
+  planLabel?: string | null;
+  applicationsUsed?: number;
+  applicationsRemaining?: number;
+  applicationLimit?: number;
 };
 
 function initialsFrom(name?: string | null, email?: string | null) {
@@ -38,7 +42,7 @@ const enterpriseNavItems = [
   { href: "/profile",               label: "Settings",    icon: Settings },
 ];
 
-export function Sidebar({ userName, userEmail, avatarUrl, showEnterpriseAdmin, planType }: SidebarProps) {
+export function Sidebar({ userName, userEmail, avatarUrl, showEnterpriseAdmin, planType, planLabel, applicationsUsed = 0, applicationsRemaining = 0, applicationLimit = 1 }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const initials = initialsFrom(userName, userEmail);
@@ -87,22 +91,45 @@ export function Sidebar({ userName, userEmail, avatarUrl, showEnterpriseAdmin, p
               <Plus className="h-4.5 w-4.5 shrink-0" />
               Add Job
             </Link>
+
+            <div className="mt-2 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Your plan</p>
+                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${planType === "free" ? "bg-slate-100 text-slate-600" : "bg-[#ece8ff] text-[#2200ff]"}`}>
+                  <Zap className="h-2.5 w-2.5" />
+                  {planLabel ?? "Free"}
+                </span>
+              </div>
+
+              <div className="mt-3">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className={`h-full rounded-full ${applicationsRemaining === 0 ? "bg-rose-400" : "bg-[#2200ff]"}`}
+                    style={{ width: `${applicationLimit > 0 ? Math.round((applicationsUsed / applicationLimit) * 100) : 0}%` }}
+                  />
+                </div>
+                <p className="mt-1.5 text-xs text-slate-400">{applicationsRemaining} of {applicationLimit} remaining</p>
+              </div>
+
+              {planType === "free" ? (
+                <Link
+                  href="/pricing"
+                  className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[#2200ff] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#1a00cc]"
+                >
+                  Upgrade <ArrowRight className="h-3 w-3" />
+                </Link>
+              ) : (
+                <Link
+                  href="/profile"
+                  className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-500 transition hover:border-[#d4ccff] hover:text-[#2200ff]"
+                >
+                  View details <ArrowRight className="h-3 w-3" />
+                </Link>
+              )}
+            </div>
           </div>
         )}
       </nav>
-
-      {!showEnterpriseAdmin && planType === "free" && (
-        <div className="mx-4 mb-3 rounded-2xl bg-[#ece8ff] p-4">
-          <p className="text-xs font-black text-[#2200ff]">Need to apply more?</p>
-          <p className="mt-1 text-xs leading-5 text-[#4422cc]">You have 1 free application per month. Upgrade for up to 150.</p>
-          <Link
-            href="/pricing"
-            className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[#2200ff] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#1a00cc]"
-          >
-            See plans <ArrowRight className="h-3 w-3" />
-          </Link>
-        </div>
-      )}
 
       <div className="px-4 py-5">
         <Link

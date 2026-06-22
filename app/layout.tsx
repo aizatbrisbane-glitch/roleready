@@ -74,6 +74,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             avatarUrl={avatarUrl}
             showEnterpriseAdmin={showEnterpriseAdmin}
             planType={planType}
+            planLabel={access?.planLabel ?? null}
+            applicationsUsed={access?.applicationsUsed ?? 0}
+            applicationsRemaining={access?.applicationsRemaining ?? 0}
+            applicationLimit={access?.applicationLimit ?? 1}
           />
         )}
 
