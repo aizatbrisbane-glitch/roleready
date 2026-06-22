@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ArrowRight, Eye } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
@@ -137,7 +138,7 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
       <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-[0_32px_100px_rgba(34,0,255,0.1)] sm:p-9 lg:p-12">
         <div className="text-center">
           <div className="mx-auto">
-            <img src="/brand/koalapply-favicon-wordmark.png" alt="Koalapply" className="h-20 w-auto" />
+            <Link href="/"><img src="/brand/koalapply-favicon-wordmark.png" alt="Koalapply" className="h-20 w-auto" /></Link>
           </div>
           <h1 className="mt-7 text-3xl font-bold text-slate-900">Check your email</h1>
           <p className="mt-3 text-base leading-7 text-slate-600">
@@ -188,7 +189,7 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
     <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-[0_32px_100px_rgba(34,0,255,0.1)] sm:p-9 lg:p-12">
       <div className="text-center">
         <div className="flex justify-center">
-          <img src="/brand/koalapply-favicon-wordmark.png" alt="Koalapply" className="h-20 w-auto" />
+          <Link href="/"><img src="/brand/koalapply-favicon-wordmark.png" alt="Koalapply" className="h-20 w-auto" /></Link>
         </div>
         <h1 className="mt-7 text-3xl font-bold text-slate-900">
           {mode === "forgot" ? "Reset your password" : isSignup ? "Create your account" : "Welcome back! 👋"}
