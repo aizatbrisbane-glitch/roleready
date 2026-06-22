@@ -207,7 +207,7 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
                 {job.job_url ? (
                   <>
                     <span className="text-slate-300">•</span>
-                    <a href={job.job_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-[#2200ff]">
+                    <a href={/^https?:\/\//i.test(job.job_url) ? job.job_url : `https://${job.job_url}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-[#2200ff]">
                       View job ad <ExternalLink className="h-3.5 w-3.5" />
                     </a>
                   </>

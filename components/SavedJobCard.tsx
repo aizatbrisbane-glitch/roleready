@@ -49,7 +49,7 @@ export function SavedJobCard({ application, onRemoved }: Props) {
           <div className="flex items-center gap-1.5">
             <span className="line-clamp-1 font-semibold leading-snug text-slate-900">{job.title}</span>
             {job.job_url && (
-              <a href={job.job_url} target="_blank" rel="noopener noreferrer" title="View original job">
+              <a href={/^https?:\/\//i.test(job.job_url) ? job.job_url : `https://${job.job_url}`} target="_blank" rel="noopener noreferrer" title="View original job">
                 <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slate-300 transition hover:text-[#2200ff]" />
               </a>
             )}

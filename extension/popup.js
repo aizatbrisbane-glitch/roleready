@@ -72,13 +72,22 @@ function extractJobAd() {
     "main"
   ], 200) || clean(document.body.innerText);
 
+  // On SEEK, jobs open in a side panel without changing the address bar URL.
+  // Try to extract the actual job listing URL from the DOM first.
+  const seekJobAnchor = Array.from(document.querySelectorAll('a[href*="/job/"]'))
+    .find(a => /\/job\/\d+/.test(a.getAttribute('href') || ''));
+  const seekHref = seekJobAnchor?.getAttribute('href') ?? '';
+  const resolvedUrl = seekHref
+    ? (seekHref.startsWith('http') ? seekHref : `${window.location.origin}${seekHref}`)
+    : window.location.href;
+
   return {
     title: clean(title),
     company: clean(company),
     location: clean(location),
     salary: clean(salary),
     description: description.slice(0, 30000),
-    url: window.location.href
+    url: resolvedUrl
   };
 }
 
