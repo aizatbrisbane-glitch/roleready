@@ -51,6 +51,7 @@ export function KeywordStrengthSection({
   });
   const [evidenceMap, setEvidenceMap] = useState<Record<string, string>>({});
   const [targetMap, setTargetMap] = useState<Record<string, Target>>({});
+  const [snippetEditMap, setSnippetEditMap] = useState<Record<string, string>>({});
 
   const hasRealKeywords = missingKeywords.length > 0;
   const isPremium = planType !== "free";
@@ -86,6 +87,14 @@ export function KeywordStrengthSection({
     setTargetMap((prev) => ({ ...prev, [keyword]: value }));
   }
 
+  function getSnippetEdit(keyword: string) {
+    return snippetEditMap[keyword] ?? "";
+  }
+
+  function setSnippetEdit(keyword: string, value: string) {
+    setSnippetEditMap((prev) => ({ ...prev, [keyword]: value }));
+  }
+
   function targetLabel(target: Target | null) {
     if (target === "resume") return "resume";
     if (target === "cover_letter") return "cover letter";
@@ -116,12 +125,14 @@ export function KeywordStrengthSection({
         setState(keyword, { phase: "error", message: data.error ?? "Something went wrong." });
         return;
       }
+      const snippet = data.changedSnippet ?? "";
+      setSnippetEdit(keyword, snippet);
       setState(keyword, {
         phase: "reviewing",
         target,
         tailoredResume: data.tailoredResume ?? null,
         coverLetter: data.coverLetter ?? null,
-        snippet: data.changedSnippet ?? "",
+        snippet,
       });
     } catch {
       setState(keyword, { phase: "error", message: "Network error. Please try again." });
@@ -133,12 +144,21 @@ export function KeywordStrengthSection({
     if (state.phase !== "reviewing") return;
     setState(keyword, { phase: "saving" });
 
+    const editedSnippet = getSnippetEdit(keyword).trim() || state.snippet;
+    const applyEdit = (doc: string | null) =>
+      doc && state.snippet && editedSnippet !== state.snippet
+        ? doc.replace(state.snippet, editedSnippet)
+        : doc;
+
+    const finalResume = applyEdit(state.tailoredResume);
+    const finalCover = applyEdit(state.coverLetter);
+
     const body: Record<string, unknown> = {
       strengthened_keywords: [...new Set([...strengthenedKeywords, keyword])],
-      strengthened_keyword_snippets: { ...strengthenedKeywordSnippets, [keyword]: state.snippet },
+      strengthened_keyword_snippets: { ...strengthenedKeywordSnippets, [keyword]: editedSnippet },
     };
-    if (state.tailoredResume) body.tailored_resume = state.tailoredResume;
-    if (state.coverLetter) body.cover_letter = state.coverLetter;
+    if (finalResume) body.tailored_resume = finalResume;
+    if (finalCover) body.cover_letter = finalCover;
 
     try {
       await fetch(`/api/applications/${applicationId}`, {
@@ -147,12 +167,12 @@ export function KeywordStrengthSection({
         body: JSON.stringify(body),
       });
       onDocumentUpdate({
-        resume: state.tailoredResume ?? null,
-        cover: state.coverLetter ?? null,
+        resume: finalResume ?? null,
+        cover: finalCover ?? null,
         keyword,
-        snippet: state.snippet,
+        snippet: editedSnippet,
       });
-      setState(keyword, { phase: "success", target: state.target, snippet: state.snippet });
+      setState(keyword, { phase: "success", target: state.target, snippet: editedSnippet });
     } catch {
       setState(keyword, { phase: "error", message: "Failed to save. Please try again." });
     }
@@ -238,12 +258,16 @@ export function KeywordStrengthSection({
                     </>
                   ) : isReviewing || isSaving ? (
                     <div className="mt-3 space-y-3">
-                      <p className="text-xs font-semibold text-amber-700">Review the change before saving:</p>
-                      {state.phase === "reviewing" && state.snippet ? (
-                        <p className="rounded-xl bg-amber-100 px-3 py-2 text-xs italic leading-5 text-amber-900">
-                          &ldquo;{state.snippet}&rdquo;
-                        </p>
-                      ) : null}
+                      <p className="text-xs font-semibold text-amber-700">Edit the change if needed, then save:</p>
+                      {state.phase === "reviewing" && (
+                        <textarea
+                          className="w-full resize-none rounded-xl border border-amber-200 bg-white px-3 py-2 text-xs leading-5 text-slate-900 outline-none focus:ring-2 focus:ring-amber-300"
+                          rows={3}
+                          value={getSnippetEdit(item)}
+                          onChange={(e) => setSnippetEdit(item, e.target.value)}
+                          disabled={isSaving}
+                        />
+                      )}
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
