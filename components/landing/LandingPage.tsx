@@ -310,21 +310,6 @@ export function LandingPage() {
         </section>
 
 
-        {/* â"€â"€ Stats â"€â"€ */}
-        <section className="Koalapply-fade-up mx-auto mt-12 max-w-4xl px-5 pb-20 sm:px-8 lg:px-10">
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            {stats.map(({ icon: Icon, value, label, period, iconCls }) => (
-              <div key={label} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-                <span className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${iconCls}`}>
-                  <Icon className="h-5 w-5" />
-                </span>
-                <p className="mt-3 text-3xl font-extrabold text-slate-900">{value}</p>
-                <p className="mt-0.5 text-sm font-semibold text-slate-700">{label}</p>
-                <p className="mt-0.5 text-xs text-slate-400">{period}</p>
-              </div>
-            ))}
-          </div>
-        </section>
 
         {/* â"€â"€ How it works â"€â"€ */}
         <section id="how-it-works" className="Koalapply-fade-up bg-white px-5 py-28 sm:px-8 lg:px-10 lg:py-36">
