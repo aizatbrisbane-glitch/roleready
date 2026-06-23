@@ -229,7 +229,7 @@ export function LandingPage() {
             {/* Two-column: photo left, resume card right */}
             <div className="mt-7 grid grid-cols-1 gap-6 pb-4 sm:mt-10 lg:grid-cols-2 lg:gap-10">
 
-              {/* Left: slideshow */}
+              {/* Left: slideshow — desktop only */}
               <div className="relative hidden overflow-hidden rounded-3xl shadow-lg lg:block" style={{ minHeight: "420px" }}>
                 {heroImages.map((src, i) => (
                   <img
@@ -241,13 +241,11 @@ export function LandingPage() {
                     onError={(e) => { e.currentTarget.style.display = "none"; }}
                   />
                 ))}
-                {/* TikTok-style overlay text */}
                 <p className="absolute top-5 left-5 right-5 text-center text-xl font-black leading-tight tracking-tight text-black">
                   <span className="box-decoration-clone bg-white px-2 py-1 leading-[1.7]">
                     I'm not tailoring CVs.. are you? 😏
                   </span>
                 </p>
-                {/* Slideshow dots */}
                 <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5">
                   {heroImages.map((_, i) => (
                     <button
@@ -300,6 +298,35 @@ export function LandingPage() {
                     <Zap className="h-4 w-4" />
                     ATS-friendly PDFs
                   </p>
+                </div>
+              </div>
+
+              {/* Slideshow — mobile only, appears below upload card */}
+              <div className="relative block overflow-hidden rounded-3xl shadow-lg lg:hidden" style={{ aspectRatio: "4/3" }}>
+                {heroImages.map((src, i) => (
+                  <img
+                    key={src}
+                    src={src}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-1000"
+                    style={{ opacity: i === heroImageIndex ? 1 : 0 }}
+                    onError={(e) => { e.currentTarget.style.display = "none"; }}
+                  />
+                ))}
+                <p className="absolute top-4 left-4 right-4 text-center text-base font-black leading-tight tracking-tight text-black">
+                  <span className="box-decoration-clone bg-white px-2 py-1 leading-[1.7]">
+                    I'm not tailoring CVs.. are you? 😏
+                  </span>
+                </p>
+                <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
+                  {heroImages.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setHeroImageIndex(i)}
+                      className="h-1.5 rounded-full transition-all duration-300"
+                      style={{ width: i === heroImageIndex ? "20px" : "6px", background: i === heroImageIndex ? "white" : "rgba(255,255,255,0.5)" }}
+                    />
+                  ))}
                 </div>
               </div>
 
