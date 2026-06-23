@@ -244,7 +244,7 @@ export function LandingPage() {
                 {/* TikTok-style overlay text */}
                 <p className="absolute top-5 left-5 right-5 text-center text-xl font-black leading-tight tracking-tight text-black">
                   <span className="box-decoration-clone bg-white px-2 py-1 leading-[1.7]">
-                    POV: you not rewriting CVs and Covers manually 😌
+                    I'm not tailoring CVs.. are you? 😏
                   </span>
                 </p>
                 {/* Slideshow dots */}
