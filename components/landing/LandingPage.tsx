@@ -345,7 +345,26 @@ export function LandingPage() {
             <p className="mx-auto mt-5 max-w-2xl text-center text-lg leading-8 text-slate-600">
               Upload your resume once. We do the tailoring. You do the interviewing.
             </p>
-            <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Mobile: single combined card */}
+            <div className="mt-10 rounded-[1.75rem] border border-slate-100 bg-white px-6 py-6 shadow-sm sm:hidden">
+              {steps.map(({ icon: Icon, title, body, color, badge }, index) => (
+                <div key={title} className={`flex items-start gap-4 ${index < steps.length - 1 ? "mb-6 pb-6 border-b border-slate-100" : ""}`}>
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${color}`}>
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold ${badge}`}>{index + 1}</span>
+                      <h3 className="text-sm font-bold text-slate-900">{title}</h3>
+                    </div>
+                    <p className="mt-1 text-sm leading-6 text-slate-500">{body}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: 4-column grid */}
+            <div className="mt-16 hidden gap-6 sm:grid sm:grid-cols-2 lg:grid-cols-4">
               {steps.map(({ icon: Icon, title, body, color, badge }, index) => (
                 <div key={title} className="relative rounded-[1.75rem] border border-slate-100 bg-white px-5 py-7 text-center transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_55px_rgba(34,0,255,0.07)]">
                   <div className={`mx-auto flex h-20 w-20 items-center justify-center rounded-[1.7rem] ${color} shadow-[0_20px_55px_rgba(34,0,255,0.07)]`}>
