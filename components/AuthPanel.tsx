@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Eye } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { ErrorToast } from "@/components/ErrorToast";
 
 type Mode = "signin" | "signup" | "forgot";
 
@@ -143,6 +144,7 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
   if (otpSent) {
     return (
       <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-[0_32px_100px_rgba(34,0,255,0.1)] sm:p-9 lg:p-12">
+        <ErrorToast message={message} onDismiss={() => setMessage("")} />
         <div className="text-center">
           <div className="mx-auto">
             <Link href="/"><img src="/brand/koalapply-favicon-wordmark.png" alt="Koalapply" className="h-20 w-auto" /></Link>
@@ -187,13 +189,13 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
           </button>
         </p>
 
-        {message && <p className="mt-5 rounded-2xl bg-[#ece8ff] px-4 py-3 text-sm leading-6 text-[#1a00cc]">{message}</p>}
       </div>
     );
   }
 
   return (
     <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-[0_32px_100px_rgba(34,0,255,0.1)] sm:p-9 lg:p-12">
+      <ErrorToast message={message} onDismiss={() => setMessage("")} />
       <div className="text-center">
         <div className="flex justify-center">
           <Link href="/"><img src="/brand/koalapply-favicon-wordmark.png" alt="Koalapply" className="h-20 w-auto" /></Link>
@@ -324,7 +326,6 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
         )}
       </div>
 
-      {message && <p className="mt-5 rounded-2xl bg-[#ece8ff] px-4 py-3 text-sm leading-6 text-[#1a00cc]">{message}</p>}
     </div>
   );
 }

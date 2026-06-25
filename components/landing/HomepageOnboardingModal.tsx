@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, Eye, FileText, Loader2, UploadCloud, X } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { ErrorToast } from "@/components/ErrorToast";
 
 export const HOMEPAGE_ONBOARDING_DRAFT_KEY = "Koalapply_home_onboarding_draft";
 export const GRAB_PREFILL_STORAGE_KEY = "Koalapply_grab_prefill";
@@ -793,7 +794,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
           </>
         )}
 
-        {message && <p className="mt-5 rounded-2xl bg-[#ece8ff] px-4 py-3 text-sm leading-6 text-[#1a00cc]">{message}</p>}
+        <ErrorToast message={message} onDismiss={() => setMessage("")} />
       </div>
     </div>
   );
