@@ -71,7 +71,11 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
     });
 
     if (error) {
-      setMessage(error.message);
+      setMessage(
+        error.message.toLowerCase().includes("password should contain")
+          ? "Password must be at least 8 characters and include letters and numbers."
+          : error.message
+      );
       setLoading(false);
       return;
     }

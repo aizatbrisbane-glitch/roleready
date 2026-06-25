@@ -375,6 +375,9 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
         if (signInError && signUpError.message.toLowerCase().includes("already registered")) {
           throw new Error("Incorrect password. Try signing in from the main menu.");
         }
+        if (signUpError.message.toLowerCase().includes("password should contain")) {
+          throw new Error("Password must be at least 8 characters and include letters and numbers.");
+        }
         throw new Error(signUpError.message);
       }
 
