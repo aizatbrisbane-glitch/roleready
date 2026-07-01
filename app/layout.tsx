@@ -1,5 +1,6 @@
 ﻿import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { headers } from "next/headers";
@@ -123,6 +124,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {children}
 
           {authed && <MobileNav showEnterpriseAdmin={showEnterpriseAdmin} />}
+          <Analytics />
         </div>
       </body>
     </html>

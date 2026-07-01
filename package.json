@@ -13,6 +13,7 @@
     "@sparticuz/chromium": "^148.0.0",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
+    "@vercel/analytics": "^2.0.1",
     "canvas-confetti": "^1.9.4",
     "docx": "latest",
     "jspdf": "latest",
