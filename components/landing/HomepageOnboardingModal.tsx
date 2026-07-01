@@ -375,7 +375,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
         if (signInError && signUpError.message.toLowerCase().includes("already registered")) {
           throw new Error("Incorrect password. Try signing in from the main menu.");
         }
-        if (signUpError.message.toLowerCase().includes("password should contain")) {
+        if (signUpError.message.toLowerCase().includes("password should")) {
           throw new Error("Password must be at least 8 characters and include letters and numbers.");
         }
         throw new Error(signUpError.message);
@@ -761,7 +761,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                   <label className="block">
                     <span className="mb-2 block text-sm font-semibold text-slate-600">Password</span>
                     <span className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 focus-within:ring-2 focus-within:ring-[#d4ccff]">
-                      <input type={showPassword ? "text" : "password"} required minLength={6} className="min-w-0 flex-1 bg-transparent text-base text-slate-900 outline-none placeholder:text-slate-400" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Create a password" autoComplete="new-password" />
+                      <input type={showPassword ? "text" : "password"} required minLength={8} className="min-w-0 flex-1 bg-transparent text-base text-slate-900 outline-none placeholder:text-slate-400" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Create a password" autoComplete="new-password" />
                       <button type="button" onClick={() => setShowPassword((v) => !v)} className="text-slate-400 transition hover:text-[#2200ff]" aria-label={showPassword ? "Hide password" : "Show password"}>
                         <Eye className="h-5 w-5" />
                       </button>

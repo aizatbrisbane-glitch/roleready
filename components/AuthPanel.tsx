@@ -72,7 +72,7 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
 
     if (error) {
       setMessage(
-        error.message.toLowerCase().includes("password should contain")
+        error.message.toLowerCase().includes("password should")
           ? "Password must be at least 8 characters and include letters and numbers."
           : error.message
       );
@@ -237,7 +237,7 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
                 className="min-w-0 flex-1 bg-transparent text-base text-slate-900 outline-none placeholder:text-slate-400"
                 type={showPassword ? "text" : "password"}
                 autoComplete={isSignup ? "new-password" : "current-password"}
-                minLength={isSignup ? 6 : undefined}
+                minLength={isSignup ? 8 : undefined}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
