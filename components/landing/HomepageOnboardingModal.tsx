@@ -396,6 +396,9 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
 
       const { data: refreshedSessionData } = await supabase.auth.getSession();
       if (refreshedSessionData.session) {
+        if (newsletterOptIn) {
+          fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) }).catch(() => {});
+        }
         setIsAuthenticated(true);
         await submitAuthenticated();
         return;
