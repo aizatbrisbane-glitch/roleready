@@ -81,7 +81,7 @@ export default async function BlogArticlePage({ params }: Props) {
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Table of contents</p>
               <nav className="mt-4">
                 <ol className="space-y-1">
-                  {article.sections.map((section, index) => (
+                  {article.sections.filter((s) => s.title).map((section, index) => (
                     <li key={section.id} className="flex items-baseline gap-3">
                       <span className="w-5 shrink-0 text-right text-xs font-bold text-slate-300">{index + 1}.</span>
                       <a href={`#${section.id}`} className="text-sm font-semibold leading-6 text-slate-600 transition hover:text-[#2200ff]">
