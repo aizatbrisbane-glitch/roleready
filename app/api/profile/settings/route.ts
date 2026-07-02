@@ -57,6 +57,7 @@ export async function POST(request: Request) {
     preferred_industries: splitCsv(formData.get("preferred_industries")),
     salary_range: String(formData.get("salary_range") ?? ""),
     preferred_locations: splitCsv(formData.get("preferred_locations")),
+    job_search_intent: String(formData.get("job_search_intent") ?? ""),
     ...avatarUpdate,
   };
 
@@ -84,7 +85,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Sign in before saving your profile." }, { status: 401 });
   }
 
-  const allowed = ["location", "name", "phone", "linkedin_url", "salary_range"] as const;
+  const allowed = ["location", "name", "phone", "linkedin_url", "salary_range", "job_search_intent"] as const;
   type AllowedKey = (typeof allowed)[number];
 
   const body = await request.json().catch(() => ({})) as Record<string, unknown>;

@@ -3,13 +3,22 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3 | 4 | 5;
 
 const STEP_LABELS = [
+  "Your situation",
   "Upload CV",
   "Upload master cover letter",
   "Paste job URL",
   "Confirm location",
+];
+
+const INTENT_OPTIONS = [
+  { value: "just_starting", label: "Just starting out", sub: "I'm beginning my job search from scratch" },
+  { value: "actively_hunting", label: "Actively hunting", sub: "I need a job and I'm searching hard" },
+  { value: "employed_browsing", label: "Employed, just browsing", sub: "Happy enough but open to better offers" },
+  { value: "levelling_up", label: "Looking to level up", sub: "I want a bigger role or a promotion" },
+  { value: "career_tips_only", label: "Not searching yet", sub: "I just want career advice for now" },
 ];
 
 export function OnboardingWizard() {
@@ -18,6 +27,7 @@ export function OnboardingWizard() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [jobSearchIntent, setJobSearchIntent] = useState("");
   const [jobUrl, setJobUrl] = useState("");
   const [location, setLocation] = useState("");
   const [applicationId, setApplicationId] = useState<string | null>(null);
@@ -42,22 +52,34 @@ export function OnboardingWizard() {
     return true;
   }
 
+  async function handleIntentNext() {
+    setLoading(true);
+    setError("");
+    await fetch("/api/profile/settings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ job_search_intent: jobSearchIntent }),
+    }).catch(() => {});
+    setLoading(false);
+    setStep(2);
+  }
+
   async function handleResumeFile(file: File) {
     const ok = await uploadFile(file, "resume_file");
     if (!ok) return;
     setSuccess(true);
-    setTimeout(() => { setSuccess(false); setStep(2); }, 1500);
+    setTimeout(() => { setSuccess(false); setStep(3); }, 1500);
   }
 
   async function handleCoverFile(file: File) {
     const ok = await uploadFile(file, "cover_letter_file");
     if (!ok) return;
     setSuccess(true);
-    setTimeout(() => { setSuccess(false); setStep(3); }, 1500);
+    setTimeout(() => { setSuccess(false); setStep(4); }, 1500);
   }
 
   async function handleJobUrl() {
-    if (!jobUrl.trim() && !descText.trim()) { setStep(4); return; }
+    if (!jobUrl.trim() && !descText.trim()) { setStep(5); return; }
     setLoading(true);
     setError("");
     const fd = new FormData();
@@ -76,7 +98,7 @@ export function OnboardingWizard() {
       return;
     }
     if (data?.applicationId) setApplicationId(data.applicationId);
-    setStep(4);
+    setStep(5);
   }
 
   async function handleFinish() {
@@ -124,8 +146,44 @@ export function OnboardingWizard() {
       {/* Step card */}
       <div className="rounded-[1.75rem] bg-slate-100 px-8 py-14 text-center shadow-sm">
 
-        {/* Step 1 — Upload CV */}
+        {/* Step 1 — Job search intent */}
         {step === 1 && (
+          <>
+            <h2 className="text-2xl font-bold text-slate-900">Where are you in your job search?</h2>
+            <p className="mt-2 text-slate-500">This helps us tailor your experience.</p>
+            <div className="mt-8 space-y-3 text-left">
+              {INTENT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setJobSearchIntent(opt.value)}
+                  className={`w-full rounded-2xl border px-5 py-4 text-left transition ${
+                    jobSearchIntent === opt.value
+                      ? "border-[#2200ff] bg-[#ece8ff]"
+                      : "border-slate-200 bg-white hover:border-[#d4ccff]"
+                  }`}
+                >
+                  <p className={`font-semibold ${jobSearchIntent === opt.value ? "text-[#2200ff]" : "text-slate-900"}`}>{opt.label}</p>
+                  <p className="mt-0.5 text-sm text-slate-500">{opt.sub}</p>
+                </button>
+              ))}
+            </div>
+            {error && <p className="mt-3 text-sm text-rose-600">{error}</p>}
+            <div className="mt-6">
+              <button
+                type="button"
+                disabled={!jobSearchIntent || loading}
+                onClick={handleIntentNext}
+                className="inline-flex items-center gap-2 rounded-full bg-[#2200ff] px-8 py-3.5 text-base font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[#1a00cc] disabled:opacity-60"
+              >
+                {loading ? "Saving..." : "Next"}
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Step 2 — Upload CV */}
+        {step === 2 && (
           <>
             <h2 className="text-2xl font-bold text-slate-900">First, upload your CV here</h2>
             {success ? (
@@ -156,8 +214,8 @@ export function OnboardingWizard() {
           </>
         )}
 
-        {/* Step 2 — Upload cover letter */}
-        {step === 2 && (
+        {/* Step 3 — Upload cover letter */}
+        {step === 3 && (
           <>
             <h2 className="text-2xl font-bold text-slate-900">Now, upload your current cover letter</h2>
             <p className="mt-2 text-slate-500">We'll fine tune it to match the job you want.</p>
@@ -186,7 +244,7 @@ export function OnboardingWizard() {
                 {error && <p className="mt-3 text-sm text-rose-600">{error}</p>}
                 <button
                   type="button"
-                  onClick={() => setStep(3)}
+                  onClick={() => setStep(4)}
                   className="mt-5 text-sm text-slate-400 underline underline-offset-2 hover:text-slate-600"
                 >
                   Skip for now
@@ -196,8 +254,8 @@ export function OnboardingWizard() {
           </>
         )}
 
-        {/* Step 3 — Job URL */}
-        {step === 3 && (
+        {/* Step 4 — Job URL */}
+        {step === 4 && (
           <>
             <h2 className="text-2xl font-bold text-slate-900">Which job are you applying for?</h2>
             <p className="mt-2 text-slate-500">Paste a Seek or LinkedIn link — or paste the full job description below.</p>
@@ -242,7 +300,7 @@ export function OnboardingWizard() {
               </button>
               <button
                 type="button"
-                onClick={() => { setError(""); setStep(4); }}
+                onClick={() => { setError(""); setStep(5); }}
                 className="text-sm text-slate-400 underline underline-offset-2 hover:text-slate-600"
               >
                 Skip for now
@@ -251,8 +309,8 @@ export function OnboardingWizard() {
           </>
         )}
 
-        {/* Step 4 — Location */}
-        {step === 4 && (
+        {/* Step 5 — Location */}
+        {step === 5 && (
           <>
             <h2 className="text-2xl font-bold text-slate-900">Where is the job located?</h2>
             <p className="mt-2 text-slate-500">So we can show you more local opportunities.</p>

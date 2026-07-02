@@ -19,6 +19,7 @@ export type StoredDraft = {
   jobMode?: JobMode | "description";
   jobUrl?: string;
   jobDescription?: string;
+  jobSearchIntent?: string;
   browse?: {
     keywords?: string;
     location?: string;
@@ -40,6 +41,14 @@ const EMAIL_OTP_LENGTH = 6;
 const DRAFT_DB_NAME = "Koalapply-onboarding-drafts";
 const DRAFT_STORE_NAME = "files";
 const JOB_TEXT_UNAVAILABLE = "JOB_TEXT_UNAVAILABLE";
+
+const INTENT_OPTIONS = [
+  { value: "just_starting", label: "Just starting out", sub: "I'm beginning my job search from scratch" },
+  { value: "actively_hunting", label: "Actively hunting", sub: "I need a job and I'm searching hard" },
+  { value: "employed_browsing", label: "Employed, just browsing", sub: "Happy enough but open to better offers" },
+  { value: "levelling_up", label: "Looking to level up", sub: "I want a bigger role or a promotion" },
+  { value: "career_tips_only", label: "Not searching yet", sub: "I just want career advice for now" },
+];
 
 function isAcceptedDocument(file: File) {
   const name = file.name.toLowerCase();
@@ -134,6 +143,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [newsletterOptIn, setNewsletterOptIn] = useState(true);
+  const [jobSearchIntent, setJobSearchIntent] = useState(initialDraft?.jobSearchIntent ?? "");
 
   useEffect(() => {
     if (!open) return;
@@ -186,6 +196,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       email,
       jobMode,
       jobUrl,
+      jobSearchIntent,
       browse: {
         keywords: browseKeywords,
         location: browseLocation,
@@ -204,6 +215,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       initialDraft?.coverLetterFileName,
       initialDraft?.resumeFileName,
       jobMode,
+      jobSearchIntent,
       jobUrl,
       resumeFile,
       resumeFileKey,
@@ -245,6 +257,14 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
 
   async function submitAuthenticated() {
     setMessage("");
+
+    if (jobSearchIntent) {
+      await fetch("/api/profile/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ job_search_intent: jobSearchIntent }),
+      }).catch(() => {});
+    }
 
     if (jobMode === "browse") {
       if (!resumeFile) {
@@ -488,15 +508,22 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
   function continueFromJobStep() {
     setMessage("");
     if (!validateJobIntent()) return;
+    saveDraft(currentDraft);
+    setStep(4);
+  }
+
+  function continueFromIntentStep() {
+    setMessage("");
+    if (!jobSearchIntent) return;
     if (isAuthenticated) {
       void handleAccountGate();
     } else {
       saveDraft(currentDraft);
-      setStep(4);
+      setStep(5);
     }
   }
 
-  const stepLabel = confirmEmail ? "Confirm email" : isAuthenticated && step === 4 ? "Ready" : `Step ${step} of 4`;
+  const stepLabel = confirmEmail ? "Confirm email" : isAuthenticated && step === 5 ? "Ready" : `Step ${step} of 5`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/55 px-3 py-4 backdrop-blur-sm sm:items-center sm:px-6">
@@ -748,6 +775,41 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
             )}
 
             {step === 4 && (
+              <section className="mt-5">
+                <h2 className="text-3xl font-black tracking-tight text-slate-900">Where are you in your job search?</h2>
+                <p className="mt-2 text-base leading-7 text-slate-600">This helps us tailor your experience.</p>
+                <div className="mt-6 space-y-3">
+                  {INTENT_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setJobSearchIntent(opt.value)}
+                      className={`w-full rounded-2xl border px-5 py-4 text-left transition ${
+                        jobSearchIntent === opt.value
+                          ? "border-[#2200ff] bg-[#ece8ff]"
+                          : "border-slate-200 bg-white hover:border-[#d4ccff]"
+                      }`}
+                    >
+                      <p className={`font-semibold ${jobSearchIntent === opt.value ? "text-[#2200ff]" : "text-slate-900"}`}>{opt.label}</p>
+                      <p className="mt-0.5 text-sm text-slate-500">{opt.sub}</p>
+                    </button>
+                  ))}
+                </div>
+                {message && <p className="mt-4 text-sm text-rose-600">{message}</p>}
+                <div className="mt-6 flex justify-end">
+                  <button
+                    type="button"
+                    disabled={!jobSearchIntent}
+                    onClick={continueFromIntentStep}
+                    className="inline-flex items-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-sm font-bold text-white shadow-[0_12px_32px_rgba(34,0,255,0.22)] disabled:opacity-50"
+                  >
+                    Continue <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </section>
+            )}
+
+            {step === 5 && (
               <section className="mt-5">
                 <h2 className="text-3xl font-black tracking-tight text-slate-900">Your first application is almost ready</h2>
                 <p className="mt-3 text-base leading-7 text-slate-600">

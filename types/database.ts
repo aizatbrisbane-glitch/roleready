@@ -22,6 +22,7 @@ export type Profile = {
   preferred_locations: string[];
   avatar_url: string;
   avatar_storage_path: string;
+  job_search_intent: string | null;
   created_at: string;
   updated_at: string;
 };

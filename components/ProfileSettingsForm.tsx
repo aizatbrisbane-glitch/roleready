@@ -116,6 +116,17 @@ export function ProfileSettingsForm({ profile, userEmail }: Props) {
           <span className="label">Preferred locations</span>
           <input name="preferred_locations" className="field" defaultValue={profile?.preferred_locations?.join(", ") ?? ""} />
         </label>
+        <label className="space-y-2">
+          <span className="label">Job search status</span>
+          <select name="job_search_intent" className="field" defaultValue={profile?.job_search_intent ?? ""}>
+            <option value="">Not set</option>
+            <option value="just_starting">Just starting out</option>
+            <option value="actively_hunting">Actively hunting</option>
+            <option value="employed_browsing">Employed, just browsing</option>
+            <option value="levelling_up">Looking to level up</option>
+            <option value="career_tips_only">Not searching yet</option>
+          </select>
+        </label>
       </div>
 
       <div className="mt-6 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center">
