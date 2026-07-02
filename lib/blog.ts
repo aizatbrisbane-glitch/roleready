@@ -269,7 +269,7 @@ export const blogArticles: BlogArticle[] = [
     author: "Koalapply",
     publishDate: "30 May 2026",
     readingTime: "9 min read",
-    image: "/blog/not-getting-interviews.png",
+    image: "/blog/not-getting-interviews.jpg",
     imageAlt: "Professional job seeker waiting for interview responses",
     sections: [
       {
