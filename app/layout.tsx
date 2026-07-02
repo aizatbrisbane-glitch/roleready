@@ -24,7 +24,7 @@ function initialsFrom(name?: string | null, email?: string | null) {
 }
 
 export const metadata: Metadata = {
-  title: "Koalapply — Your Career Companion",
+  title: "Koalapply — Job hunting, without the burnout.",
   description: "Tailored resumes and cover letters for every job ad, powered by AI.",
   icons: {
     icon: "/brand/koalapply-favicon-wordmark.png",
