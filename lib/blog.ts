@@ -42,6 +42,84 @@ export const blogCategories: BlogCategory[] = [
 
 export const blogArticles: BlogArticle[] = [
   {
+    slug: "fastest-way-to-lose-a-high-performer",
+    title: "The Fastest Way to Lose a High Performer",
+    excerpt: "Losing a good employee rarely looks dramatic. It is a slow drift, over months, from fully switched on to just going through the motions. Here is what that looks like from the inside.",
+    category: "Career Growth",
+    author: "Koalapply",
+    publishDate: "3 Jul 2026",
+    readingTime: "6 min read",
+    image: "/blog/fastest-way-to-lose-high-performer.jpg",
+    imageAlt: "High performer reflecting on their career trajectory",
+    featured: true,
+    sections: [
+      {
+        id: "intro",
+        title: "",
+        paragraphs: [
+          "You already know if you are a high performer. Nobody has to tell you in a performance review. You know because you are the one who catches what everyone else missed, the one who stays fifteen minutes late so the deck actually makes sense, the one whose name ends up attached to anything that needs someone reliable on it.",
+          "What you are less sure of is whether anyone has actually noticed.",
+          "That is the part most companies get wrong, and not occasionally. Consistently. Losing a good employee rarely looks dramatic from the outside. There is no blow-up, no scene in the break room, no dramatic resignation letter. It is quieter than that: a slow drift, over months, from fully switched on to just going through the motions, long before anyone hands in their notice.",
+          "Here is what that drift usually looks like from the inside, and what is worth doing if you are somewhere in the middle of it right now.",
+        ],
+      },
+      {
+        id: "useful-instead-of-valued",
+        title: "It Starts With Being Useful Instead of Valued",
+        paragraphs: [
+          "The fastest way a company loses someone good is by treating them as a solution to problems instead of a person with a career. You get handed the messy account, the underperforming team, the project nobody else wants, because everyone knows you will actually deliver. That is not nothing. Being trusted with hard things is real, and it feels good, at least at first.",
+          "But being trusted with hard things and being valued for them are not the same. One shows up in what you are handed. The other shows up in pay reviews, promotions, and someone occasionally asking what you actually want next. When only the first one is happening, you end up carrying more responsibility every year while your title quietly stays put.",
+          "If your workload keeps growing and your role on paper has not moved in a while, that is not a coincidence. That is the pattern.",
+        ],
+      },
+      {
+        id: "recognition-goes-to-loudest",
+        title: "Recognition Goes to Whoever Talks About It Loudest",
+        paragraphs: [
+          "Most workplaces are not actually built to notice quiet excellence. They notice noise. The person who mentions their wins in every meeting tends to get remembered over the person who just delivers and moves on to the next thing. It is not fair, and it is not really about merit either. It is about visibility.",
+          "If you have spent years assuming good work speaks for itself, it is worth asking honestly whether it is actually being heard, or just being consumed.",
+        ],
+      },
+      {
+        id: "feedback-two-way",
+        title: "Feedback Stops Being a Two-Way Thing",
+        paragraphs: [
+          "Early on, feedback usually flows both directions. Someone checks in, asks how the role is going, takes your input on what could run better. Then, gradually, it starts flowing one way only. You are told what needs fixing. Nobody is asking what is draining you, or what would actually make the next twelve months better for you.",
+          "That shift matters, not because feedback stopped, but because it stopped being a conversation.",
+        ],
+      },
+      {
+        id: "what-to-do",
+        title: "What to Actually Do About It",
+        paragraphs: [
+          "None of this is a reason to spiral, and it is not a reason to quit on impulse either. It is a reason to get deliberate.",
+          "Name it honestly, to yourself, first. Not \"I am probably being dramatic,\" and not \"everyone feels like this sometimes.\" Look at the actual facts. What have you delivered in the last twelve months, and what has changed for you as a result? If the answer is \"a lot\" and \"not much,\" that is data, not drama.",
+          "Have the direct conversation before the exit conversation. A surprising number of managers genuinely do not know how a good employee is feeling, simply because nobody has told them plainly. Ask for what you actually want: a title conversation, a pay review, a change in scope, rather than hinting and hoping it gets noticed. A real answer, one way or the other, will come quickly. A vague \"let us revisit this soon\" is an answer too.",
+          "Keep a record of your own impact. Not for anyone else, for you. Most high performers undersell their own case because they are too close to the work to see its shape from the outside. Write down what you actually did, not just what you were assigned. It is useful twice over: once for the conversation you are about to have, and once for the resume you might need sooner than you think.",
+          "Decide what you are actually optimising for. More money, more scope, more recognition, more sanity: these are not the same thing, and chasing all four at once usually gets you none of them. Knowing which one matters most right now changes what you ask for, and what you are willing to walk away from.",
+          "Do not wait for the breaking point before you start looking. The best time to explore the market is before you are desperate, not after. A calm, well-prepared search where you are choosing between options feels completely different from a rushed one where you are just trying to escape, and it tends to land you somewhere better. Give yourself the runway.",
+        ],
+      },
+      {
+        id: "if-conversation-doesnt-land",
+        title: "If the Conversation Does Not Land",
+        paragraphs: [
+          "Sometimes you have the honest conversation and nothing changes. That is useful information too. It tells you the appreciation gap is not an oversight, it is the culture. At that point, staying quiet and hoping it improves is usually the more expensive option, even if it feels like the safer one.",
+          "If that is where you have landed, the work shifts from advocating internally to positioning yourself externally. That takes a different skill: translating what you have actually done into language that lands with a hiring manager who has never met you and has thirty seconds to decide if you are worth a second look.",
+        ],
+      },
+      {
+        id: "koalapply-cta",
+        title: "Just Koalapply!",
+        paragraphs: [
+          "This is exactly the moment Koalapply is built for. When you decide your work deserves to be recognised somewhere else, Koalapply helps you explain what you have done clearly and confidently.",
+          "Upload your resume, add the job ad, and Koalapply helps tailor your resume and cover letter to what the employer is actually looking for. It also keeps your applications organised, so you know what you applied for and where things stand.",
+          "Let us help you with your first application for free!",
+        ],
+      },
+    ],
+  },
+  {
     slug: "show-what-good-looks-like",
     title: "Real Leaders Show What Good Looks Like",
     excerpt: "Real leadership is not a position. It is a practice. And the most effective leaders do not just set the standard. They live it.",
@@ -123,7 +201,6 @@ export const blogArticles: BlogArticle[] = [
     readingTime: "5 min read",
     image: "/blog/reputation-cv.png",
     imageAlt: "Professional reflecting on their career reputation",
-    featured: true,
     sections: [
       {
         id: "beyond-the-resume",
