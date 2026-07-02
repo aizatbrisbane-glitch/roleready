@@ -650,46 +650,98 @@ export const blogArticles: BlogArticle[] = [
   {
     slug: "how-to-tailor-your-resume-for-each-job",
     title: "How to Tailor Your Resume for Each Job Without Starting From Scratch",
-    excerpt: "A practical system for turning one strong master resume into targeted applications that feel specific, relevant and easy to send.",
+    excerpt: "Tailoring your resume doesn't mean starting over every time. Here's a system that lets you adapt quickly — without the manual grind.",
     category: "Resumes",
     author: "Koalapply Team",
     publishDate: "30 May 2026",
-    readingTime: "6 min read",
+    readingTime: "8 min read",
     image: "/landing/job-seeker-laptop.jpg",
     imageAlt: "Job seeker working on a laptop",
     sections: [
       {
-        id: "start-with-master-resume",
-        title: "Start With a Strong Master Resume",
+        id: "intro",
+        title: "",
         paragraphs: [
-          "Tailoring works best when your base document already contains the right raw material. Keep a master resume with your full experience, achievements, tools, projects and measurable outcomes.",
-          "The goal is not to send this version. The goal is to make sure every future application has enough evidence to draw from."
-        ],
-        bullets: [
-          "Keep achievements specific and measurable where possible.",
-          "Include alternate wording for common skills in your field.",
-          "Group older or less relevant experience so it is easy to shorten."
+          "You've heard it a hundred times: \"Tailor your resume for every job you apply to.\" It's solid advice — recruiters and applicant tracking systems (ATS) both favour resumes that speak directly to the role. But if you're applying to ten, twenty, or fifty jobs, rewriting your resume from scratch each time isn't just tedious — it's unsustainable.",
+          "The good news is that tailoring doesn't mean starting over. It means being strategic about what you change, and building a system that lets you adapt quickly. Here's how."
         ]
       },
       {
-        id: "read-the-job-ad",
-        title: "Read the Job Ad Like a Selection Criteria",
+        id: "why-tailoring-matters",
+        title: "Why Tailoring Actually Matters",
         paragraphs: [
-          "Before editing, scan the job ad for repeated responsibilities, required tools and the language used to describe success in the role.",
-          "Your tailored resume should mirror the role's priorities without copying the ad word for word."
+          "Most companies now use an ATS to filter applications before a human ever sees them. These systems scan for keywords, skills, and phrases that match the job description. A generic resume — even a strong one — can get filtered out simply because it doesn't mirror the language of the posting.",
+          "Beyond the ATS, hiring managers skim resumes in seconds. A resume that clearly reflects the role you're applying for signals that you understand the job and took the application seriously. A generic one signals the opposite, even if your experience is a great fit."
         ]
       },
       {
-        id: "make-targeted-edits",
-        title: "Make Targeted Edits",
+        id: "build-master-resume",
+        title: "Step 1: Build a \"Master Resume\" First",
         paragraphs: [
-          "Focus on the summary, recent experience bullets and skills section first. Those areas usually carry the most weight for both recruiters and screening systems.",
-          "Small changes can make a large difference when they help the reader quickly see why your background matches this specific role."
+          "Before you tailor anything, create one comprehensive master resume that includes everything: every role, every achievement, every skill, every metric you've got. This document is never sent to an employer — it's your source material.",
+          "Think of it as a library you pull from, not a draft you edit live. Having this in place means tailoring becomes a matter of selecting and rephrasing, not writing from a blank page every time."
+        ]
+      },
+      {
+        id: "study-job-description",
+        title: "Step 2: Study the Job Description Like a Checklist",
+        paragraphs: [
+          "Read the job posting and pull out three things:",
+          "These are the words the ATS is scanning for, and they're also the words a hiring manager expects to see echoed back at them. You don't need to use every single one, but the closer your language matches theirs, the stronger your match score."
         ],
         bullets: [
-          "Move the most relevant achievements higher.",
-          "Use job-ad language naturally in your skills and experience.",
-          "Remove details that distract from the role you are applying for."
+          "Hard skills and tools (e.g. \"SQL,\" \"Salesforce,\" \"project management\")",
+          "Soft skills and traits (e.g. \"collaborative,\" \"detail-oriented,\" \"self-starter\")",
+          "Key responsibilities (the actual verbs — \"manage,\" \"lead,\" \"coordinate,\" \"analyse\")"
+        ]
+      },
+      {
+        id: "swap-the-summary",
+        title: "Step 3: Swap the Summary, Not the Structure",
+        paragraphs: [
+          "Your resume's top section — whether it's a summary or headline — is the highest-leverage place to tailor. This is the first thing a recruiter reads, and it should immediately connect your background to the role.",
+          "Instead of a generic opener like \"Experienced professional with a background in marketing,\" tailor it to the specific job: \"Marketing coordinator with 4 years' experience in content strategy and campaign analytics, specialising in B2B SaaS growth.\"",
+          "This single paragraph can change every time — while the rest of your resume's structure stays exactly the same."
+        ]
+      },
+      {
+        id: "reorder-bullet-points",
+        title: "Step 4: Reorder and Reframe Your Bullet Points",
+        paragraphs: [
+          "You don't need new achievements for every job. You need to reframe existing ones to highlight what's relevant.",
+          "For example, if you managed a project that involved both budgeting and team leadership, and you're applying for a finance-focused role, lead with the budgeting outcome. If you're applying for a people-management role, lead with the leadership outcome. Same experience, different emphasis.",
+          "Also consider reordering your bullet points within each role so the most relevant achievements sit at the top — that's what gets read first."
+        ]
+      },
+      {
+        id: "match-keywords-naturally",
+        title: "Step 5: Match Keywords Naturally",
+        paragraphs: [
+          "Once you've identified keywords from Step 2, weave them into your bullet points and skills section where they genuinely apply. Don't force a skill you don't have just because it's in the posting — but if you have \"cross-functional collaboration\" and the posting says \"works well across teams,\" use their phrasing.",
+          "This is less about gaming the system and more about speaking the same language as the person (or algorithm) reading your resume."
+        ]
+      },
+      {
+        id: "keep-tailoring-log",
+        title: "Step 6: Keep a Tailoring Log",
+        paragraphs: [
+          "As you apply to more roles, you'll start noticing patterns — certain industries or job types will need similar tweaks. Keep a simple log or folder of your tailored versions so you're not reinventing the wheel each time. Over time, you'll build a set of \"modular\" summaries and bullet variations you can mix and match in minutes."
+        ]
+      },
+      {
+        id: "systemise-not-sacrifice",
+        title: "The Real Time-Saver: Systemise, Don't Sacrifice Quality",
+        paragraphs: [
+          "The mistake most job seekers make is treating tailoring as all-or-nothing: either send the same resume everywhere, or spend an hour rewriting each one. Neither is necessary. With a master resume, a clear read of the job description, and a few targeted edits — the summary, the bullet emphasis, the keywords — you can tailor a resume in minutes rather than hours, without losing the polish or personalisation that gets you noticed."
+        ]
+      },
+      {
+        id: "let-koalapply-help",
+        title: "Let Koalapply Do the Heavy Lifting",
+        paragraphs: [
+          "Tailoring a resume well takes a good eye for detail — and a bit of time you may not have between applications. That's exactly what Koalapply is built for.",
+          "Koalapply takes your master resume and a job description, and instantly generates a tailored resume and cover letter matched to that specific role — pulling out the right keywords, reframing your achievements, and rewriting your summary, all in a fraction of the time it'd take to do manually.",
+          "If you're applying to multiple roles and want every application to feel custom without the manual grind, give Koalapply a try."
         ]
       }
     ]
