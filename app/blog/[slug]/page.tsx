@@ -77,14 +77,19 @@ export default async function BlogArticlePage({ params }: Props) {
 
         <section className="px-5 pb-14 sm:px-8 lg:px-10 lg:pb-20">
           <div className="mx-auto max-w-4xl space-y-8">
-            <div className="rounded-[1.5rem] border border-slate-100 bg-white p-5 shadow-sm">
+            <div className="rounded-[1.5rem] border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Table of contents</p>
-              <nav className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
-                {article.sections.map((section) => (
-                  <a key={section.id} href={`#${section.id}`} className="text-sm font-semibold leading-6 text-slate-600 transition hover:text-[#2200ff]">
-                    {section.title}
-                  </a>
-                ))}
+              <nav className="mt-4">
+                <ol className="space-y-1">
+                  {article.sections.map((section, index) => (
+                    <li key={section.id} className="flex items-baseline gap-3">
+                      <span className="w-5 shrink-0 text-right text-xs font-bold text-slate-300">{index + 1}.</span>
+                      <a href={`#${section.id}`} className="text-sm font-semibold leading-6 text-slate-600 transition hover:text-[#2200ff]">
+                        {section.title}
+                      </a>
+                    </li>
+                  ))}
+                </ol>
               </nav>
             </div>
 
