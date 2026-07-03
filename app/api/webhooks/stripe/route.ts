@@ -1,4 +1,5 @@
-﻿import { NextResponse } from "next/server";
+﻿import { createHmac } from "crypto";
+import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { Resend } from "resend";
 import { getStripeClient } from "@/lib/stripe";
@@ -102,7 +103,7 @@ export async function POST(request: Request) {
       });
       const setupLink = linkData?.properties?.action_link;
       if (setupLink) {
-        await sendPasswordSetupEmail(customerEmail, setupLink);
+        await sendPasswordSetupEmail(customerEmail, setupLink, resolvedUserId, appUrl);
       }
     } else {
       // User already exists — find their ID via recovery link (no email sent)
@@ -151,12 +152,14 @@ export async function POST(request: Request) {
   return NextResponse.json({ received: true });
 }
 
-async function sendPasswordSetupEmail(to: string, setupLink: string) {
+async function sendPasswordSetupEmail(to: string, setupLink: string, userId: string, appUrl: string) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.warn("[stripe-webhook] RESEND_API_KEY not set — skipping password setup email");
     return;
   }
+  const sig = createHmac("sha256", apiKey).update(userId).digest("hex");
+  const subscribeLink = `${appUrl}/api/newsletter/email-optin?uid=${encodeURIComponent(userId)}&sig=${sig}`;
   const resend = new Resend(apiKey);
   await resend.emails.send({
     from: "Koalapply <noreply@koalapply.com>",
@@ -172,6 +175,15 @@ async function sendPasswordSetupEmail(to: string, setupLink: string) {
         <a href="${setupLink}" style="display:inline-block;background:#2200ff;color:#fff;font-weight:700;font-size:15px;padding:14px 28px;border-radius:9999px;text-decoration:none">
           Set my password
         </a>
+        <div style="margin:40px 0 0;padding:24px;background:#f8fafc;border-radius:16px;border:1px solid #e2e8f0">
+          <p style="font-size:14px;font-weight:700;margin:0 0 6px;color:#1e293b">Want career tips and job search advice?</p>
+          <p style="font-size:13px;line-height:1.6;margin:0 0 16px;color:#64748b">
+            Get weekly tips on resumes, interviews, and landing your next role — straight to your inbox. Unsubscribe anytime.
+          </p>
+          <a href="${subscribeLink}" style="display:inline-block;background:#f1f5f9;color:#2200ff;font-weight:700;font-size:13px;padding:10px 20px;border-radius:9999px;text-decoration:none;border:1px solid #e2e8f0">
+            Yes, send me career tips →
+          </a>
+        </div>
         <p style="font-size:13px;color:#94a3b8;margin:32px 0 0">
           If you didn't make this purchase, you can safely ignore this email.
         </p>
