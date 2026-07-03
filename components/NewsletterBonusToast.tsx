@@ -1,6 +1,6 @@
 "use client";
 
-import { Mail, X } from "lucide-react";
+import { Gift, X } from "lucide-react";
 import { useState } from "react";
 
 type Props = {
@@ -17,40 +17,47 @@ export function NewsletterBonusToast({ onSubscribe, onDismiss }: Props) {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-80 max-w-[calc(100vw-3rem)]">
-      <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-[0_16px_48px_rgba(15,23,42,0.18)]">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#ece8ff] text-[#2200ff]">
-              <Mail className="h-4 w-4" />
-            </span>
-            <p className="text-sm font-semibold text-slate-900">Want an extra FREE application?</p>
-          </div>
-          <button
-            type="button"
-            onClick={onDismiss}
-            className="mt-0.5 shrink-0 text-slate-400 transition hover:text-slate-600"
-            aria-label="Dismiss"
-          >
-            <X className="h-4 w-4" />
-          </button>
+    <div className="fixed bottom-6 right-6 z-50 w-[340px] max-w-[calc(100vw-2rem)] animate-in slide-in-from-bottom-4 fade-in duration-300">
+      <div className="relative overflow-hidden rounded-2xl bg-[#2200ff] p-5 shadow-[0_20px_60px_rgba(34,0,255,0.45)]">
+        {/* dismiss */}
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="absolute right-3 top-3 text-white/50 transition hover:text-white"
+          aria-label="Dismiss"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        {/* icon + heading */}
+        <div className="flex items-center gap-3">
+          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15">
+            <Gift className="h-5 w-5 text-white" />
+          </span>
+          <p className="text-base font-bold leading-tight text-white pr-4">
+            Want an extra FREE application?
+          </p>
         </div>
-        <p className="mt-2 pl-10 text-xs leading-5 text-slate-500">
+
+        {/* body */}
+        <p className="mt-3 text-sm leading-6 text-white/80">
           Subscribe to career tips and we'll unlock a 2nd free application for you right now.
         </p>
-        <div className="mt-3 flex gap-2 pl-10">
+
+        {/* actions */}
+        <div className="mt-4 flex gap-2">
           <button
             type="button"
             onClick={handleSubscribe}
             disabled={subscribing}
-            className="rounded-full bg-[#2200ff] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#1a00cc] disabled:opacity-70"
+            className="flex-1 rounded-full bg-white px-4 py-2.5 text-sm font-bold text-[#2200ff] shadow-sm transition hover:bg-[#ece8ff] disabled:opacity-70"
           >
             {subscribing ? "Subscribing…" : "Click Subscribe!"}
           </button>
           <button
             type="button"
             onClick={onDismiss}
-            className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300"
+            className="rounded-full border border-white/25 px-4 py-2.5 text-sm font-semibold text-white/80 transition hover:border-white/50 hover:text-white"
           >
             No thanks
           </button>

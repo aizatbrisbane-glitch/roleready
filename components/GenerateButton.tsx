@@ -93,9 +93,8 @@ export function GenerateButton({ applicationId, hasDocuments, canGenerate, autoG
       setProgress(100);
       if (payload?.showNewsletterOffer) {
         setShowNewsletterOffer(true);
-      } else {
-        router.refresh();
       }
+      router.refresh();
     } catch (error) {
       setMessage(
         error instanceof DOMException && error.name === "AbortError"
@@ -112,12 +111,11 @@ export function GenerateButton({ applicationId, hasDocuments, canGenerate, autoG
   async function subscribeFromToast() {
     setShowNewsletterOffer(false);
     await fetch("/api/newsletter/bonus", { method: "POST" });
-    router.refresh();
+    router.refresh(); // re-fetch access state — canGenerate flips to true
   }
 
   function dismissToast() {
     setShowNewsletterOffer(false);
-    router.refresh();
   }
 
   return (
