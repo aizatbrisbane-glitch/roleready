@@ -36,7 +36,7 @@ export function NewsletterBonusToast({ onSubscribe, onDismiss }: Props) {
           </button>
         </div>
         <p className="mt-2 pl-10 text-xs leading-5 text-slate-500">
-          Subscribe to career tips and unlock one more free application this month.
+          Subscribe to career tips and we'll unlock a 2nd free application for you right now.
         </p>
         <div className="mt-3 flex gap-2 pl-10">
           <button

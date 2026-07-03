@@ -836,7 +836,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                       onChange={(e) => setNewsletterOptIn(e.target.checked)}
                       className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-[#2200ff] focus:ring-[#d4ccff]"
                     />
-                    Send me career tips and job search advice (unsubscribe anytime)
+                    Get a 2nd free application — subscribe to career tips and job search advice (unsubscribe anytime)
                   </label>
                   <ErrorToast message={message} onDismiss={() => setMessage("")} />
                   <button

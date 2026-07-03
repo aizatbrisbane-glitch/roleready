@@ -176,12 +176,12 @@ async function sendPasswordSetupEmail(to: string, setupLink: string, userId: str
           Set my password
         </a>
         <div style="margin:40px 0 0;padding:24px;background:#f8fafc;border-radius:16px;border:1px solid #e2e8f0">
-          <p style="font-size:14px;font-weight:700;margin:0 0 6px;color:#1e293b">Want career tips and job search advice?</p>
+          <p style="font-size:14px;font-weight:700;margin:0 0 6px;color:#1e293b">🎁 Want a free extra application credit?</p>
           <p style="font-size:13px;line-height:1.6;margin:0 0 16px;color:#64748b">
-            Get weekly tips on resumes, interviews, and landing your next role — straight to your inbox. Unsubscribe anytime.
+            Subscribe to career tips and job search advice and we'll add a bonus free application to your account each month. Unsubscribe anytime.
           </p>
           <a href="${subscribeLink}" style="display:inline-block;background:#f1f5f9;color:#2200ff;font-weight:700;font-size:13px;padding:10px 20px;border-radius:9999px;text-decoration:none;border:1px solid #e2e8f0">
-            Yes, send me career tips →
+            Yes, give me the bonus credit →
           </a>
         </div>
         <p style="font-size:13px;color:#94a3b8;margin:32px 0 0">
