@@ -15,6 +15,7 @@ export type AccessState = {
 };
 
 const FREE_MONTHLY_APPLICATION_LIMIT = 1;
+const FREE_NEWSLETTER_APPLICATION_LIMIT = 2;
 
 function monthStartIso() {
   const now = new Date();
@@ -65,20 +66,30 @@ export async function getAccessState(supabase: SupabaseServerClient, userId: str
     };
   }
 
-  const { count } = await supabase
-    .from("applications")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", userId)
-    .not("generated_at", "is", null)
-    .gte("generated_at", monthStartIso());
+  const [{ count }, { data: profileRow }] = await Promise.all([
+    supabase
+      .from("applications")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .not("generated_at", "is", null)
+      .gte("generated_at", monthStartIso()),
+    supabase
+      .from("profiles")
+      .select("newsletter_subscribed")
+      .eq("id", userId)
+      .maybeSingle(),
+  ]);
 
+  const freeLimit = profileRow?.newsletter_subscribed
+    ? FREE_NEWSLETTER_APPLICATION_LIMIT
+    : FREE_MONTHLY_APPLICATION_LIMIT;
   const used = count ?? 0;
-  const remaining = Math.max(0, FREE_MONTHLY_APPLICATION_LIMIT - used);
+  const remaining = Math.max(0, freeLimit - used);
 
   return {
     planType: "free",
     planLabel: "Free plan",
-    applicationLimit: FREE_MONTHLY_APPLICATION_LIMIT,
+    applicationLimit: freeLimit,
     applicationsUsed: used,
     applicationsRemaining: remaining,
     validUntil: null,

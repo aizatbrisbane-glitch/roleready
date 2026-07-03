@@ -4,6 +4,7 @@ import { Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { NewsletterBonusToast } from "@/components/NewsletterBonusToast";
 
 type AiProvider = "openai" | "anthropic";
 
@@ -47,6 +48,7 @@ export function GenerateButton({ applicationId, hasDocuments, canGenerate, autoG
   const [provider, setProvider] = useState<AiProvider>("anthropic");
   const [message, setMessage] = useState("");
   const [progress, setProgress] = useState(0);
+  const [showNewsletterOffer, setShowNewsletterOffer] = useState(false);
   const generatingRef = useRef(false);
   const autoGenerateStartedRef = useRef(false);
 
@@ -89,7 +91,11 @@ export function GenerateButton({ applicationId, hasDocuments, canGenerate, autoG
         return;
       }
       setProgress(100);
-      router.refresh();
+      if (payload?.showNewsletterOffer) {
+        setShowNewsletterOffer(true);
+      } else {
+        router.refresh();
+      }
     } catch (error) {
       setMessage(
         error instanceof DOMException && error.name === "AbortError"
@@ -103,69 +109,84 @@ export function GenerateButton({ applicationId, hasDocuments, canGenerate, autoG
     }
   }
 
-  if (!canGenerate) {
-    return (
-      <div className="flex w-full flex-col gap-2 lg:w-auto">
-        <Link
-          href="/pricing"
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-[#2200ff] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_42px_rgba(34,0,255,0.2)] transition hover:-translate-y-0.5 hover:bg-[#1a00cc] sm:px-5"
-        >
-          <Sparkles className="h-4 w-4 shrink-0" />
-          Upgrade to generate
-        </Link>
-        <p className="text-xs text-slate-500">You've used your free application this month.</p>
-      </div>
-    );
+  async function subscribeFromToast() {
+    setShowNewsletterOffer(false);
+    await fetch("/api/newsletter/bonus", { method: "POST" });
+    router.refresh();
+  }
+
+  function dismissToast() {
+    setShowNewsletterOffer(false);
+    router.refresh();
   }
 
   return (
-    <div className="flex w-full flex-col gap-3 lg:w-auto">
-      <div className="flex flex-wrap items-center gap-2">
-        {hasDocuments && (
-          <label className="flex items-center gap-1.5 rounded-full border border-white/60 bg-white/70 px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur">
-            <span className="text-xs text-slate-500">AI</span>
-            <select
-              className="bg-transparent text-sm outline-none"
-              value={provider}
-              onChange={(e) => setProvider(e.target.value as AiProvider)}
+    <>
+      {!canGenerate ? (
+        <div className="flex w-full flex-col gap-2 lg:w-auto">
+          <Link
+            href="/pricing"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#2200ff] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_42px_rgba(34,0,255,0.2)] transition hover:-translate-y-0.5 hover:bg-[#1a00cc] sm:px-5"
+          >
+            <Sparkles className="h-4 w-4 shrink-0" />
+            Upgrade to generate
+          </Link>
+          <p className="text-xs text-slate-500">You've used your free application this month.</p>
+        </div>
+      ) : (
+        <div className="flex w-full flex-col gap-3 lg:w-auto">
+          <div className="flex flex-wrap items-center gap-2">
+            {hasDocuments && (
+              <label className="flex items-center gap-1.5 rounded-full border border-white/60 bg-white/70 px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur">
+                <span className="text-xs text-slate-500">AI</span>
+                <select
+                  className="bg-transparent text-sm outline-none"
+                  value={provider}
+                  onChange={(e) => setProvider(e.target.value as AiProvider)}
+                  disabled={loading}
+                >
+                  <option value="anthropic">Claude</option>
+                  <option value="openai">ChatGPT</option>
+                </select>
+              </label>
+            )}
+            <button
+              onClick={generate}
               disabled={loading}
+              type="button"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#2200ff] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_42px_rgba(34,0,255,0.2)] transition hover:-translate-y-0.5 hover:bg-[#1a00cc] disabled:opacity-70 sm:px-5"
             >
-              <option value="anthropic">Claude</option>
-              <option value="openai">ChatGPT</option>
-            </select>
-          </label>
-        )}
-        <button
-          onClick={generate}
-          disabled={loading}
-          type="button"
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-[#2200ff] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_42px_rgba(34,0,255,0.2)] transition hover:-translate-y-0.5 hover:bg-[#1a00cc] disabled:opacity-70 sm:px-5"
-        >
-          <Sparkles className="h-4 w-4 shrink-0" />
-          {loading ? "Generating…" : hasDocuments ? "Regenerate" : "Generate documents"}
-        </button>
-      </div>
+              <Sparkles className="h-4 w-4 shrink-0" />
+              {loading ? "Generating…" : hasDocuments ? "Regenerate" : "Generate documents"}
+            </button>
+          </div>
 
-      {loading && (
-        <div className="w-full min-w-[260px] lg:min-w-[300px]">
-          <div className="mb-1.5 flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">{getStageLabel(progress)}</span>
-            <span className="text-xs font-semibold tabular-nums text-[#2200ff]">{progress}%</span>
-          </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
-            <div
-              className="h-full rounded-full bg-[#2200ff] transition-[width] duration-500 ease-out"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <p className="mt-2 text-xs leading-5 text-slate-500">
-            This can take up to two minutes while the AI writes both documents.
-          </p>
+          {loading && (
+            <div className="w-full min-w-[260px] lg:min-w-[300px]">
+              <div className="mb-1.5 flex items-center justify-between">
+                <span className="text-xs font-medium text-slate-500">{getStageLabel(progress)}</span>
+                <span className="text-xs font-semibold tabular-nums text-[#2200ff]">{progress}%</span>
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                <div
+                  className="h-full rounded-full bg-[#2200ff] transition-[width] duration-500 ease-out"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="mt-2 text-xs leading-5 text-slate-500">
+                This can take up to two minutes while the AI writes both documents.
+              </p>
+            </div>
+          )}
+
+          {message && <p className="text-xs text-red-600">{message}</p>}
+          {generateHint && !loading && <p className="text-xs text-amber-600">{generateHint}</p>}
         </div>
       )}
 
-      {message && <p className="text-xs text-red-600">{message}</p>}
-      {generateHint && !loading && <p className="text-xs text-amber-600">{generateHint}</p>}
-    </div>
+      {showNewsletterOffer && (
+        <NewsletterBonusToast onSubscribe={subscribeFromToast} onDismiss={dismissToast} />
+      )}
+    </>
   );
 }

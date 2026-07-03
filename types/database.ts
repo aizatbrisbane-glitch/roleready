@@ -23,6 +23,7 @@ export type Profile = {
   avatar_url: string;
   avatar_storage_path: string;
   job_search_intent: string | null;
+  newsletter_subscribed: boolean;
   created_at: string;
   updated_at: string;
 };

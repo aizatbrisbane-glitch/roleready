@@ -375,5 +375,12 @@ export async function POST(request: Request, { params }: Props) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "AI generation failed." }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true });
+  const profileData = profile as Profile | null;
+  const showNewsletterOffer =
+    shouldConsumeCredit &&
+    access.planType === "free" &&
+    !(profileData?.newsletter_subscribed ?? false) &&
+    access.applicationsRemaining === 1;
+
+  return NextResponse.json({ ok: true, showNewsletterOffer });
 }
