@@ -869,26 +869,88 @@ export const blogArticles: BlogArticle[] = [
   {
     slug: "cover-letter-that-does-not-sound-generic",
     title: "How to Write a Cover Letter That Does Not Sound Generic",
-    excerpt: "A modern cover letter should connect your experience to the role quickly, clearly and without filler.",
+    excerpt: "Generic openers, recycled phrases and vague claims about being a \"hard worker\" don't stand out. Here's how to write a cover letter that sounds like you — and speaks directly to the role.",
     category: "Cover Letters",
     author: "Koalapply Team",
     publishDate: "26 May 2026",
-    readingTime: "4 min read",
+    readingTime: "5 min read",
     image: "/landing/hero-job-seeker.png",
     imageAlt: "Professional reviewing career documents",
     sections: [
       {
-        id: "lead-with-fit",
-        title: "Lead With Fit",
+        id: "why-cover-letters-fail",
+        title: "Why Generic Cover Letters Fail",
         paragraphs: [
-          "Open with the connection between your experience and the role. Avoid broad statements about being passionate or hardworking unless they are backed by evidence."
+          "\"I am writing to express my interest in the position of...\" If you've ever started a cover letter with a line like that, you're not alone — and you're also not standing out. Generic openers, recycled phrases, and vague statements about being a \"hard worker\" are so common that hiring managers barely register them anymore.",
+          "The good news is that writing a cover letter that actually sounds like you — and speaks directly to the role — doesn't take a complete rewrite of your approach. It takes a shift in what you focus on.",
+          "A generic cover letter usually fails for one of three reasons:"
+        ],
+        bullets: [
+          "It could be sent to any company. If you could swap out the company name and the letter would still make sense, it's not tailored.",
+          "It restates the resume. If your cover letter just lists the same bullet points in paragraph form, it's not adding anything new.",
+          "It talks about you, not the problem you solve. Hiring managers care less about your career story and more about what you'll do for their team."
         ]
       },
       {
-        id: "show-role-awareness",
-        title: "Show Role Awareness",
+        id: "open-with-something-specific",
+        title: "Step 1: Open With Something Specific, Not a Formula",
         paragraphs: [
-          "Reference the problems the role appears to solve. This shows that you understand the job, not just the company name."
+          "Skip the \"I am writing to apply for...\" opener entirely. Instead, open with something that immediately signals you understand the role or the company.",
+          "For example, instead of \"I am excited to apply for the Marketing Coordinator role,\" try: \"Your team's recent shift toward video-first content caught my attention — it's exactly the kind of strategy I helped drive in my current role, where short-form campaigns lifted engagement by 40%.\"",
+          "This does two things immediately: it proves you researched the company, and it gets straight to relevant value instead of a throat-clearing introduction. Strong openers draw on one of the following:"
+        ],
+        bullets: [
+          "A specific challenge the company is facing that you're equipped to help with",
+          "A genuine reason you're drawn to this particular team or mission",
+          "A quick, relevant result that connects directly to what they need"
+        ]
+      },
+      {
+        id: "focus-on-their-problem",
+        title: "Step 2: Focus on Their Problem, Not Your Biography",
+        paragraphs: [
+          "A generic cover letter often reads like a mini autobiography — where you went to school, every job you've had, why you're a \"people person.\" A strong cover letter instead reads like a pitch: here's the problem you're likely trying to solve, and here's evidence I can solve it.",
+          "Look at the job description again and ask: what pain point is this role solving for the company? Then structure your middle paragraph around how your experience addresses that pain point directly, using one or two concrete examples — not a summary of your whole career."
+        ]
+      },
+      {
+        id: "use-specific-language",
+        title: "Step 3: Use Specific, Not Generic, Language",
+        paragraphs: [
+          "Words like \"hardworking,\" \"team player,\" \"passionate,\" and \"detail-oriented\" are so overused that they've lost meaning. They also don't prove anything on their own — anyone can claim them.",
+          "Instead of saying you're detail-oriented, show it: \"I caught a $12,000 billing discrepancy during a routine audit that had been missed for two quarters.\" Instead of saying you're a team player, show it: \"I coordinated a cross-functional launch between design, engineering, and sales with zero missed deadlines.\"",
+          "Specificity is what separates a claim from a proof point — and proof points are what actually get remembered."
+        ]
+      },
+      {
+        id: "mirror-company-tone",
+        title: "Step 4: Mirror the Company's Tone",
+        paragraphs: [
+          "A cover letter for a fast-growing startup should probably read differently from one for a government department or a traditional law firm. Look at how the company communicates — their website, job posting, and any public content — and match that register.",
+          "This doesn't mean changing who you are. It means adjusting formality and energy so the letter feels like it belongs in their world, rather than reading like a template dropped into the wrong context."
+        ]
+      },
+      {
+        id: "keep-it-short",
+        title: "Step 5: Keep It Short and Let It Breathe",
+        paragraphs: [
+          "Generic cover letters often try to cover everything, which makes them long and dense. A strong cover letter is usually three to four short paragraphs: an attention-grabbing open, one or two proof points tied to their needs, and a confident close.",
+          "Cut any sentence that doesn't either prove a point or move the letter forward. If a line could be deleted without losing meaning, delete it."
+        ]
+      },
+      {
+        id: "end-with-confidence",
+        title: "Step 6: End With Confidence, Not a Cliché",
+        paragraphs: [
+          "Avoid closing lines like \"I look forward to hearing from you\" or \"Thank you for your consideration\" as your only sign-off — they're forgettable because everyone uses them.",
+          "Instead, close with a line that reinforces your fit or shows initiative: \"I'd welcome the chance to talk through how I could help your team hit its Q3 targets.\" It's a small shift, but it leaves the reader with momentum rather than a formality."
+        ]
+      },
+      {
+        id: "core-principle",
+        title: "The Core Principle: Write to Them, Not About You",
+        paragraphs: [
+          "Every technique above comes back to one idea — a cover letter that doesn't sound generic is one that's clearly written for this company, about this role, not a template with the name swapped out. When you focus on their problem and back it up with specific proof, the letter stops sounding like everyone else's and starts sounding like you."
         ]
       }
     ]
