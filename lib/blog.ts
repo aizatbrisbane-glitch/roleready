@@ -749,32 +749,119 @@ export const blogArticles: BlogArticle[] = [
   {
     slug: "job-search-system-that-keeps-you-organised",
     title: "A Simple Job Search System That Keeps You Organised",
-    excerpt: "How to track roles, follow-ups, documents and outcomes without turning your job search into another full-time job.",
+    excerpt: "You don't need fancy software. You need a simple, repeatable system that tracks what matters and keeps your job search moving forward.",
     category: "Job Search",
     author: "Koalapply Team",
     publishDate: "28 May 2026",
-    readingTime: "5 min read",
+    readingTime: "8 min read",
     image: "/landing/team-laptop.jpg",
     imageAlt: "People reviewing work together on a laptop",
     sections: [
       {
-        id: "track-every-role",
-        title: "Track Every Role From the Start",
+        id: "intro",
+        title: "",
         paragraphs: [
-          "The easiest application to lose is the one you were excited about yesterday. Capture each role as soon as you decide it is worth exploring.",
-          "At minimum, track the company, job title, link, application status, date applied and next follow-up."
+          "Job searching often feels chaotic — dozens of tabs open, half-remembered application dates, and that sinking feeling when a recruiter emails you and you can't quite recall which version of your resume you sent them. The problem usually isn't a lack of effort. It's a lack of system.",
+          "You don't need fancy software or a complicated process to fix this. You need a simple, repeatable system that tracks what matters and takes the mental load off your plate. Here's how to build one."
         ]
       },
       {
-        id: "separate-status-from-notes",
-        title: "Separate Status From Notes",
+        id: "why-system-matters",
+        title: "Why a System Matters More Than Motivation",
         paragraphs: [
-          "Status tells you where an application sits. Notes tell you what to do next. Keeping them separate makes your dashboard easier to scan."
+          "Most people start a job search with a burst of energy — updating their resume, applying to five roles in a day. Then the follow-ups pile up, the applications blur together, and momentum stalls. Not because they stopped caring, but because there was no structure holding it together.",
+          "A good system does three things for you:"
         ],
         bullets: [
-          "Use status for pipeline movement.",
-          "Use notes for recruiter names, salary details and reminders.",
-          "Keep interview preparation attached to the relevant role."
+          "Removes decision fatigue — you always know what to do next",
+          "Prevents dropped balls — no missed follow-ups or forgotten interviews",
+          "Shows you progress — so the search feels less like a black hole"
+        ]
+      },
+      {
+        id: "set-up-tracker",
+        title: "Step 1: Set Up a Single Tracker",
+        paragraphs: [
+          "The foundation of any job search system is one central place to track every application. A spreadsheet works perfectly well — you don't need specialised software. At minimum, track the company, role, date applied, resume version, status, and follow-up date.",
+          "The resume version column matters more than people think — if you're tailoring your resume per role (as you should be), you need to know exactly what you sent where, in case you're asked about it in an interview.",
+          "Status should follow a simple pipeline: Applied → Screening → Interview → Offer → Rejected. This alone gives you a clear view of where your search is bottlenecking."
+        ]
+      },
+      {
+        id: "batch-applications",
+        title: "Step 2: Batch Your Applications",
+        paragraphs: [
+          "Rather than applying to jobs the moment you see them, set aside dedicated blocks of time — say, 90 minutes, two or three times a week — to search and apply. Batching keeps your search intentional rather than reactive, and it means you can tailor each application properly instead of rushing.",
+          "During these blocks:"
+        ],
+        bullets: [
+          "Search and shortlist 5–10 relevant roles",
+          "Tailor your resume and cover letter for each",
+          "Apply and log each one in your tracker immediately"
+        ]
+      },
+      {
+        id: "follow-up-rhythm",
+        title: "Step 3: Build a Follow-Up Rhythm",
+        paragraphs: [
+          "Most job seekers apply and then wait. A simple follow-up rhythm changes that. This single habit puts you ahead of most candidates — a large share of applicants never follow up at all, and a short, polite check-in can be the difference between being forgotten and staying top of mind."
+        ],
+        bullets: [
+          "Follow up 7–10 days after applying if you haven't heard back",
+          "Follow up 2–3 days after an interview with a thank-you note",
+          "Set a calendar reminder the moment you apply, so follow-ups never rely on memory"
+        ]
+      },
+      {
+        id: "master-resume-assets",
+        title: "Step 4: Keep a Master Resume and Application Assets",
+        paragraphs: [
+          "Rather than digging through old files every time you apply, keep one organised folder with everything you need. This turns \"finding the right file\" from a five-minute scramble into a ten-second task."
+        ],
+        bullets: [
+          "Your master resume (the full, unedited version with everything)",
+          "A folder of tailored resume versions, named clearly by company and role",
+          "A generic but adaptable cover letter template",
+          "Saved job descriptions for roles you've applied to (postings get taken down — you'll want the reference later)"
+        ]
+      },
+      {
+        id: "review-weekly",
+        title: "Step 5: Review Weekly, Not Daily",
+        paragraphs: [
+          "Checking your tracker every day can create anxiety without adding much value. Instead, set aside 15 minutes once a week to review:"
+        ],
+        bullets: [
+          "What's stalled and needs a follow-up",
+          "What roles you haven't heard back on past the expected timeframe",
+          "What's working (which types of roles and companies are responding) and what isn't"
+        ]
+      },
+      {
+        id: "track-patterns",
+        title: "Step 6: Track Patterns, Not Just Applications",
+        paragraphs: [
+          "After a few weeks, your tracker becomes more than a to-do list — it becomes data. You'll start to notice things like:"
+        ],
+        bullets: [
+          "Which resume version gets more responses",
+          "Which industries or company sizes respond faster",
+          "Whether certain job boards are more effective than others"
+        ]
+      },
+      {
+        id: "reduce-friction",
+        title: "The Goal: Reduce Friction, Not Add More Work",
+        paragraphs: [
+          "The best job search system is the one you'll actually maintain. Keep it simple — a single tracker, a batching rhythm, a follow-up habit, and an organised folder of assets. That's enough to turn a chaotic search into a manageable, trackable process that keeps moving forward even when motivation dips."
+        ]
+      },
+      {
+        id: "let-koalapply-help",
+        title: "Let Koalapply Handle the Tailoring Piece",
+        paragraphs: [
+          "One of the most time-consuming parts of staying organised is tailoring your resume for every role you log in your tracker. Koalapply takes care of that step — generating a tailored resume and cover letter for each job in minutes, so you can keep your system moving without the manual rewrite every time.",
+          "Pair a solid tracking system with fast, tailored applications, and your job search stops feeling like chaos — and starts feeling like progress."
         ]
       }
     ]
