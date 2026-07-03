@@ -128,7 +128,7 @@ export default async function BlogArticlePage({ params }: Props) {
         </section>
       </article>
 
-      <BlogResumeCTA />
+      {!user && <BlogResumeCTA />}
 
       <section className="px-5 pb-14 sm:px-8 lg:px-10 lg:pb-20">
         <div className="mx-auto max-w-7xl">
