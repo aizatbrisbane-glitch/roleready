@@ -1128,17 +1128,82 @@ export const blogArticles: BlogArticle[] = [
     imageAlt: "Professional comparing job offers",
     sections: [
       {
-        id: "compare-total-package",
-        title: "Compare the Total Package",
+        id: "total-compensation",
+        title: "Start with total compensation, not just the base number",
         paragraphs: [
-          "Base salary is only one part of an offer. Consider superannuation, bonus structure, flexibility, leave, commute, learning budget and role scope."
+          "Getting a job offer feels like the finish line. In reality, it's the start of a different decision: is this actually the right offer for you? That question gets harder, not easier, when you're comparing two or more offers side by side, because salary is the easiest number to compare and the hardest one to let go of as the deciding factor.",
+          "Salary is important. It's just not the whole picture. Here's what else belongs in the comparison, and how to weigh it properly.",
+          "Before you even move past salary, make sure you're comparing like with like. A base salary on its own can be misleading."
+        ],
+        bullets: [
+          "Superannuation. Check whether it's the statutory minimum or something higher.",
+          "Bonuses and commission. Find out if they're guaranteed, target-based, or discretionary, and how often they're actually paid out in practice, not just on paper.",
+          "Equity or shares. If a role includes equity, ask about the vesting schedule and what the equity is realistically worth, not just the headline number.",
+          "Leave entitlements. Extra annual leave, parental leave top-ups, or purchased leave options can be worth thousands of dollars a year.",
+          "Other benefits. Health insurance contributions, phone and internet allowances, professional development budgets, and wellness stipends all add up."
         ]
       },
       {
-        id: "look-at-growth",
-        title: "Look at Growth Potential",
+        id: "growth-path",
+        title: "Look at the growth path, not just the job title",
         paragraphs: [
-          "A slightly lower offer can still be stronger if it gives you better experience, a healthier environment or a clearer path to your next step."
+          "Once you've got a true total for each offer, you can actually compare them. Often the gap is smaller than the base salary alone suggests, or bigger.",
+          "A title can look good on paper and still lead nowhere. Before accepting an offer, get a real sense of where the role can take you."
+        ],
+        bullets: [
+          "What does the next role up actually look like, and is there evidence people have been promoted into it recently?",
+          "Is there a structured review and progression process, or is growth informal and dependent on someone noticing you?",
+          "Will this role stretch your skills, or will you be doing a slightly bigger version of what you already know how to do?"
+        ]
+      },
+      {
+        id: "team-and-manager",
+        title: "Weigh the team and manager you'll actually work with",
+        paragraphs: [
+          "A role that pays a little less now but builds skills or experience you can't get elsewhere is often worth more over a three-year horizon than the higher-paying option that leaves you exactly where you started.",
+          "Company reputation and manager quality are two different things, and the second one affects your day-to-day far more than the first. If you had a chance to meet your prospective manager or future team during the interview process, think back on it honestly."
+        ],
+        bullets: [
+          "Did they answer questions directly, or dodge anything that sounded like a real concern?",
+          "Did they talk about the team's wins in terms of \"we,\" or mostly in terms of \"I\"?",
+          "Did anyone mention how feedback is given, or how mistakes are handled?"
+        ]
+      },
+      {
+        id: "lifestyle-fit",
+        title: "Factor in lifestyle fit, not just flexibility on paper",
+        paragraphs: [
+          "These are hard to assess from a single interview, but they're worth paying attention to. A great role under a poor manager tends to sour fast.",
+          "\"Flexible\" and \"hybrid\" mean different things at different companies. Get specific before you compare."
+        ],
+        bullets: [
+          "How many office days are actually required, and is that likely to change?",
+          "What's the commute really like, at the times you'd actually be travelling?",
+          "What are the expected hours, not just contractually, but in practice? Ask about typical start times, whether late meetings are common, and what weekends usually look like in busier periods.",
+          "How much does this role ask of your personal time outside of standard hours, whether that's on-call work, travel, or after-hours availability?"
+        ]
+      },
+      {
+        id: "stability",
+        title: "Consider stability and the health of the business",
+        paragraphs: [
+          "A slightly lower salary with a manageable commute and predictable hours often beats a higher salary that quietly eats into evenings and weekends.",
+          "This one is easy to overlook when you're focused on the role itself, but it affects everything else on this list."
+        ],
+        bullets: [
+          "Has the company had recent layoffs, restructures, or leadership changes?",
+          "Is the role newly created, or replacing someone who left? If it's a replacement, it's worth finding out why the last person moved on.",
+          "How is the business funded, and does that funding look stable for the next year or two?"
+        ]
+      },
+      {
+        id: "put-it-side-by-side",
+        title: "Put it side by side before you decide",
+        paragraphs: [
+          "None of this guarantees anything, but a quick check can tell you whether you're stepping into a settled team or a business in the middle of change.",
+          "Once you've gathered all of this, write it down properly rather than trying to hold the comparison in your head. A simple table with rows for compensation, growth path, manager and team, lifestyle fit, and stability, with a column for each offer, makes the trade-offs obvious in a way that mental math never quite manages.",
+          "Then ask yourself one final question for each offer: a year from now, which of these would you be glad you chose, even if the salary difference had been smaller than it actually is? That answer usually tells you more than the number at the top of the offer letter.",
+          "Once you've decided which offer to pursue, or which roles to apply for next, Koalapply helps you tailor your resume and cover letter to each opportunity, so your application reflects exactly what that employer is looking for."
         ]
       }
     ]
