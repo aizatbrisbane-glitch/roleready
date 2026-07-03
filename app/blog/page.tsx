@@ -1,45 +1,52 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { blogArticles, blogCategories, getFeaturedArticle } from "@/lib/blog";
 import { BlogArticleCard } from "@/components/blog/BlogArticleCard";
 import { NewsletterSignup } from "@/components/blog/NewsletterSignup";
 import { PublicFooter } from "@/components/PublicFooter";
+import { isSupabaseConfigured } from "@/lib/env";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Career Advice & Insights | Koalapply",
   description: "Practical advice to help you find jobs, prepare applications, ace interviews and grow your career.",
 };
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  const supabase = isSupabaseConfigured() ? await createSupabaseServerClient() : null;
+  const { data: { user } } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+
   const featured = getFeaturedArticle();
   const latest = blogArticles.filter((article) => article.slug !== featured.slug);
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900">
-      <header className="border-b border-slate-100 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
-          <Link href="/" className="inline-flex items-center">
-            <Image src="/brand/koalapply-logo.png" alt="Koalapply" width={168} height={56} className="h-12 w-auto sm:h-14" priority />
-          </Link>
-
-          <nav className="hidden items-center gap-9 text-sm font-medium text-slate-700 md:flex">
-            <Link href="/#how-it-works" className="transition hover:text-[#2200ff]">How it works</Link>
-            <Link href="/#features" className="transition hover:text-[#2200ff]">Features</Link>
-            <Link href="/pricing" className="transition hover:text-[#2200ff]">Pricing</Link>
-            <Link href="/blog" className="text-[#2200ff] transition hover:text-[#1a00cc]">Blog</Link>
-          </nav>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link href="/login" className="inline-flex min-h-10 items-center justify-center rounded-full px-4 text-sm font-semibold text-slate-700 transition hover:text-[#2200ff]">
-              Log in
+      {!user && (
+        <header className="border-b border-slate-100 bg-white/95 backdrop-blur">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
+            <Link href="/" className="inline-flex items-center">
+              <Image src="/brand/koalapply-logo.png" alt="Koalapply" width={168} height={56} className="h-12 w-auto sm:h-14" priority />
             </Link>
-            <Link href="/login" className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#2200ff] px-4 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(34,0,255,0.3)] transition hover:-translate-y-0.5 hover:bg-[#1a00cc] sm:min-h-11 sm:px-6">
-              Start free
-            </Link>
+
+            <nav className="hidden items-center gap-9 text-sm font-medium text-slate-700 md:flex">
+              <Link href="/#how-it-works" className="transition hover:text-[#2200ff]">How it works</Link>
+              <Link href="/#features" className="transition hover:text-[#2200ff]">Features</Link>
+              <Link href="/pricing" className="transition hover:text-[#2200ff]">Pricing</Link>
+              <Link href="/blog" className="text-[#2200ff] transition hover:text-[#1a00cc]">Blog</Link>
+            </nav>
+
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Link href="/login" className="inline-flex min-h-10 items-center justify-center rounded-full px-4 text-sm font-semibold text-slate-700 transition hover:text-[#2200ff]">
+                Log in
+              </Link>
+              <Link href="/login" className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#2200ff] px-4 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(34,0,255,0.3)] transition hover:-translate-y-0.5 hover:bg-[#1a00cc] sm:min-h-11 sm:px-6">
+                Start free
+              </Link>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       <section className="bg-white px-5 py-16 sm:px-8 lg:px-10 lg:py-24">
         <div className="mx-auto max-w-4xl text-center">
@@ -95,7 +102,7 @@ export default function BlogPage() {
           <NewsletterSignup />
         </div>
       </section>
-      <PublicFooter />
+      {!user && <PublicFooter />}
     </main>
   );
 }

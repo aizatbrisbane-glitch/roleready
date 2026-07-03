@@ -7,6 +7,8 @@ import { BlogArticleCard } from "@/components/blog/BlogArticleCard";
 import { BlogResumeCTA } from "@/components/blog/BlogResumeCTA";
 import { NewsletterSignup } from "@/components/blog/NewsletterSignup";
 import { blogArticles, getArticleBySlug, getRelatedArticles } from "@/lib/blog";
+import { isSupabaseConfigured } from "@/lib/env";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -38,18 +40,23 @@ export default async function BlogArticlePage({ params }: Props) {
 
   const related = getRelatedArticles(article);
 
+  const supabase = isSupabaseConfigured() ? await createSupabaseServerClient() : null;
+  const { data: { user } } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+
   return (
     <main className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900">
-      <header className="border-b border-slate-100 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
-          <Link href="/" className="inline-flex items-center">
-            <Image src="/brand/koalapply-logo.png" alt="Koalapply" width={168} height={56} className="h-12 w-auto sm:h-14" priority />
-          </Link>
-          <Link href="/blog" className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-[#2200ff]">
-            <ArrowLeft className="h-4 w-4" /> Blog
-          </Link>
-        </div>
-      </header>
+      {!user && (
+        <header className="border-b border-slate-100 bg-white/95 backdrop-blur">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
+            <Link href="/" className="inline-flex items-center">
+              <Image src="/brand/koalapply-logo.png" alt="Koalapply" width={168} height={56} className="h-12 w-auto sm:h-14" priority />
+            </Link>
+            <Link href="/blog" className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-[#2200ff]">
+              <ArrowLeft className="h-4 w-4" /> Blog
+            </Link>
+          </div>
+        </header>
+      )}
 
       <article>
         <section className="bg-white px-5 py-10 sm:px-8 lg:px-10 lg:py-16">
