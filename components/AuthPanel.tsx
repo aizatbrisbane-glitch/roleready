@@ -64,6 +64,12 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
       return;
     }
 
+    if (password.length < 8 || !/(?=.*[a-zA-Z])(?=.*[0-9])/.test(password)) {
+      setMessage("Password must be at least 8 characters and include letters and numbers.");
+      setLoading(false);
+      return;
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

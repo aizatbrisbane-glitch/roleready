@@ -384,6 +384,10 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
         return;
       }
 
+      if (password.length < 8 || !/(?=.*[a-zA-Z])(?=.*[0-9])/.test(password)) {
+        throw new Error("Password must be at least 8 characters and include letters and numbers.");
+      }
+
       // New user (or wrong password for returning user) — attempt sign-up.
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
