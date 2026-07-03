@@ -1,6 +1,7 @@
 ﻿import Link from "next/link";
 import { ArrowRight, Settings, Zap } from "lucide-react";
 import { AuthPanel } from "@/components/AuthPanel";
+import { PasswordSection } from "@/components/PasswordSection";
 import { ProfileSettingsForm } from "@/components/ProfileSettingsForm";
 import { SetupNotice } from "@/components/SetupNotice";
 import { isSupabaseConfigured } from "@/lib/env";
@@ -35,6 +36,10 @@ export default async function ProfilePage() {
     supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     getAccessState(supabase, user.id),
   ]);
+
+  const isOAuthOnly = Array.isArray(user.identities) &&
+    user.identities.length > 0 &&
+    user.identities.every((id) => id.provider !== "email");
 
   const validUntilFormatted = access.validUntil
     ? new Date(access.validUntil).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })
@@ -122,6 +127,8 @@ export default async function ProfilePage() {
                 Keep your target roles, locations, and industries current so Koalapply can find fresher opportunities and tailor with more context.
               </p>
             </aside>
+
+            <PasswordSection isOAuthOnly={isOAuthOnly} />
           </div>
         </div>
       </div>
