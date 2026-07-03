@@ -1040,7 +1040,7 @@ export const blogArticles: BlogArticle[] = [
     author: "Koalapply Team",
     publishDate: "22 May 2026",
     readingTime: "6 min read",
-    image: "/landing/team-laptop.jpg",
+    image: "/blog/what-to-do-after-redundancy.jpg",
     imageAlt: "Career transition planning at a laptop",
     sections: [
       {
