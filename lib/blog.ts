@@ -369,7 +369,7 @@ export const blogArticles: BlogArticle[] = [
     author: "Koalapply",
     publishDate: "30 May 2026",
     readingTime: "8 min read",
-    image: "/blog/hidden-cost-same-resume.png",
+    image: "/blog/hidden-cost-same-resume.jpg",
     imageAlt: "Professional tailoring a resume for job applications",
     sections: [
       {
