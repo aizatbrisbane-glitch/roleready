@@ -27,9 +27,16 @@ export const metadata: Metadata = {
   title: "Koalapply — Job hunting, without the burnout.",
   description: "Tailored resumes and cover letters for every job ad, powered by AI.",
   icons: {
-    icon: "/brand/koalapply-favicon-wordmark.png",
-    apple: "/brand/koalapply-favicon-wordmark.png"
-  }
+    icon: [
+      { url: "/brand/koalapply-favicon.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    other: [
+      { rel: "manifest", url: "/site.webmanifest" },
+    ],
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
