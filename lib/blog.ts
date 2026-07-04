@@ -1124,7 +1124,7 @@ export const blogArticles: BlogArticle[] = [
     author: "Koalapply Team",
     publishDate: "20 May 2026",
     readingTime: "5 min read",
-    image: "/landing/hero-job-seeker.png",
+    image: "/blog/how-to-compare-job-offers.jpg",
     imageAlt: "Professional comparing job offers",
     sections: [
       {
