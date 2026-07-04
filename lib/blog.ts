@@ -199,7 +199,7 @@ export const blogArticles: BlogArticle[] = [
     author: "Koalapply",
     publishDate: "23 Jun 2026",
     readingTime: "5 min read",
-    image: "/blog/reputation-cv.png",
+    image: "/blog/your-reputation-is-not-on-your-cv.png",
     imageAlt: "Professional reflecting on their career reputation",
     sections: [
       {
@@ -655,7 +655,7 @@ export const blogArticles: BlogArticle[] = [
     author: "Koalapply Team",
     publishDate: "30 May 2026",
     readingTime: "8 min read",
-    image: "/landing/job-seeker-laptop.jpg",
+    image: "/blog/how-to-tailor-your-resume-for-each-job.jpg",
     imageAlt: "Job seeker working on a laptop",
     sections: [
       {
@@ -754,7 +754,7 @@ export const blogArticles: BlogArticle[] = [
     author: "Koalapply Team",
     publishDate: "28 May 2026",
     readingTime: "8 min read",
-    image: "/landing/team-laptop.jpg",
+    image: "/blog/job-search-system-that-keeps-you-organised.jpg",
     imageAlt: "People reviewing work together on a laptop",
     sections: [
       {
@@ -874,7 +874,7 @@ export const blogArticles: BlogArticle[] = [
     author: "Koalapply Team",
     publishDate: "26 May 2026",
     readingTime: "5 min read",
-    image: "/landing/hero-job-seeker.png",
+    image: "/blog/cover-letter-that-does-not-sound-generic.png",
     imageAlt: "Professional reviewing career documents",
     sections: [
       {
@@ -963,7 +963,7 @@ export const blogArticles: BlogArticle[] = [
     author: "Koalapply Team",
     publishDate: "24 May 2026",
     readingTime: "7 min read",
-    image: "/landing/job-seeker-laptop.jpg",
+    image: "/blog/prepare-star-answers-before-interview.jpg",
     imageAlt: "Candidate preparing interview notes",
     sections: [
       {
