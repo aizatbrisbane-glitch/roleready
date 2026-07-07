@@ -49,6 +49,7 @@ export function GenerateButton({ applicationId, hasDocuments, canGenerate, autoG
   const [message, setMessage] = useState("");
   const [progress, setProgress] = useState(0);
   const [showNewsletterOffer, setShowNewsletterOffer] = useState(false);
+  const [showSubscribeSuccess, setShowSubscribeSuccess] = useState(false);
   const generatingRef = useRef(false);
   const autoGenerateStartedRef = useRef(false);
 
@@ -111,7 +112,9 @@ export function GenerateButton({ applicationId, hasDocuments, canGenerate, autoG
   async function subscribeFromToast() {
     setShowNewsletterOffer(false);
     await fetch("/api/newsletter/bonus", { method: "POST" });
-    router.refresh(); // re-fetch access state — canGenerate flips to true
+    setShowSubscribeSuccess(true);
+    setTimeout(() => setShowSubscribeSuccess(false), 5000);
+    router.refresh();
   }
 
   function dismissToast() {
@@ -184,6 +187,22 @@ export function GenerateButton({ applicationId, hasDocuments, canGenerate, autoG
 
       {showNewsletterOffer && (
         <NewsletterBonusToast onSubscribe={subscribeFromToast} onDismiss={dismissToast} />
+      )}
+
+      {showSubscribeSuccess && (
+        <div className="fixed bottom-6 right-6 z-50 w-[340px] max-w-[calc(100vw-2rem)] animate-in slide-in-from-bottom-4 fade-in duration-300">
+          <div className="flex items-start gap-3 rounded-2xl bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.12)] ring-1 ring-slate-100">
+            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-100">
+              <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+            </span>
+            <div>
+              <p className="text-sm font-bold text-slate-900">You're subscribed!</p>
+              <p className="mt-0.5 text-sm text-slate-500">Your 2nd free generation has been unlocked. Use it on your next application.</p>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
