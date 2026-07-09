@@ -9,6 +9,9 @@ export async function POST() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user?.email) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
 
+  const { data: profile } = await supabase.from("profiles").select("newsletter_subscribed").eq("id", user.id).maybeSingle();
+  if (profile?.newsletter_subscribed) return NextResponse.json({ ok: true });
+
   const apiKey = process.env.RESEND_API_KEY;
   if (apiKey) {
     const resend = new Resend(apiKey);

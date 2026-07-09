@@ -158,8 +158,9 @@ async function sendPasswordSetupEmail(to: string, setupLink: string, userId: str
     console.warn("[stripe-webhook] RESEND_API_KEY not set — skipping password setup email");
     return;
   }
-  const sig = createHmac("sha256", apiKey).update(userId).digest("hex");
-  const subscribeLink = `${appUrl}/api/newsletter/email-optin?uid=${encodeURIComponent(userId)}&sig=${sig}`;
+  const exp = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60; // 7 days
+  const sig = createHmac("sha256", apiKey).update(`${userId}:${exp}`).digest("hex");
+  const subscribeLink = `${appUrl}/api/newsletter/email-optin?uid=${encodeURIComponent(userId)}&exp=${exp}&sig=${sig}`;
   const resend = new Resend(apiKey);
   await resend.emails.send({
     from: "Koalapply <noreply@koalapply.com>",
