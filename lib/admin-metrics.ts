@@ -17,7 +17,7 @@ export async function fetchAdminMetrics(admin: SupabaseClient): Promise<AdminMet
   weekStart.setHours(0, 0, 0, 0);
 
   const [
-    { data: authUsers },
+    rpcResult,
     { count: resumesUploaded },
     { count: jobsAnalysed },
     { count: resumesGenerated },
@@ -25,8 +25,7 @@ export async function fetchAdminMetrics(admin: SupabaseClient): Promise<AdminMet
     { count: applicationsCreated },
     { data: activeEntitlements },
   ] = await Promise.all([
-    // Auth users is the source of truth for total/today/week counts
-    admin.rpc("admin_get_user_emails") as Promise<{ data: { id: string; email: string; created_at: string }[] | null; error: unknown }>,
+    admin.rpc("admin_get_user_emails"),
     admin.from("koalapply_events").select("*", { count: "exact", head: true }).eq("event_type", "RESUME_UPLOADED"),
     admin.from("koalapply_events").select("*", { count: "exact", head: true }).eq("event_type", "JOB_ANALYSED"),
     admin.from("koalapply_events").select("*", { count: "exact", head: true }).eq("event_type", "RESUME_GENERATED"),
@@ -36,7 +35,7 @@ export async function fetchAdminMetrics(admin: SupabaseClient): Promise<AdminMet
   ]);
 
   // Derive user counts from auth.users (the real source of truth)
-  const allUsers = authUsers ?? [];
+  const allUsers = (rpcResult.data ?? []) as { id: string; email: string; created_at: string }[];
   const total = allUsers.length;
   const newToday = allUsers.filter((u) => new Date(u.created_at) >= todayStart).length;
   const newWeek  = allUsers.filter((u) => new Date(u.created_at) >= weekStart).length;

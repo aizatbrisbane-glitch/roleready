@@ -37,13 +37,15 @@ export async function GET(request: Request) {
   since.setDate(since.getDate() - 29);
   since.setHours(0, 0, 0, 0);
 
-  const [{ data: authUsers }, { data: events }] = await Promise.all([
-    admin.rpc("admin_get_user_emails") as Promise<{ data: { id: string; email: string; created_at: string }[] | null }>,
+  const [rpcResult, { data: events }] = await Promise.all([
+    admin.rpc("admin_get_user_emails"),
     admin
       .from("koalapply_events")
       .select("event_type, created_at")
       .gte("created_at", since.toISOString()),
   ]);
+
+  const authUsers = (rpcResult.data ?? []) as { id: string; email: string; created_at: string }[];
 
   const days = last30Days();
 

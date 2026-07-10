@@ -24,18 +24,17 @@ export async function GET(request: Request) {
 
   const now = new Date();
 
-  const [{ data: authEmails }, { data: profiles }, { data: entitlements }] = await Promise.all([
-    // Source of truth: all users from auth.users via SECURITY DEFINER RPC
-    admin.rpc("admin_get_user_emails") as Promise<{ data: { id: string; email: string; created_at: string }[] | null; error: unknown }>,
-    // Profile data for name / joined date
+  const [rpcResult, { data: profiles }, { data: entitlements }] = await Promise.all([
+    admin.rpc("admin_get_user_emails"),
     admin.from("profiles").select("id, name, created_at"),
-    // Active paid entitlements (Stripe purchases only)
     admin
       .from("entitlements")
       .select("user_id, plan_type")
       .eq("status", "active")
       .not("stripe_payment_id", "is", null),
   ]);
+
+  const authEmails = (rpcResult.data ?? []) as { id: string; email: string; created_at: string }[];
 
   const profileById: Record<string, { name: string | null; created_at: string }> = Object.fromEntries(
     (profiles ?? []).map((p) => [p.id as string, { name: (p.name as string | null) ?? null, created_at: p.created_at as string }])
@@ -46,7 +45,7 @@ export async function GET(request: Request) {
   );
 
   // Build user list from auth (all real users) joined with profile + entitlement data
-  let users = (authEmails ?? []).map((u) => {
+  let users = authEmails.map((u) => {
     const prof = profileById[u.id];
     return {
       id: u.id,
