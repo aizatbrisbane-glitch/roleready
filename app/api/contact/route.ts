@@ -24,9 +24,8 @@ export async function POST(request: Request) {
   if (!message)           return NextResponse.json({ error: "Message is required." }, { status: 400 });
 
   const apiKey = process.env.RESEND_API_KEY;
-  const from   = process.env.RESEND_FROM_EMAIL;
 
-  if (!apiKey || !from) {
+  if (!apiKey) {
     return NextResponse.json({ error: "Email not configured." }, { status: 500 });
   }
 
@@ -44,7 +43,7 @@ export async function POST(request: Request) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from,
+      from: "Koalapply <noreply@koalapply.com>",
       to: "hello@koalapply.com",
       reply_to: email,
       subject: subject ? `Contact: ${subject}` : `New message from ${name}`,
