@@ -13,7 +13,7 @@ export function PublicFooter() {
           <Link href="/privacy" className="transition hover:text-[#2200ff]">Privacy</Link>
           <Link href="/terms" className="transition hover:text-[#2200ff]">Terms</Link>
           <Link href="/refunds" className="transition hover:text-[#2200ff]">Refunds</Link>
-          <a href={`mailto:${legalDetails.supportEmail}`} className="transition hover:text-[#2200ff]">Contact</a>
+          <Link href="/contact" className="transition hover:text-[#2200ff]">Contact</Link>
         </nav>
       </div>
     </footer>
