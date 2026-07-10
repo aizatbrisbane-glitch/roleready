@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     },
     body: JSON.stringify({
       from: "Koalapply <noreply@koalapply.com>",
-      to: "aizat.brisbane@gmail.com",
+      to: "hello@koalapply.com",
       reply_to: email,
       subject: subject ? `Contact: ${subject}` : `New message from ${name}`,
       text,
