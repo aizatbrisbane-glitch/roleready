@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { extractTextFromFile } from "@/lib/file-text";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logEvent } from "@/lib/events";
 
 function unreadableFileMessage(fileName: string) {
   return `I could not read text from ${fileName}. If this is a scanned PDF, upload a DOCX file or paste the text into the box below.`;
@@ -62,6 +63,10 @@ export async function POST(request: Request) {
     if (resumeError) {
       return NextResponse.json({ error: resumeError.message }, { status: 400 });
     }
+
+    const { data: profileRow } = await supabase.from("profiles").select("name").eq("id", user.id).maybeSingle();
+    const firstName = (profileRow?.name ?? "").split(" ")[0] || null;
+    void logEvent("RESUME_UPLOADED", user.id, { first_name: firstName });
   }
 
   let coverLetterText = String(formData.get("cover_letter_text") ?? "");

@@ -5,6 +5,7 @@ import { Resend } from "resend";
 import { getStripeClient } from "@/lib/stripe";
 import { getStripeWebhookSecret } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { logEvent } from "@/lib/events";
 import type { EntitlementPlanType } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -149,6 +150,12 @@ export async function POST(request: Request) {
   }
 
   console.log(`[stripe-webhook] Granted ${planType} to user ${resolvedUserId} (session ${sessionId})`);
+
+  void logEvent("SUBSCRIPTION_STARTED", resolvedUserId, {
+    plan_type: planType,
+    amount_cents: session.amount_total ?? 0,
+  });
+
   return NextResponse.json({ received: true });
 }
 

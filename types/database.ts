@@ -1,4 +1,13 @@
 export type ApplicationStatus = "New" | "Ready" | "Applied" | "Interview" | "Rejected" | "Saved";
+export type ProfileRole = "user" | "admin" | "founder";
+export type KoalapplyEventType =
+  | "USER_SIGNUP"
+  | "RESUME_UPLOADED"
+  | "JOB_ANALYSED"
+  | "RESUME_GENERATED"
+  | "COVER_LETTER_CREATED"
+  | "APPLICATION_CREATED"
+  | "SUBSCRIPTION_STARTED";
 export type JobSource = "Manual" | "SEEK" | "LinkedIn" | "Adzuna" | "Other";
 export type GeneratedDocumentType = "tailored_resume" | "cover_letter";
 export type GeneratedDocumentFormat = "markdown" | "docx" | "pdf";
@@ -24,8 +33,42 @@ export type Profile = {
   avatar_storage_path: string;
   job_search_intent: string | null;
   newsletter_subscribed: boolean;
+  role: ProfileRole;
   created_at: string;
   updated_at: string;
+};
+
+export type KoalapplyEvent = {
+  id: string;
+  event_type: KoalapplyEventType;
+  user_id: string | null;
+  metadata: {
+    first_name?: string | null;
+    plan_type?: string;
+    amount_cents?: number;
+    [key: string]: unknown;
+  };
+  created_at: string;
+};
+
+export type AdminMetrics = {
+  users: {
+    total: number;
+    today: number;
+    thisWeek: number;
+  };
+  usage: {
+    resumesUploaded: number;
+    jobsAnalysed: number;
+    resumesGenerated: number;
+    coverLettersGenerated: number;
+    applicationsCreated: number;
+  };
+  revenue: {
+    paidSubscribers: number;
+    mrr: string;
+    conversionRate: string;
+  };
 };
 
 export type MasterResume = {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { fetchJobAdDetails, normaliseJobUrl } from "@/lib/job-ad";
+import { logEvent } from "@/lib/events";
 import type { JobSource } from "@/types/database";
 
 export const preferredRegion = ["syd1"];
@@ -75,6 +76,10 @@ export async function POST(request: Request) {
   if (applicationError || !application) {
     return NextResponse.json({ error: applicationError?.message ?? "Unable to create application." }, { status: 400 });
   }
+
+  const { data: profileRow } = await supabase.from("profiles").select("name").eq("id", user.id).maybeSingle();
+  const firstName = (profileRow?.name ?? "").split(" ")[0] || null;
+  void logEvent("APPLICATION_CREATED", user.id, { first_name: firstName });
 
   return NextResponse.json({ applicationId: application.id });
 }

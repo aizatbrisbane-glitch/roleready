@@ -3,6 +3,7 @@ import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import { consumeGenerationCredit, generationLimitMessage, getAccessState } from "@/lib/entitlements";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logEvent } from "@/lib/events";
 
 export const maxDuration = 120;
 import type { ApplicationWithJob, MasterCoverLetter, MasterResume, Profile } from "@/types/database";
@@ -376,6 +377,11 @@ export async function POST(request: Request, { params }: Props) {
   }
 
   const profileData = profile as Profile | null;
+  const firstName = (profileData?.name ?? "").split(" ")[0] || null;
+  void logEvent("JOB_ANALYSED",         user.id, { first_name: firstName });
+  void logEvent("RESUME_GENERATED",     user.id, { first_name: firstName });
+  void logEvent("COVER_LETTER_CREATED", user.id, { first_name: firstName });
+
   const showNewsletterOffer =
     shouldConsumeCredit &&
     access.planType === "free" &&

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ShieldCheck, UploadCloud, Zap } from "lucide-react";
+import { ShieldCheck, Zap } from "lucide-react";
 import { HomepageOnboardingModal } from "@/components/landing/HomepageOnboardingModal";
 
 export function BlogResumeCTA() {
@@ -32,10 +32,8 @@ export function BlogResumeCTA() {
               className="hidden"
               onChange={(e) => handleFile(e.target.files?.[0])}
             />
-            <span className="inline-flex h-16 w-16 items-center justify-center rounded-[1.2rem] bg-[#ece8ff] text-[#2200ff] shadow-sm sm:h-24 sm:w-24 sm:rounded-[1.7rem]">
-              <UploadCloud className="h-9 w-9 sm:h-14 sm:w-14" />
-            </span>
-            <p className="mt-4 text-2xl font-black tracking-tight text-slate-900 sm:mt-6 sm:text-4xl">Drop your resume here. See what it could look like.</p>
+            <p className="mt-4 text-2xl font-black tracking-tight text-slate-900 sm:mt-6 sm:text-4xl">Tailor your CV and cover letter to any job.</p>
+            <p className="mt-2 text-lg font-semibold tracking-tight text-slate-500 sm:text-2xl">Drop your resume here now. See what it could look like.</p>
             <p className="mt-3 text-base font-semibold text-slate-500">PDF or DOCX · Max 4 MB</p>
             <button
               type="button"

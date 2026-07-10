@@ -62,7 +62,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const headersList = await headers();
   const pathname = headersList.get("x-pathname") ?? "";
-  const isPublicShellPage = pathname === "/login" || pathname === "/enterprise/request" || pathname.startsWith("/auth/");
+  const isPublicShellPage =
+    pathname === "/login" ||
+    pathname === "/enterprise/request" ||
+    pathname.startsWith("/auth/") ||
+    pathname.startsWith("/admin/live");
   const authed = Boolean(user) && !isPublicShellPage;
   const displayName = profile?.name || null;
   const displayEmail = profile?.email || user?.email || null;
