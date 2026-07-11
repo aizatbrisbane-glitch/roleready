@@ -1,6 +1,7 @@
 ﻿import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import Script from "next/script";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { headers } from "next/headers";
@@ -78,16 +79,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en" className={inter.className}>
-      <head>
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-R1ZFGNBD6D" />
-        <script dangerouslySetInnerHTML={{ __html: `
+      <body className="overflow-x-hidden">
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-R1ZFGNBD6D" strategy="afterInteractive" />
+        <Script id="ga-init" strategy="afterInteractive">{`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
           gtag('config', 'G-R1ZFGNBD6D');
-        `}} />
-      </head>
-      <body className="overflow-x-hidden">
+        `}</Script>
         {authed && (
           <Sidebar
             userName={displayName}
