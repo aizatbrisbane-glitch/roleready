@@ -78,6 +78,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en" className={inter.className}>
+      <head>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-R1ZFGNBD6D" />
+        <script dangerouslySetInnerHTML={{ __html: `
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-R1ZFGNBD6D');
+        `}} />
+      </head>
       <body className="overflow-x-hidden">
         {authed && (
           <Sidebar
