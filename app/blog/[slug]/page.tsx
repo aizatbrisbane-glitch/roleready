@@ -7,6 +7,7 @@ import { BlogArticleCard } from "@/components/blog/BlogArticleCard";
 import { BlogResumeCTA } from "@/components/blog/BlogResumeCTA";
 import { NewsletterSignup } from "@/components/blog/NewsletterSignup";
 import { blogArticles, getArticleBySlug, getRelatedArticles } from "@/lib/blog";
+import { renderInlineLinks } from "@/lib/renderInlineLinks";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -107,7 +108,7 @@ export default async function BlogArticlePage({ params }: Props) {
                     <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">{section.title}</h2>
                     <div className="mt-4 space-y-4">
                       {section.paragraphs?.map((paragraph) => (
-                        <p key={paragraph} className="text-base leading-8 text-slate-600">{paragraph}</p>
+                        <p key={paragraph} className="text-base leading-8 text-slate-600">{renderInlineLinks(paragraph)}</p>
                       ))}
                     </div>
                     {section.bullets ? (
@@ -115,7 +116,7 @@ export default async function BlogArticlePage({ params }: Props) {
                         {section.bullets.map((bullet) => (
                           <li key={bullet} className="flex gap-3 text-base leading-7 text-slate-600">
                             <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2200ff]" />
-                            <span>{bullet}</span>
+                            <span>{renderInlineLinks(bullet)}</span>
                           </li>
                         ))}
                       </ul>
@@ -128,7 +129,7 @@ export default async function BlogArticlePage({ params }: Props) {
         </section>
       </article>
 
-      {!user && <BlogResumeCTA />}
+      {!user && <BlogResumeCTA sourceSlug={slug} />}
 
       <section className="px-5 pb-14 sm:px-8 lg:px-10 lg:pb-20">
         <div className="mx-auto max-w-7xl">

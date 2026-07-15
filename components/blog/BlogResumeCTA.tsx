@@ -3,14 +3,16 @@
 import { useRef, useState } from "react";
 import { ShieldCheck, Zap } from "lucide-react";
 import { HomepageOnboardingModal } from "@/components/landing/HomepageOnboardingModal";
+import { analytics } from "@/lib/analytics";
 
-export function BlogResumeCTA() {
+export function BlogResumeCTA({ sourceSlug = "unknown" }: { sourceSlug?: string }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   function handleFile(file?: File | null) {
     if (!file) return;
+    analytics.blogCtaClick({ sourceSlug, placement: "resume_upload" });
     setPendingFile(file);
     setModalOpen(true);
   }
@@ -37,7 +39,7 @@ export function BlogResumeCTA() {
             <p className="mt-3 text-base font-semibold text-slate-500">PDF or DOCX · Max 4 MB</p>
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
+              onClick={(e) => { e.stopPropagation(); analytics.blogCtaClick({ sourceSlug, placement: "cta_button" }); inputRef.current?.click(); }}
               className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-base font-bold text-white shadow-[0_16px_44px_rgba(34,0,255,0.34)] transition hover:bg-[#1a00cc] sm:mt-8 sm:px-7 sm:py-4 sm:text-lg"
             >
               Tailor My Resume for FREE

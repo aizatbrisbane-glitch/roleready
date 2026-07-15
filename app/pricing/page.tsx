@@ -212,6 +212,7 @@ export default async function PricingPage() {
               <Link href="/#features" className="transition hover:text-[#2200ff]">Features</Link>
               <Link href="/pricing" className="text-[#2200ff] transition hover:text-[#1a00cc]">Pricing</Link>
               <Link href="/blog" className="transition hover:text-[#2200ff]">Blog</Link>
+              <Link href="/ats-checker" className="transition hover:text-[#2200ff]">Free ATS Checker</Link>
             </nav>
 
             <div className="flex items-center gap-2 sm:gap-3">

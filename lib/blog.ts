@@ -26,6 +26,7 @@ export type BlogArticle = {
   image: string;
   imageAlt: string;
   featured?: boolean;
+  relatedSlugs?: string[];
   sections: ArticleSection[];
 };
 
@@ -51,6 +52,7 @@ export const blogArticles: BlogArticle[] = [
     readingTime: "9 min read",
     image: "/blog/not-getting-interviews.jpg",
     imageAlt: "Professional job seeker waiting for interview responses",
+    relatedSlugs: ["hidden-cost-of-using-same-resume", "cv-or-resume-australia", "resume-for-nsw-government-jobs"],
     sections: [
       {
         id: "why-applications-go-quiet",
@@ -77,7 +79,7 @@ export const blogArticles: BlogArticle[] = [
         title: "The Biggest Mistakes Keeping You Out of the Interview Room",
         paragraphs: [
           "A generic resume, even a well-written one, performs poorly in a competitive market. When a recruiter or hiring manager opens your application, they're asking one question: does this person clearly match what we're looking for? If they have to hunt for the answer, you've already lost.",
-          "Applicant Tracking Systems are real, and they do matter. Most mid-to-large Australian employers now use some form of ATS to manage applications. If your resume uses different terminology to the job description, you may not surface in filtered results.",
+          "Applicant Tracking Systems are real, and they do matter. Most mid-to-large Australian employers now use some form of ATS to manage applications. If your resume uses different terminology to the job description, you may not surface in filtered results. You can check your keyword match against any job description for free with the [Koalapply ATS Checker](/ats-checker).",
           "Most resumes describe responsibilities. Few describe results. This is one of the biggest gaps between applications that get noticed and applications that don't.",
           "There's also a common belief that job hunting is a numbers game. This leads to a scattergun approach that hurts your results. Forty generic applications usually perform worse than eight well-researched, targeted ones.",
           "If you're not tracking what you've applied for, when, which resume version you used and what stage each application is at, you're operating blind. You can't spot patterns, follow up professionally or learn from what's working."
@@ -132,7 +134,7 @@ export const blogArticles: BlogArticle[] = [
         title: "Frequently Asked Questions",
         paragraphs: [
           "Why am I not getting interviews despite having relevant experience? The most common reasons are a generic resume that isn't tailored to the specific role, weak achievement statements that describe tasks rather than results, or applying without enough research into the company and role. In a competitive market, relevant experience alone isn't enough. You need to communicate that experience clearly and compellingly.",
-          "Do ATS systems automatically reject my resume? ATS systems can filter resumes based on keywords, but they're not the only reason applications fail. Ensure your resume uses language from the job description, avoid complex formatting like tables or text boxes, and focus equally on making your resume readable and persuasive for the human reviewer who sees it next.",
+          "Do ATS systems automatically reject my resume? ATS systems can filter resumes based on keywords, but they're not the only reason applications fail. Ensure your resume uses language from the job description, avoid complex formatting like tables or text boxes, and focus equally on making your resume readable and persuasive for the human reviewer who sees it next. Use the [free ATS Checker](/ats-checker) to see your keyword match score before you apply.",
           "How important is it to tailor my resume for each job application in Australia? Very important. The Australian job market is currently highly competitive across white-collar sectors, and recruiters can tell immediately when a resume is generic. Even small adjustments can significantly improve your application's performance.",
           "How many jobs should I be applying for each week? More is not always better. A focused search of 8-15 well-matched, tailored applications typically outperforms 40-50 generic ones. Track your response rate and adjust accordingly.",
           "What should I track when managing my job applications? At minimum: the role title, company name, date applied, version of resume used and current status. Ideally, also note contact names, follow-up dates and any feedback received.",
@@ -188,7 +190,7 @@ export const blogArticles: BlogArticle[] = [
         title: "The Real Cost of a Generic Resume",
         paragraphs: [
           "A generic resume costs you visibility, relevance and connection. It may be polished, but it is not necessarily persuasive for the specific role in front of you.",
-          "Most employers, particularly larger organisations, use Applicant Tracking Systems to filter applications before a human reviewer ever sees them. If your resume doesn't include the right keywords for the specific role, it may not surface at all.",
+          "Most employers, particularly larger organisations, use Applicant Tracking Systems to filter applications before a human reviewer ever sees them. If your resume doesn't include the right keywords for the specific role, it may not surface at all. The [free ATS Checker](/ats-checker) lets you paste your resume and a job description to see your keyword match score instantly.",
           "Even after passing through an ATS, your resume lands in front of a person trying to build a mental picture of you as a candidate. A resume that speaks directly to their role, team and industry creates a much stronger connection than one that reads like a general career summary."
         ],
         bullets: [
@@ -306,7 +308,7 @@ export const blogArticles: BlogArticle[] = [
         id: "why-tailoring-matters",
         title: "Why Tailoring Actually Matters",
         paragraphs: [
-          "Most companies now use an ATS to filter applications before a human ever sees them. These systems scan for keywords, skills, and phrases that match the job description. A generic resume, even a strong one, can get filtered out simply because it doesn't mirror the language of the posting.",
+          "Most companies now use an ATS to filter applications before a human ever sees them. These systems scan for keywords, skills, and phrases that match the job description. A generic resume, even a strong one, can get filtered out simply because it doesn't mirror the language of the posting. Before you apply, check your score with the [free ATS Checker](/ats-checker) to see which keywords you're missing.",
           "Beyond the ATS, hiring managers skim resumes in seconds. A resume that clearly reflects the role you're applying for signals that you understand the job and took the application seriously. A generic one signals the opposite, even if your experience is a great fit."
         ]
       },
@@ -380,6 +382,184 @@ export const blogArticles: BlogArticle[] = [
           "If you're applying to multiple roles and want every application to feel custom without the manual grind, give Koalapply a try."
         ]
       }
+    ]
+  },
+  {
+    slug: "cv-or-resume-australia",
+    title: "CV or Resume in Australia? What to Actually Submit",
+    excerpt: "Confused about whether to send a CV or a resume in Australia? Here's what employers actually expect, and how to tell from the job ad.",
+    category: "Resumes",
+    author: "Koalapply",
+    publishDate: "15 Jul 2026",
+    readingTime: "7 min read",
+    image: "/blog/cv-or-resume-australia.png",
+    imageAlt: "CV versus resume comparison with Australian map in the background",
+    sections: [
+      {
+        id: "intro",
+        title: "",
+        paragraphs: [
+          "If you've ever stared at a job application form wondering whether to upload your \"CV\" or your \"resume,\" you're not overthinking it. The terms genuinely overlap in Australia, but there are a few situations where the difference matters more than you'd expect.",
+          "Here's the short version: in Australia, \"CV\" and \"resume\" are used interchangeably for almost every job application. Most employers mean the same one to three page document regardless of which word they use. The exception is academic, research, medical and some senior government roles, where a genuine CV (a longer, comprehensive record of your career) may be expected. For a detailed breakdown of government applications specifically, see [How to Write a Resume for NSW Government Jobs](/blog/resume-for-nsw-government-jobs).",
+        ]
+      },
+      {
+        id: "why-the-confusion-exists",
+        title: "Why the Confusion Exists",
+        paragraphs: [
+          "The terminology split comes down to geography, not meaning.",
+          "In the United States and Canada, \"resume\" and \"CV\" refer to two distinct documents. A resume is short and tailored to a specific role. A CV is long, comprehensive, and used almost exclusively for academic or research positions.",
+          "In the United Kingdom, Ireland and New Zealand, \"CV\" is the default term for what Australians and Americans would call a resume: a concise, role-specific document.",
+          "Australia sits in the middle. Job seekers and employers use both words, often without meaning anything different by them. That's exactly why so many people searching for clarity end up more confused, not less. The advice they find online is frequently written for a US or UK audience where the distinction actually matters.",
+        ]
+      },
+      {
+        id: "when-employers-mean-something-specific",
+        title: "When Employers Actually Mean Something Specific",
+        paragraphs: [
+          "There are a handful of cases where an Australian employer genuinely wants a CV in the traditional sense:",
+        ],
+        bullets: [
+          "Academic and research roles. Universities and research institutions expect a full CV listing publications, grants, teaching history and conference presentations.",
+          "Medical and specialist clinical roles. Some hospital and specialist positions request a CV format that captures qualifications, registrations and clinical experience in more depth than a standard resume.",
+          "Senior government and statutory appointments. A small number of senior public sector roles, particularly at the executive level, may request a CV alongside a statement addressing selection criteria.",
+          "International applications. If you're applying to a company based in the UK, Ireland or New Zealand, they may use \"CV\" to mean exactly what you'd call a resume, so don't assume it needs to be longer.",
+        ]
+      },
+      {
+        id: "what-most-employers-expect",
+        title: "What Most Australian Employers Expect by Default",
+        paragraphs: [
+          "For the vast majority of roles, including corporate, trades, healthcare, hospitality, retail and standard government positions, Australian employers expect a document between one and three pages, occasionally stretching to four for very senior or technical roles. This holds whether the job ad says \"submit your resume\" or \"submit your CV.\" Don't let the word choice push you toward writing something longer or more academic than the role calls for.",
+        ],
+        bullets: [
+          "Reverse chronological work history, most recent role first",
+          "A short professional summary at the top",
+          "Skills and achievements relevant to the specific job, not your entire career",
+          "Clean, ATS-readable formatting without tables, columns or graphics",
+        ]
+      },
+      {
+        id: "how-to-tell-from-the-job-ad",
+        title: "How to Tell From the Job Ad Which One They Want",
+        paragraphs: [
+          "A few quick signals to check before you apply:",
+        ],
+        bullets: [
+          "Look at the industry. Academia, research, medicine and senior government are the main categories where a genuine CV format may be expected.",
+          "Check the application portal. Government job portals sometimes specify a CV alongside a separate response to capability requirements. That's different from a private-sector resume.",
+          "Read any formatting guidance in the ad. If it mentions page limits, publications, or a specific structure, that's a strong signal they mean a genuine CV, not just using the word loosely.",
+          "When in doubt, default to a resume. For the overwhelming majority of Australian job applications, a tailored one to three page resume performs better than an over-long, academic-style document that buries your relevant experience.",
+        ]
+      },
+      {
+        id: "frequently-asked-questions",
+        title: "Frequently Asked Questions",
+        paragraphs: [
+          "Do I need a CV for a graduate job in Australia? No. Graduate roles almost always expect a standard resume: one to two pages, focused on your most relevant experience, education and skills. A lengthy CV format will work against you here, as recruiters are scanning quickly for relevance, not reading a full academic record.",
+          "Is a CV the same as a resume for NSW government jobs? For most NSW government roles, yes. You'll submit a resume alongside responses to the role's capability requirements. Only some senior executive-level positions request a more traditional, comprehensive CV. See our full guide: [How to Write a Resume for NSW Government Jobs](/blog/resume-for-nsw-government-jobs).",
+          "Will I be penalised for submitting a CV when a resume was expected, or vice versa? Not usually, since the terms are used loosely. What matters more is whether the content and length match what the role actually needs. A three-page academic-style document for a retail management role will hurt you regardless of what you called it.",
+          "Should I keep two versions (a CV and a resume) ready to go? If you're applying broadly across industries, it's worth having a tailored resume for standard applications and a fuller CV ready for the roles that genuinely call for one.",
+          "What's the biggest mistake people make with CV vs resume in Australia? Assuming the word used in the job ad dictates the format. Read the actual requirements of the role and industry, not just the label.",
+        ]
+      },
+      {
+        id: "koalapply-cta",
+        title: "Just Koalapply!",
+        paragraphs: [
+          "Applying for different types of roles at once? Koalapply tailors your resume to the specific language and requirements of each job in minutes, so you're never sending the same generic document twice. For tips on doing this efficiently, read [How to Tailor Your Resume Without Starting From Scratch](/blog/how-to-tailor-your-resume-for-each-job).",
+          "Let us help you with your first application for free!",
+        ]
+      },
+    ]
+  },
+  {
+    slug: "resume-for-nsw-government-jobs",
+    title: "How to Write a Resume for NSW Government Jobs",
+    excerpt: "NSW government roles are assessed against the Capability Framework, not just a standard resume. Here's how to structure yours to actually get shortlisted.",
+    category: "Resumes",
+    author: "Koalapply",
+    publishDate: "15 Jul 2026",
+    readingTime: "9 min read",
+    image: "/blog/resume-for-nsw-government-jobs.png",
+    imageAlt: "Resume with NSW Government Capability Framework books and checklist in the background",
+    sections: [
+      {
+        id: "intro",
+        title: "",
+        paragraphs: [
+          "If you've applied for a NSW government role using the same resume you'd send to a private company, there's a good chance it's part of why you haven't heard back. NSW public sector recruitment doesn't work like private-sector hiring. It's assessed against a formal framework, and a resume that ignores this structure can look strong on paper and still get filtered out early.",
+        ]
+      },
+      {
+        id: "why-assessed-differently",
+        title: "Why NSW Government Applications Are Assessed Differently",
+        paragraphs: [
+          "Private-sector hiring managers are largely free to assess candidates however they like. NSW government recruitment is built around consistency and fairness across a huge number of roles, which means every application is assessed against a defined set of capabilities rather than general impressions.",
+          "That structure is called the NSW Public Sector Capability Framework, and it underpins almost every role advertised through I Work for NSW. Recruiters and hiring panels use it to score candidates methodically, which means a resume written in typical corporate style, focused on job titles and duties, often fails to give the panel what they're actually looking for.",
+        ]
+      },
+      {
+        id: "capability-framework",
+        title: "The Capability Framework: What It Actually Means for Your Resume",
+        paragraphs: [
+          "The Capability Framework organises expected behaviours and skills into groups. Every NSW government role advertisement lists the specific capabilities and proficiency levels required for that position, usually as a table. Your resume and application need to speak directly to these, using the framework's own language where possible, rather than generic descriptions of your job duties.",
+          "This doesn't mean rewriting your whole career history. It means making sure your achievement statements are framed around the capabilities the role is actually being assessed against.",
+        ],
+        bullets: [
+          "Personal attributes: integrity, adaptability, self-management",
+          "Relationships: communication, teamwork, influence",
+          "Results: decision-making, planning, delivering",
+          "Business enablers: technology, project management, financial management",
+          "People management: for leadership roles",
+        ]
+      },
+      {
+        id: "structuring-your-resume",
+        title: "Structuring a Resume Against Selection Criteria",
+        paragraphs: [
+          "Many candidates assume they need to write a lengthy targeted response separate from their resume for every NSW government application. That's not always required, but your resume itself should still be structured to make the panel's job easy.",
+        ],
+        bullets: [
+          "Open with a summary that names the capabilities you bring, not just your job title and years of experience.",
+          "Rewrite your achievement bullet points around outcomes tied to specific capabilities. Instead of 'Managed a team of six,' try 'Led a team of six through a service redesign, demonstrating people management and results capabilities.'",
+          "Mirror the exact terminology from the role's capability table wherever it genuinely applies to your experience. This matters for both the human panel and any ATS screening. Use the [free ATS Checker](/ats-checker) to verify your keyword match against the job description before submitting.",
+          "Keep it to two to three pages. Comprehensiveness matters less than clear alignment with the specific capabilities listed.",
+          "If the role requires a separate targeted response or cover letter, treat that as the place for detail. Your resume should still stand alone and make your fit obvious at a glance.",
+        ]
+      },
+      {
+        id: "common-mistakes",
+        title: "Common Mistakes",
+        paragraphs: [
+          "Most applications fail for one of the same reasons:",
+        ],
+        bullets: [
+          "Writing capability-blind. Submitting a standard private-sector resume without any reference to the framework is the single biggest reason strong candidates get filtered out early.",
+          "Copying private-sector resume style wholesale. Punchy one-liners built for a fast-scanning corporate recruiter don't always translate. NSW panels are looking for evidence against defined criteria, not just impressive-sounding phrases.",
+          "Ignoring proficiency levels. The framework specifies a required level (Foundational, Intermediate, Adept, Advanced, Highly Advanced) for each capability. Overstating or understating your evidence relative to that level can work against you.",
+          "Treating the resume and the targeted response as disconnected documents. They should reinforce each other, not repeat the same three examples word for word.",
+        ]
+      },
+      {
+        id: "frequently-asked-questions",
+        title: "Frequently Asked Questions",
+        paragraphs: [
+          "Do all NSW government roles require a targeted response, or just a resume? It varies by role and level. Many operational and administrative roles just require a tailored resume and cover letter. More senior or highly competitive roles often add a specific targeted response addressing selection criteria in more depth.",
+          "What is the NSW Public Sector Capability Framework? It's the formal structure the NSW Government uses to define expected skills and behaviours across all public sector roles, used both for recruitment and ongoing performance development. Every role advertisement lists which capabilities apply and at what level.",
+          "How long should a resume be for a NSW government job? Two to three pages is standard. Very senior roles may extend slightly longer, but padding a resume to seem thorough generally works against you. Clarity against the listed capabilities matters more than length.",
+          "Can I use the same resume for NSW government and private sector applications? Not without changes. A resume built purely around private-sector achievement statements typically misses the framework language a NSW panel is scoring against. It's worth maintaining a version tailored to the capability structure if you're applying to public sector roles regularly. If you're unsure whether your document fits the context, see [CV or Resume in Australia? What to Actually Submit](/blog/cv-or-resume-australia).",
+          "Does my governance or compliance background help with these applications? Yes, generally. Backgrounds in governance, risk and compliance tend to map naturally onto several capability groups, particularly around integrity, business enablers and results, but this still needs to be made explicit in your resume rather than assumed.",
+        ]
+      },
+      {
+        id: "koalapply-cta",
+        title: "Just Koalapply!",
+        paragraphs: [
+          "Applying for NSW government roles alongside other opportunities? Koalapply tailors your resume's language to match the specific requirements of each role, including capability-framework terminology for public sector applications. For the broader tailoring process, read [How to Tailor Your Resume Without Starting From Scratch](/blog/how-to-tailor-your-resume-for-each-job).",
+          "Let us help you with your first application for free!",
+        ]
+      },
     ]
   },
   {
@@ -1218,6 +1398,12 @@ export function getArticleBySlug(slug: string) {
 }
 
 export function getRelatedArticles(article: BlogArticle, limit = 3) {
+  if (article.relatedSlugs?.length) {
+    return article.relatedSlugs
+      .map((slug) => blogArticles.find((a) => a.slug === slug))
+      .filter((a): a is BlogArticle => Boolean(a))
+      .slice(0, limit);
+  }
   const sameCategory = blogArticles.filter((item) => item.slug !== article.slug && item.category === article.category);
   const fallback = blogArticles.filter((item) => item.slug !== article.slug && item.category !== article.category);
   return [...sameCategory, ...fallback].slice(0, limit);

@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { legalDetails } from "@/lib/legal";
+import { analytics } from "@/lib/analytics";
 
 export function PublicFooter() {
   return (
@@ -10,6 +13,15 @@ export function PublicFooter() {
           <p className="mt-1">{legalDetails.legalName} · {legalDetails.abn}</p>
         </div>
         <nav className="flex flex-wrap gap-x-5 gap-y-2 font-semibold">
+          <Link
+            href="/ats-checker"
+            className="transition hover:text-[#2200ff]"
+            onClick={() => analytics.atsCheckerNavClick({ placement: "footer" })}
+          >
+            Free ATS Checker
+          </Link>
+          <Link href="/blog" className="transition hover:text-[#2200ff]">Blog</Link>
+          <Link href="/pricing" className="transition hover:text-[#2200ff]">Pricing</Link>
           <Link href="/privacy" className="transition hover:text-[#2200ff]">Privacy</Link>
           <Link href="/terms" className="transition hover:text-[#2200ff]">Terms</Link>
           <Link href="/refunds" className="transition hover:text-[#2200ff]">Refunds</Link>

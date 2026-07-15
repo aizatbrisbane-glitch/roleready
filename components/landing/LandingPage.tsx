@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { blogArticles } from "@/lib/blog";
 import { PublicFooter } from "@/components/PublicFooter";
+import { analytics } from "@/lib/analytics";
 import {
   HOMEPAGE_ONBOARDING_DRAFT_KEY,
   HomepageOnboardingModal,
@@ -198,8 +199,15 @@ export function LandingPage() {
               <nav className="hidden items-center gap-9 text-sm font-medium text-slate-700 md:flex">
                 <a href="#how-it-works" className="transition hover:text-[#2200ff]">How it works</a>
                 <a href="#how-it-works" className="transition hover:text-[#2200ff]">Features</a>
-                <Link href="/pricing"   className="transition hover:text-[#2200ff]">Pricing</Link>
-                <Link href="/blog"      className="transition hover:text-[#2200ff]">Blog</Link>
+                <Link href="/pricing"      className="transition hover:text-[#2200ff]">Pricing</Link>
+                <Link href="/blog"         className="transition hover:text-[#2200ff]">Blog</Link>
+                <Link
+                  href="/ats-checker"
+                  className="transition hover:text-[#2200ff]"
+                  onClick={() => analytics.atsCheckerNavClick({ placement: "nav" })}
+                >
+                  Free ATS Checker
+                </Link>
               </nav>
 
               <div className="flex items-center gap-2 sm:gap-3">
@@ -377,6 +385,30 @@ export function LandingPage() {
                   <p className="mx-auto mt-4 max-w-48 text-base leading-7 text-slate-600">{body}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* â"€â"€ Free ATS Checker card â"€â"€ */}
+        <section className="Koalapply-fade-up bg-white px-5 pb-4 pt-2 sm:px-8 lg:px-10">
+          <div className="mx-auto max-w-7xl">
+            <div className="flex flex-col items-center justify-between gap-5 rounded-[2rem] border border-[#2200ff]/15 bg-[#ece8ff]/50 px-7 py-7 sm:flex-row sm:gap-8 sm:px-10 sm:py-8">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-[#2200ff]">Free tool</p>
+                <h2 className="mt-1.5 text-xl font-black tracking-tight text-slate-900 sm:text-2xl">
+                  Is your resume ATS-ready?
+                </h2>
+                <p className="mt-2 max-w-lg text-sm leading-6 text-slate-600">
+                  Paste your resume and a job description to see your keyword match score in seconds. Free, no signup required.
+                </p>
+              </div>
+              <Link
+                href="/ats-checker"
+                onClick={() => analytics.atsCheckerNavClick({ placement: "homepage_card" })}
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-sm font-bold text-white shadow-[0_8px_24px_rgba(34,0,255,0.25)] transition hover:-translate-y-0.5 hover:bg-[#1a00cc]"
+              >
+                Check my resume free
+              </Link>
             </div>
           </div>
         </section>
