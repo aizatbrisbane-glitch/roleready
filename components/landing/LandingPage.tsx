@@ -15,12 +15,14 @@ import {
   Briefcase,
   Download,
   FileText,
+  Menu,
   Search,
   ShieldCheck,
   Sparkles,
   Star,
   TrendingUp,
   UploadCloud,
+  X,
   Zap,
 } from "lucide-react";
 
@@ -92,11 +94,14 @@ function LimeSwoop({ className }: { className?: string }) {
 
 export function LandingPage() {
   const resumeInputRef = useRef<HTMLInputElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [heroResumeFile, setHeroResumeFile] = useState<File | null>(null);
   const [storedDraft, setStoredDraft] = useState<StoredDraft | null>(null);
   const [onboardingMessage, setOnboardingMessage] = useState("");
   const [heroImageIndex, setHeroImageIndex] = useState(0);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const heroImages = [
     "/landing/slide-1.png",
@@ -134,6 +139,33 @@ export function LandingPage() {
     }
   }, []);
 
+  useEffect(() => {
+    document.body.style.overflow = mobileNavOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileNavOpen]);
+
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+    closeBtnRef.current?.focus();
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") { setMobileNavOpen(false); return; }
+      if (e.key !== "Tab") return;
+      const drawer = drawerRef.current;
+      if (!drawer) return;
+      const focusable = Array.from(
+        drawer.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])')
+      );
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [mobileNavOpen]);
+
   function startOnboarding(file?: File | null) {
     if (file) setHeroResumeFile(file);
     if (file) setStoredDraft(null);
@@ -152,6 +184,102 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-white text-slate-900">
+
+      {/* Mobile nav drawer */}
+      <div
+        aria-hidden={!mobileNavOpen}
+        className={`fixed inset-0 z-50 md:hidden ${mobileNavOpen ? "pointer-events-auto" : "pointer-events-none"}`}
+      >
+        {/* Backdrop */}
+        <div
+          className={`absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-300 ${mobileNavOpen ? "opacity-100" : "opacity-0"}`}
+          onClick={() => setMobileNavOpen(false)}
+          aria-hidden="true"
+        />
+
+        {/* Drawer panel */}
+        <div
+          id="mobile-nav-drawer"
+          ref={drawerRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation menu"
+          className={`absolute inset-y-0 right-0 flex w-[80vw] max-w-sm flex-col bg-white shadow-[−8px_0_40px_rgba(34,0,255,0.12)] transition-transform duration-300 ease-in-out ${mobileNavOpen ? "translate-x-0" : "translate-x-full"}`}
+        >
+          {/* Drawer header */}
+          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
+            <img src="/brand/koalapply-logo.png" alt="Koalapply" className="h-9 w-auto" />
+            <button
+              ref={closeBtnRef}
+              type="button"
+              aria-label="Close navigation menu"
+              onClick={() => setMobileNavOpen(false)}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Nav links */}
+          <nav className="flex flex-1 flex-col gap-1 px-4 py-6">
+            <Link
+              href="/ats-checker"
+              onClick={() => { analytics.atsCheckerNavClick({ placement: "nav" }); setMobileNavOpen(false); }}
+              className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-bold text-[#2200ff] transition hover:bg-[#ece8ff]"
+            >
+              <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#ece8ff] text-[#2200ff] text-xs font-black">✓</span>
+              Free ATS Checker
+            </Link>
+            <Link
+              href="/pricing"
+              onClick={() => setMobileNavOpen(false)}
+              className="flex items-center rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-[#2200ff]"
+            >
+              Pricing
+            </Link>
+            <a
+              href="#how-it-works"
+              onClick={() => setMobileNavOpen(false)}
+              className="flex items-center rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-[#2200ff]"
+            >
+              How it works
+            </a>
+            <a
+              href="#how-it-works"
+              onClick={() => setMobileNavOpen(false)}
+              className="flex items-center rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-[#2200ff]"
+            >
+              Features
+            </a>
+            <Link
+              href="/blog"
+              onClick={() => setMobileNavOpen(false)}
+              className="flex items-center rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-[#2200ff]"
+            >
+              Blog
+            </Link>
+          </nav>
+
+          {/* Auth CTAs */}
+          <div className="border-t border-slate-100 px-4 py-5 space-y-3">
+            <Link
+              href="/login"
+              onClick={() => setMobileNavOpen(false)}
+              className="flex w-full items-center justify-center rounded-full bg-[#2200ff] px-6 py-3.5 text-sm font-bold text-white shadow-[0_8px_24px_rgba(34,0,255,0.28)] transition hover:bg-[#1a00cc]"
+            >
+              Start free
+            </Link>
+            <Link
+              href="/login"
+              onClick={() => setMobileNavOpen(false)}
+              className="flex w-full items-center justify-center rounded-full border border-slate-200 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+            >
+              Log in
+            </Link>
+          </div>
+        </div>
+      </div>
+
       <style jsx global>{`
         html { scroll-behavior: smooth; }
 
@@ -211,11 +339,27 @@ export function LandingPage() {
               </nav>
 
               <div className="flex items-center gap-2 sm:gap-3">
+                <button
+                  type="button"
+                  aria-label="Open navigation menu"
+                  aria-expanded={mobileNavOpen}
+                  aria-controls="mobile-nav-drawer"
+                  onClick={() => setMobileNavOpen(true)}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700 transition hover:bg-white/30 md:hidden"
+                >
+                  <Menu className="h-6 w-6" />
+                </button>
+                <Link
+                  href="/login"
+                  className="hidden text-sm font-semibold text-slate-700 transition hover:text-[#2200ff] md:inline-flex"
+                >
+                  Log in
+                </Link>
                 <Link
                   href="/login"
                   className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#2200ff] px-4 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(34,0,255,0.3)] transition hover:-translate-y-0.5 hover:bg-[#1a00cc] sm:min-h-11 sm:px-6"
                 >
-                  Login
+                  Start free
                 </Link>
               </div>
             </div>
