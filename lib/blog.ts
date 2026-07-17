@@ -13,6 +13,7 @@ export type ArticleSection = {
   title: string;
   paragraphs?: string[];
   bullets?: string[];
+  faqs?: { q: string; a: string }[];
 };
 
 export type BlogArticle = {
@@ -557,6 +558,369 @@ export const blogArticles: BlogArticle[] = [
         title: "Just Koalapply!",
         paragraphs: [
           "Applying for NSW government roles alongside other opportunities? Koalapply tailors your resume's language to match the specific requirements of each role, including capability-framework terminology for public sector applications. For the broader tailoring process, read [How to Tailor Your Resume Without Starting From Scratch](/blog/how-to-tailor-your-resume-for-each-job).",
+          "Let us help you with your first application for free!",
+        ]
+      },
+    ]
+  },
+  {
+    slug: "resume-for-accounting-jobs-australia",
+    title: "How to Write a Resume for Accounting Jobs in Australia",
+    excerpt: "Accounting resumes get filtered on qualifications and software fluency before anyone reads your achievements. Here's how to structure yours so it clears both.",
+    category: "Resumes",
+    author: "Koalapply",
+    publishDate: "17 Jul 2026",
+    readingTime: "7 min read",
+    image: "/blog/resume-for-accounting-jobs-australia.png",
+    imageAlt: "Accountant at a desk reviewing documents, with annotation overlays for CPA and CA qualifications, Xero, MYOB, SAP and NetSuite software fluency, data analysis and reporting, attention to detail, financial acumen, and commercial insight",
+    relatedSlugs: ["how-to-tailor-your-resume-for-each-job", "hidden-cost-of-using-same-resume", "resume-for-nsw-government-jobs"],
+    sections: [
+      {
+        id: "intro",
+        title: "",
+        paragraphs: [
+          "Accounting remains one of the most consistently in-demand professions in Australia, but that demand hasn't made hiring easier for candidates. Firms and in-house finance teams are often filtering hundreds of applications against a narrow set of qualification and software requirements before a human ever reads your work history in detail.",
+        ]
+      },
+      {
+        id: "what-gets-screened-first",
+        title: "What Gets Screened First",
+        paragraphs: [
+          "Before your experience is assessed, most accounting applications are filtered on:",
+        ],
+        bullets: [
+          "Professional qualification status: CA, CPA, or working towards one, clearly labelled rather than assumed",
+          "Specific software fluency: Xero, MYOB, SAP, NetSuite, or whatever system the employer actually runs, named explicitly rather than a generic 'accounting software' line",
+          "Relevant specialisation: tax, audit, management accounting, financial accounting, or advisory, since these are often treated as distinct skill sets rather than interchangeable",
+        ]
+      },
+      {
+        id: "structuring-your-resume",
+        title: "Structuring Your Resume",
+        bullets: [
+          "Lead with qualification status. 'CPA (Completed)' or 'CA (Part-qualified, expected completion 2027)' should be immediately visible, not buried at the bottom under education.",
+          "Name your specific software stack for each role, not a generic list at the end. If you used Xero for client bookkeeping and SAP for a larger consolidation project, say so against the specific role where it applied.",
+          "Quantify wherever possible. 'Reduced month-end close time from 10 days to 6' or 'Managed a portfolio of 40+ SME clients' gives a hiring manager something concrete to assess, rather than a description of duties.",
+          "Separate technical accounting skills from advisory and communication skills if you're applying for senior or client-facing roles, since firms increasingly assess these as distinct competencies at the intermediate-to-senior level.",
+        ]
+      },
+      {
+        id: "common-mistakes",
+        title: "Common Mistakes",
+        bullets: [
+          "Listing software generically. 'Proficient in accounting software' tells an employer nothing useful: name the actual systems and what you did with them.",
+          "Underselling part-qualification status. If you're partway through CA or CPA, say so clearly with expected completion timing rather than omitting it out of uncertainty.",
+          "Treating tax, audit and advisory as interchangeable. Firms hire for these separately in most cases, and a resume that blurs the distinction reads as unfocused.",
+          "Skipping quantification. Numbers (client portfolio size, reporting timelines, cost savings identified) are what differentiate accounting resumes at scale, since qualifications and software are often shared across many candidates.",
+        ]
+      },
+      {
+        id: "frequently-asked-questions",
+        title: "Frequently Asked Questions",
+        faqs: [
+          { q: "Do I need to be fully CA or CPA qualified to apply for accounting roles in Australia?", a: "No. Many roles, particularly at the graduate to intermediate level, accept part-qualified candidates or those actively studying towards CA/CPA, provided this is stated clearly with expected completion timing." },
+          { q: "How long should an accounting resume be?", a: "Two pages is standard for most experienced accountants. Senior roles in tax, audit or advisory may extend slightly, but conciseness with strong quantification generally performs better than length." },
+          { q: "Should I list every software system I've ever used?", a: "Focus on systems relevant to the specific role you're applying for, named against the role where you actually used them, rather than a long undifferentiated list at the bottom of your resume." },
+          { q: "What's the difference between a resume for a Big Four firm versus an in-house accounting role?", a: "Big Four and mid-tier firm applications often expect explicit reference to specific service lines (audit, tax, advisory) and firm-style progression language. In-house roles tend to weight commercial impact and cross-functional collaboration more heavily." },
+          { q: "How do I present a career change into accounting?", a: "Highlight any transferable analytical or financial skills from your prior role explicitly, alongside any formal study undertaken (CPA, CA, or a relevant degree), and be direct about your transition rather than assuming the connection is obvious to the reader. For help positioning your experience clearly, see [How to Tailor Your Resume Without Starting From Scratch](/blog/how-to-tailor-your-resume-for-each-job)." },
+        ]
+      },
+      {
+        id: "koalapply-cta",
+        title: "Just Koalapply!",
+        paragraphs: [
+          "Applying to firms or in-house teams with different requirements? Koalapply tailors your resume's language, software stack and specialisation framing to match each specific job description. If your resume isn't getting shortlisted despite strong qualifications, see [Why You're Not Getting Interviews](/blog/why-youre-not-getting-interviews-even-with-experience).",
+          "Let us help you with your first application for free!",
+        ]
+      },
+    ]
+  },
+  {
+    slug: "resume-for-aged-care-jobs-australia",
+    title: "How to Write a Resume for Aged Care Jobs in Australia",
+    excerpt: "Aged care hiring is growing fast, but providers still screen hard on certifications, clearances and specific care experience. Here's how to structure a resume that clears it.",
+    category: "Resumes",
+    author: "Koalapply",
+    publishDate: "17 Jul 2026",
+    readingTime: "7 min read",
+    image: "/blog/resume-for-aged-care-jobs-australia.png",
+    imageAlt: "Aged care worker smiling with an elderly resident, with annotation overlays for Cert III/IV in Individual Support, Police Check and NDIS Worker Screening clearances, First Aid and CPR, Compassionate Care, Dementia Support, and Residential, Home Care and Community Support",
+    relatedSlugs: ["resume-for-registered-nurse-jobs-australia", "how-to-tailor-your-resume-for-each-job", "hidden-cost-of-using-same-resume"],
+    sections: [
+      {
+        id: "intro",
+        title: "",
+        paragraphs: [
+          "Aged care is one of the fastest-growing sectors in the Australian job market, with strong demand across residential care, home care and community support. Despite the growth, providers still screen applications carefully: mandatory certifications, clearances and specific care experience all need to be clearly presented, or a genuinely qualified applicant can be filtered out early.",
+        ]
+      },
+      {
+        id: "what-aged-care-employers-screen-for",
+        title: "What Aged Care Employers Screen For First",
+        bullets: [
+          "Certificate III or IV in Individual Support (Ageing Support), or equivalent, clearly named rather than assumed from job history",
+          "Current National Police Check and NDIS Worker Screening Check (where applicable), since many providers won't progress an application without evidence these are current or in progress",
+          "First Aid and CPR certification, current and dated",
+          "Specific care experience (dementia care, palliative care, manual handling, medication assistance), named explicitly rather than folded into a general 'provided care' description",
+        ]
+      },
+      {
+        id: "structuring-your-resume",
+        title: "Structuring Your Resume",
+        bullets: [
+          "Lead with your certification and clearance status. Aged care providers often need to confirm compliance requirements before assessing experience, so this shouldn't be buried at the bottom.",
+          "Name specific care types you're experienced in. 'Dementia care,' 'palliative support,' 'manual handling and mobility assistance' are far more useful to a hiring manager than 'assisted residents with daily needs.'",
+          "Reference specific care settings. Residential aged care, home care packages, and community support each carry slightly different expectations: be clear about which you have experience in.",
+          "Include soft skills with concrete examples, since aged care roles are heavily relationship-based. Rather than 'excellent communication skills,' describe a specific instance, such as supporting a resident's family through a care plan transition.",
+        ]
+      },
+      {
+        id: "common-mistakes",
+        title: "Common Mistakes",
+        bullets: [
+          "Omitting clearance and certification status entirely, assuming it will be discussed at interview: many providers filter applications before that stage.",
+          "Using vague, generic caregiving language. 'Helped with daily activities' doesn't differentiate you; naming specific care types and any specialised training does.",
+          "Not distinguishing between care settings. Home care, residential care and disability support all have different day-to-day demands, and resumes that don't reflect this can seem like a poor fit even with relevant experience.",
+          "Leaving out soft-skill evidence. Aged care hiring managers are assessing both competency and temperament: a resume with zero concrete examples of relational care can undersell an otherwise strong candidate.",
+        ]
+      },
+      {
+        id: "frequently-asked-questions",
+        title: "Frequently Asked Questions",
+        faqs: [
+          { q: "Do I need a Certificate III to apply for aged care roles in Australia?", a: "Most residential aged care roles require at minimum a Certificate III in Individual Support (or equivalent), though some entry-level or home care roles may accept candidates currently studying towards this. Always check the specific job ad's requirements." },
+          { q: "How long should an aged care resume be?", a: "One to two pages is standard, with a strong emphasis on certifications, clearances and specific care experience rather than length." },
+          { q: "Should I include personal caregiving experience if I don't have formal aged care work history yet?", a: "Yes, if it's genuinely relevant: caring for a family member with dementia, for example, is real experience and worth including, framed clearly alongside any formal qualifications you hold or are pursuing." },
+          { q: "What's the difference between applying for residential care versus home care roles?", a: "Residential care resumes often emphasise team-based shift work and specific facility experience, while home care resumes tend to emphasise independence, reliability, and comfort working one-on-one in a client's home." },
+          { q: "How do I make my resume stand out given how many people are applying for aged care roles right now?", a: "Specificity is the main lever: naming exact care types, certifications, and concrete examples of relational care will differentiate you far more than general enthusiasm or a long list of soft skills. If you're applying for multiple roles at once, [using the same resume everywhere is one of the biggest mistakes you can make](/blog/hidden-cost-of-using-same-resume)." },
+        ]
+      },
+      {
+        id: "koalapply-cta",
+        title: "Just Koalapply!",
+        paragraphs: [
+          "Applying to different aged care providers with different requirements? Koalapply tailors your resume's language and care experience to match each specific job description. For the broader tailoring approach, read [How to Tailor Your Resume Without Starting From Scratch](/blog/how-to-tailor-your-resume-for-each-job).",
+          "Let us help you with your first application for free!",
+        ]
+      },
+    ]
+  },
+  {
+    slug: "resume-for-registered-nurse-jobs-australia",
+    title: "How to Write a Resume for Registered Nurse Jobs in Australia",
+    excerpt: "Nursing resumes are assessed differently to most industries: AHPRA registration, clinical competencies and scope of practice all need to be front and centre. Here's how to structure yours.",
+    category: "Resumes",
+    author: "Koalapply",
+    publishDate: "17 Jul 2026",
+    readingTime: "8 min read",
+    image: "/blog/resume-for-registered-nurse-jobs-australia.png",
+    imageAlt: "Registered nurse holding a tablet in a hospital corridor beside an acute medical ward patient board, with annotation overlays for AHPRA Registered, Evidence Based Care, Medication Management, Specialty Certifications, Clinical Competencies, and Patient Care",
+    relatedSlugs: ["resume-for-aged-care-jobs-australia", "how-to-tailor-your-resume-for-each-job", "hidden-cost-of-using-same-resume"],
+    sections: [
+      {
+        id: "intro",
+        title: "",
+        paragraphs: [
+          "Nursing is one of the most in-demand professions in Australia, with hospitals, aged care providers and community health services all competing for the same pool of registered nurses. That demand doesn't mean any resume will do. Recruiters and nurse unit managers are scanning dozens of applications for the same shift patterns, and a generic resume built for a different industry won't hold up against one that speaks the actual language of clinical hiring.",
+        ]
+      },
+      {
+        id: "why-nursing-resumes-need-different-structure",
+        title: "Why Nursing Resumes Need a Different Structure",
+        paragraphs: [
+          "Most resume advice online is written for corporate or office-based roles. Nursing hiring works differently for a few concrete reasons:",
+        ],
+        bullets: [
+          "AHPRA registration is a hard requirement, not a preference. If your registration status isn't immediately visible, your application can be filtered out before anyone reads further.",
+          "Scope of practice and clinical competencies matter more than job titles. 'Registered Nurse' alone tells a hiring manager very little: what matters is your specific competencies (medication management, wound care, triage, mental health first response, and so on).",
+          "Shift flexibility and ward experience are often screened for explicitly. Many nursing job ads specify rotating rosters, night shifts or specific unit types, and resumes that don't address this can be passed over even with strong clinical experience.",
+        ]
+      },
+      {
+        id: "what-to-put-at-the-top",
+        title: "What to Put at the Top",
+        paragraphs: [
+          "Your AHPRA registration number and current status (registered, provisional, or endorsed) should sit near the top of your resume, not buried in a qualifications section at the bottom. Follow this with a short summary naming your clinical specialty area (aged care, emergency, mental health, paediatrics, perioperative, and so on) rather than a generic 'dedicated healthcare professional' line that doesn't differentiate you.",
+        ]
+      },
+      {
+        id: "structuring-clinical-experience",
+        title: "Structuring Clinical Experience",
+        paragraphs: [
+          "For each role, go beyond ward name and dates:",
+        ],
+        bullets: [
+          "Name the unit type and patient acuity level (for example, '18-bed acute medical ward, average patient acuity 3-4')",
+          "List specific clinical competencies exercised in that role, not just duties: IV cannulation, wound management, medication administration under supervision or independently, use of specific clinical systems (such as eMR or iPharmacy)",
+          "Include any specialty certifications (ALS, PALS, mental health first aid, infection control) directly under the relevant role, since these are often what a nurse unit manager scans for first",
+        ]
+      },
+      {
+        id: "common-mistakes",
+        title: "Common Mistakes",
+        bullets: [
+          "Burying AHPRA registration in a qualifications list at the end: it needs to be visible in the first few seconds of scanning.",
+          "Writing duties instead of competencies. 'Provided patient care' says nothing; 'Managed post-operative care for a 24-bed surgical ward including wound care and pain management' says everything.",
+          "Ignoring shift and roster flexibility. If the job ad specifies rotating rosters or night shifts and you're open to this, say so directly: don't assume it's implied.",
+          "Using a resume built for another industry. If you've adapted an old admin or retail resume, competency-based language for nursing will be missing entirely, and it shows.",
+        ]
+      },
+      {
+        id: "frequently-asked-questions",
+        title: "Frequently Asked Questions",
+        faqs: [
+          { q: "Do I need to include my AHPRA number on my resume?", a: "Yes, or at minimum your registration status. Many healthcare employers verify this early in the screening process, and having it visible speeds up your application rather than requiring the recruiter to chase it down separately." },
+          { q: "How long should a nursing resume be?", a: "Two to three pages is standard for experienced nurses. New graduates can keep it to one to two pages, with more emphasis on clinical placements and specific competencies gained during training." },
+          { q: "Should I list every ward or unit I've worked in?", a: "Focus on the last 10 years of experience in depth, and summarise earlier roles more briefly. What matters most is that recent, relevant clinical competencies are clearly visible." },
+          { q: "How do I write a resume for a specialty area I want to move into, like ICU or emergency?", a: "Highlight any transferable competencies (triage experience, high-acuity patient management, specific certifications) even if they came from a different unit, and be explicit about your intent and any relevant upskilling you've done or are pursuing." },
+          { q: "What if I'm an internationally-trained nurse applying in Australia?", a: "Make your AHPRA registration pathway and current status explicit early in the resume, along with any bridging or orientation programs completed, since Australian employers will want this clarified upfront rather than inferred." },
+        ]
+      },
+      {
+        id: "koalapply-cta",
+        title: "Just Koalapply!",
+        paragraphs: [
+          "Applying to multiple nursing roles across different units or facilities? Koalapply tailors your resume's language and competencies to match each specific job description. If you're not hearing back despite strong clinical experience, read [Why You're Not Getting Interviews](/blog/why-youre-not-getting-interviews-even-with-experience).",
+          "Let us help you with your first application for free!",
+        ]
+      },
+    ]
+  },
+  {
+    slug: "resume-for-teaching-jobs-australia",
+    title: "How to Write a Resume for Teaching Jobs in Australia",
+    excerpt: "Teaching applications are assessed against registration status, curriculum experience and specific subject or year-level fit. Here's how to structure a resume that actually gets shortlisted.",
+    category: "Resumes",
+    author: "Koalapply",
+    publishDate: "17 Jul 2026",
+    readingTime: "8 min read",
+    image: "/blog/resume-for-teaching-jobs-australia.png",
+    imageAlt: "Teacher presenting to a class of students with illustrated overlays of a graduation cap, lightbulb and checklist representing qualifications, innovative teaching and curriculum planning",
+    relatedSlugs: ["how-to-tailor-your-resume-for-each-job", "hidden-cost-of-using-same-resume", "why-youre-not-getting-interviews-even-with-experience"],
+    sections: [
+      {
+        id: "intro",
+        title: "",
+        paragraphs: [
+          "Teaching shortages, particularly in STEM subjects, early childhood and regional areas, mean demand for qualified teachers remains high across Australia. That demand doesn't mean any resume clears screening easily: teaching applications are assessed against registration status, curriculum familiarity and specific year-level or subject fit in ways that differ meaningfully from most other professions.",
+        ]
+      },
+      {
+        id: "what-gets-checked-first",
+        title: "What Gets Checked First",
+        bullets: [
+          "Teacher registration status with your state or territory authority (NESA in NSW, VIT in Victoria, and so on), which needs to be current and clearly stated",
+          "Working With Children Check, current and visible",
+          "Specific subject and year-level experience, since a resume that reads as generalist can work against you for specialised roles (particularly STEM, special education, or senior secondary subjects)",
+          "Curriculum familiarity, especially explicit reference to the relevant state curriculum or the Australian Curriculum where applicable",
+        ]
+      },
+      {
+        id: "structuring-your-resume",
+        title: "Structuring Your Resume",
+        bullets: [
+          "Lead with registration status and your Working With Children Check near the top rather than in a qualifications section at the end: many school HR teams check this before reading further.",
+          "Name specific subjects and year levels taught, not just 'secondary teacher.' If you've taught senior physics or supported students with additional needs, say so explicitly rather than folding it into general teaching duties.",
+          "Reference specific programs or initiatives you've contributed to: literacy intervention programs, NAPLAN preparation, extracurricular leadership. Schools often value demonstrated contribution beyond classroom teaching alone.",
+          "Include any relevant professional development or specialisations, particularly in high-shortage areas like special education, EAL/D, or STEM, as these can differentiate an application significantly.",
+        ]
+      },
+      {
+        id: "common-mistakes",
+        title: "Common Mistakes",
+        bullets: [
+          "Writing a generalist resume when applying for a specialised role. A senior maths teaching position wants to see specific senior maths and exam-preparation experience, not a broad 'taught various subjects' summary.",
+          "Omitting registration and Working With Children Check status. These are compliance requirements schools need confirmed early, and their absence can stall an otherwise strong application.",
+          "Underselling non-classroom contributions. Pastoral care roles, extracurricular leadership, and curriculum development work are often what differentiates candidates at the interview shortlist stage.",
+          "Using outdated curriculum language. If your resume still references a superseded syllabus version, it can read as out of touch with current requirements.",
+        ]
+      },
+      {
+        id: "frequently-asked-questions",
+        title: "Frequently Asked Questions",
+        faqs: [
+          { q: "Do I need to list my full teacher registration number on my resume?", a: "Stating your current registration status and jurisdiction (for example, 'Registered with NESA, current') is generally sufficient: the full number is usually provided separately during formal application steps rather than on the resume itself." },
+          { q: "How long should a teaching resume be?", a: "Two to three pages is standard, allowing enough space to cover subject and year-level experience, curriculum familiarity, and relevant extracurricular contributions without becoming unfocused." },
+          { q: "Should I include casual or relief teaching experience?", a: "Yes: casual and relief teaching, particularly across multiple schools or subjects, demonstrates adaptability and breadth, and should be included with enough detail to show what year levels and subjects were covered." },
+          { q: "How do I write a resume for a career change into teaching?", a: "Highlight any relevant prior experience that translates (industry knowledge for a subject like technology or business studies, for example), alongside your teaching qualification and registration status, and be explicit about the transition rather than assuming the connection is obvious." },
+          { q: "What matters most for teaching roles in high-shortage subjects like maths or science?", a: "Being explicit about subject depth, senior secondary experience, and any specific exam or curriculum expertise (like HSC or VCE preparation) tends to matter more in shortage subjects, since schools are often specifically screening for this depth." },
+        ]
+      },
+      {
+        id: "koalapply-cta",
+        title: "Just Koalapply!",
+        paragraphs: [
+          "Applying to different schools or sectors with different requirements? Koalapply tailors your resume's language and subject framing to match each specific job description. For more on why the same resume rarely works twice, read [The Hidden Cost of Using the Same Resume](/blog/hidden-cost-of-using-same-resume).",
+          "Let us help you with your first application for free!",
+        ]
+      },
+    ]
+  },
+  {
+    slug: "resume-for-project-manager-jobs-australia",
+    title: "How to Write a Resume for Project Manager Jobs in Australia",
+    excerpt: "Project manager resumes are assessed on methodology fluency, project scale and measurable delivery outcomes. Here's how to structure yours so it holds up under scrutiny.",
+    category: "Resumes",
+    author: "Koalapply",
+    publishDate: "17 Jul 2026",
+    readingTime: "7 min read",
+    image: "/blog/resume-for-project-manager-jobs-australia.png",
+    imageAlt: "Project manager in hi-vis vest and hard hat on a construction site briefing two colleagues, with annotation overlays for a task checklist, Gantt chart timeline, team structure, delivery target, and performance results",
+    relatedSlugs: ["resume-for-nsw-government-jobs", "how-to-tailor-your-resume-for-each-job", "hidden-cost-of-using-same-resume"],
+    sections: [
+      {
+        id: "intro",
+        title: "",
+        paragraphs: [
+          "Project management is consistently one of the most in-demand roles across Australian industries, from construction and infrastructure to technology and government transformation programs. The volume of demand means competition is high too: hiring managers are comparing dozens of resumes that all claim similar responsibilities, so what actually differentiates a project manager's resume is specificity: methodology, project scale, and measurable delivery outcomes.",
+        ]
+      },
+      {
+        id: "what-hiring-managers-look-for",
+        title: "What Hiring Managers Actually Look For",
+        bullets: [
+          "Named methodology fluency: Agile, Scrum, Waterfall, PRINCE2, or a hybrid approach, stated explicitly against the projects where it was used",
+          "Project scale and budget, since 'managed a project' means very different things at $50K versus $5M",
+          "Stakeholder complexity, particularly for government or enterprise roles, where managing across multiple business units or external vendors is a distinct skill from single-team delivery",
+          "Delivery outcomes, not just delivery activity: on time, on budget, against what original baseline",
+        ]
+      },
+      {
+        id: "structuring-your-resume",
+        title: "Structuring Your Resume",
+        bullets: [
+          "Open with a summary naming your primary methodology and typical project scale, rather than a generic 'experienced project manager' line that could apply to almost anyone.",
+          "For each role, state the project's budget, timeline, and team size alongside what you actually delivered against the original scope.",
+          "Separate 'managed' from 'delivered.' A resume that says 'delivered a $2M system migration three weeks ahead of schedule' is more credible and more specific than 'managed a system migration project.'",
+          "Name specific tools (Jira, MS Project, Smartsheet, Primavera) against the projects where you used them, since larger organisations often have strong tooling preferences and will screen for this.",
+        ]
+      },
+      {
+        id: "common-mistakes",
+        title: "Common Mistakes",
+        bullets: [
+          "Vague scope descriptions. 'Managed cross-functional projects' tells a hiring manager nothing about scale, complexity, or actual outcomes.",
+          "Listing responsibilities instead of results. Project management resumes are particularly prone to activity-based language ('coordinated stakeholders,' 'tracked project timelines') rather than outcome-based language.",
+          "Omitting methodology entirely. Many organisations have a strong methodology preference, and a resume that doesn't signal fluency in the relevant approach can be filtered out even with strong general experience.",
+          "Not distinguishing project types. Managing a software delivery project and managing a construction program require different evidence: a resume that blurs these can read as unfocused for specialised roles.",
+        ]
+      },
+      {
+        id: "frequently-asked-questions",
+        title: "Frequently Asked Questions",
+        faqs: [
+          { q: "Do I need PRINCE2 or PMP certification to get project manager roles in Australia?", a: "Not always, but for government and larger enterprise roles it's frequently preferred or required. If you hold either certification, state it clearly near your qualifications; if you're pursuing one, note expected completion." },
+          { q: "How long should a project manager resume be?", a: "Two to three pages is standard for experienced PMs, allowing enough space to cover project scale, methodology, and outcomes for several recent projects without becoming a full project history." },
+          { q: "Should I quantify every project I've managed?", a: "Focus on quantifying your most recent and most relevant projects in depth (budget, timeline, team size, outcome), and summarise older or less relevant projects more briefly." },
+          { q: "How do I write a resume for a NSW or other government project manager role?", a: "Government project management roles often assess against the Capability Framework in addition to standard PM criteria. Pairing your project delivery evidence with capability-aligned language strengthens these applications specifically. See [How to Write a Resume for NSW Government Jobs](/blog/resume-for-nsw-government-jobs) for the full framework breakdown." },
+          { q: "What's the difference between a resume for construction project management versus IT project management?", a: "Construction PM resumes tend to emphasise budget control, contractor management, and regulatory and safety compliance, while IT PM resumes emphasise methodology (particularly Agile and Scrum), stakeholder management across technical and non-technical teams, and specific delivery tools." },
+        ]
+      },
+      {
+        id: "koalapply-cta",
+        title: "Just Koalapply!",
+        paragraphs: [
+          "Applying across different industries or project types? Koalapply tailors your resume's methodology framing and delivery evidence to match each specific job description. For the tailoring approach that works across every application, read [How to Tailor Your Resume Without Starting From Scratch](/blog/how-to-tailor-your-resume-for-each-job).",
           "Let us help you with your first application for free!",
         ]
       },

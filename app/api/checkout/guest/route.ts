@@ -37,7 +37,7 @@ export async function POST(request: Request) {
         },
       ],
       metadata: { planType: planKey },
-      success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}&guest=true`,
+      success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}&guest=true&plan=${planKey}&value=${plan.amountAud}`,
       cancel_url: `${appUrl}/pricing`,
     });
 

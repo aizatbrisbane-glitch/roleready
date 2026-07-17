@@ -1,6 +1,7 @@
 ﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
+import { PurchaseTracker } from "./PurchaseTracker";
 
 export const metadata: Metadata = {
   title: "Payment Successful | Koalapply",
@@ -9,13 +10,21 @@ export const metadata: Metadata = {
 export default async function CheckoutSuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ guest?: string }>;
+  searchParams: Promise<{ guest?: string; session_id?: string; plan?: string; value?: string }>;
 }) {
-  const { guest } = await searchParams;
+  const { guest, session_id, plan, value } = await searchParams;
   const isGuest = guest === "true";
+  const valueAudCents = value ? parseInt(value, 10) : 0;
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+      {plan && session_id && (
+        <PurchaseTracker
+          plan={plan}
+          valueAudCents={valueAudCents}
+          transactionId={session_id}
+        />
+      )}
       <div className="mx-auto max-w-md rounded-[2rem] border border-slate-100 bg-white p-10 text-center shadow-[0_32px_80px_rgba(34,0,255,0.08)]">
         <CheckCircle2 className="mx-auto h-12 w-12 text-[#2200ff]" />
         <h1 className="mt-6 text-2xl font-black tracking-tight text-slate-900">

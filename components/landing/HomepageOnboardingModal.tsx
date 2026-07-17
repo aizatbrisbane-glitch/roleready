@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, Eye, FileText, Loader2, UploadCloud, X } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { ErrorToast } from "@/components/ErrorToast";
+import { analytics } from "@/lib/analytics";
 
 export const HOMEPAGE_ONBOARDING_DRAFT_KEY = "Koalapply_home_onboarding_draft";
 export const GRAB_PREFILL_STORAGE_KEY = "Koalapply_grab_prefill";
@@ -147,6 +148,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
 
   useEffect(() => {
     if (!open) return;
+    analytics.setSignupSource(window.location.pathname);
     const supabase = createSupabaseBrowserClient();
     if (!supabase) return;
     void supabase.auth.getSession().then(({ data }) => setIsAuthenticated(Boolean(data.session)));
@@ -413,6 +415,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
         if (newsletterOptIn) {
           fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) }).catch(() => {});
         }
+        analytics.signupComplete({ method: "email", source: analytics.getSignupSource() });
         setIsAuthenticated(true);
         await submitAuthenticated();
         return;
@@ -423,6 +426,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
         if (newsletterOptIn) {
           fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) }).catch(() => {});
         }
+        analytics.signupComplete({ method: "email", source: analytics.getSignupSource() });
         setIsAuthenticated(true);
         await submitAuthenticated();
         return;
@@ -471,6 +475,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       if (newsletterOptIn) {
         fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) }).catch(() => {});
       }
+      analytics.signupComplete({ method: "email_otp", source: analytics.getSignupSource() });
       setIsAuthenticated(true);
       await submitAuthenticated();
     } catch (error) {

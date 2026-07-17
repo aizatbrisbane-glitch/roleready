@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Eye } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { ErrorToast } from "@/components/ErrorToast";
+import { analytics } from "@/lib/analytics";
 
 type Mode = "signin" | "signup" | "forgot";
 
@@ -18,6 +19,10 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
   const [newsletterOptIn, setNewsletterOptIn] = useState(true);
+
+  useEffect(() => {
+    analytics.setSignupSource(window.location.pathname);
+  }, []);
 
   function getSupabase() {
     const supabase = createSupabaseBrowserClient();
@@ -90,6 +95,7 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
       if (newsletterOptIn) {
         fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) }).catch(() => {});
       }
+      analytics.signupComplete({ method: "email", source: analytics.getSignupSource() });
       window.location.href = redirectTo;
       return;
     }
@@ -118,6 +124,7 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
     if (newsletterOptIn) {
       fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) }).catch(() => {});
     }
+    analytics.signupComplete({ method: "email_otp", source: analytics.getSignupSource() });
     window.location.href = redirectTo;
   }
 

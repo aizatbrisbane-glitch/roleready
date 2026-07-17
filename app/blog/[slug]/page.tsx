@@ -121,6 +121,16 @@ export default async function BlogArticlePage({ params }: Props) {
                         ))}
                       </ul>
                     ) : null}
+                    {section.faqs ? (
+                      <div className="mt-5 space-y-5">
+                        {section.faqs.map(({ q, a }) => (
+                          <div key={q} className="border-b border-slate-100 pb-5 last:border-0 last:pb-0">
+                            <p className="font-semibold text-slate-900">{q}</p>
+                            <p className="mt-2 text-base leading-8 text-slate-600">{renderInlineLinks(a)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
                   </section>
                 ))}
               </div>
