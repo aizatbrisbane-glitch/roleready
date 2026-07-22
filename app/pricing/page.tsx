@@ -20,8 +20,8 @@ const plans = [
     price: "$0",
     description: "Try Koalapply and keep a lightweight view of your job search.",
     features: [
-      "1 free application",
-      "1 month credit validity",
+      "1 application per month",
+      "Resets on the 1st of every month",
       "View-only dashboard access",
       "Limited access to job matches"
     ],

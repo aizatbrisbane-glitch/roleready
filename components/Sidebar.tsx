@@ -128,6 +128,9 @@ export function Sidebar({ userName, userEmail, avatarUrl, showEnterpriseAdmin, p
                 />
               </div>
               <p className="mt-1.5 text-xs text-slate-400">{applicationsRemaining} of {applicationLimit} remaining</p>
+              {planType === "free" && (
+                <p className="mt-0.5 text-xs text-slate-400">Resets on the 1st of each month</p>
+              )}
             </div>
 
             {planType === "free" ? (

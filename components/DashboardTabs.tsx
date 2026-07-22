@@ -436,7 +436,10 @@ export function DashboardTabs({
                   : accessState.planLabel}
               </span>
               <span className="text-slate-300">|</span>
-              <span>{accessState.applicationsRemaining} applications remaining</span>
+              <span>
+                {accessState.applicationsRemaining}{" "}
+                {accessState.planType === "free" ? "application remaining this month" : "applications remaining"}
+              </span>
             </div>
           )
         ) : null}
