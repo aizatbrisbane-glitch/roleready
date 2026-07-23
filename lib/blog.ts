@@ -6,7 +6,8 @@ export type BlogCategory =
   | "Career Growth"
   | "Redundancy Support"
   | "Graduate Careers"
-  | "Salary & Offers";
+  | "Salary & Offers"
+  | "Job Market";
 
 export type ArticleSection = {
   id: string;
@@ -40,6 +41,7 @@ export const blogCategories: BlogCategory[] = [
   "Redundancy Support",
   "Graduate Careers",
   "Salary & Offers",
+  "Job Market",
 ];
 
 export const blogArticles: BlogArticle[] = [
@@ -1750,6 +1752,98 @@ export const blogArticles: BlogArticle[] = [
         ],
       },
     ],
+  },
+  {
+    slug: "goldman-sachs-35-aussie-companies-job-cuts",
+    featured: true,
+    title: "Goldman Sachs Flags 35 Aussie Companies at Risk of Job Cuts",
+    excerpt: "A Goldman Sachs strategy note has identified 35 ASX-listed companies where wage growth is outpacing revenue growth, signalling potential headcount reductions heading into August reporting season.",
+    category: "Job Market",
+    author: "Koalapply",
+    publishDate: "22 Jul 2026",
+    readingTime: "6 min read",
+    image: "/blog/goldman-sachs-aussie-companies-job-cuts.jpg",
+    imageAlt: "Corporate office workers in a business meeting with financial data overlays indicating labour cost pressures across Australian listed companies",
+    relatedSlugs: ["what-to-do-after-redundancy", "how-to-tailor-your-resume-for-each-job", "hidden-cost-of-using-same-resume"],
+    sections: [
+      {
+        id: "intro",
+        title: "",
+        paragraphs: [
+          "Corporate Australia is bracing for a brutal reporting season, with Goldman Sachs putting 35 ASX-listed companies on notice over a widening gap between wage growth and profit growth, a mismatch analysts say could trigger a fresh wave of job cuts.",
+          "According to news.com.au, a portfolio strategy note from Goldman Sachs analysts Matthew Ross and Tony Wu warns that corporate Australia is heading into a \"cost-out\" reporting season, driven by cooling consumer demand, sticky inflation and fast-rising wage bills that are squeezing margins across the board.",
+        ]
+      },
+      {
+        id: "why-the-pressure-is-building",
+        title: "Why the Pressure Is Building",
+        paragraphs: [
+          "Goldman's economists expect consumption growth to slow to around 1.3 per cent, weighed down by softer house prices and slower income growth. On top of that, inflationary flow-on effects from geopolitical tensions in the Middle East have added to cost pressures, even as energy prices ease from their post-war highs.",
+          "The core problem, per the report, is a structural imbalance: employee expenses across the market have grown by roughly 8% recently, well ahead of top-line revenue growth of about 5 per cent. Zoom out further and the trend has been building since 2022, with median ASX 300 wage bills growing 10 per cent a year against revenue growth of just 7 per cent, a three-percentage-point gap that's been compounding for years.",
+          "A recently confirmed 4.75 per cent increase in Award wages is expected to keep feeding directly into corporate cost bases well into the 2027 financial year, adding to the pressure on management teams to find savings elsewhere, including headcount.",
+        ]
+      },
+      {
+        id: "companies-on-the-list",
+        title: "Which Companies Made the List",
+        paragraphs: [
+          "Goldman screened the ASX 200 for companies where labour costs make up more than 10 per cent of sales and where wage growth has outrun revenue growth since 2022. Among the names flagged as facing the most acute pressure:",
+        ],
+        bullets: [
+          "Generation Development Group",
+          "AUB Group",
+          "Aussie Broadband",
+          "PEXA Group",
+          "Dyno Nobel, where labour costs rose 16% even as revenue fell 26% over the same period",
+          "Also on the list are some big, familiar names, including Pro Medicus, WiseTech Global, Codan, National Australia Bank, Coles, JB Hi-Fi and Cleanaway Waste Management",
+        ]
+      },
+      {
+        id: "margins-under-pressure",
+        title: "Companies With Margins Already Below Historical Averages",
+        paragraphs: [
+          "A second group of companies is under even more pressure because their net profit margins have already dropped below their 10-year historical averages:",
+        ],
+        bullets: [
+          "Sonic Healthcare",
+          "Treasury Wine Estates",
+          "ASX Limited",
+          "Elders",
+          "Endeavour Group",
+          "Cochlear",
+        ]
+      },
+      {
+        id: "the-ai-factor",
+        title: "The AI Factor and the \"AI-Washing\" Warning",
+        paragraphs: [
+          "The timing isn't a coincidence. Corporate cost-cutting is colliding with a rapid AI adoption cycle, and some companies are already acting on it. WiseTech Global has flagged plans to cut headcount in product development and customer service by up to half as internal AI tools boost output, while online retailer Temple & Webster says AI now handles 80 per cent of customer service interactions, cutting support costs as a share of revenue by more than 60 per cent.",
+          "But Goldman's analysts also flagged a growing problem: \"AI-washing,\" where companies rebrand ordinary post-pandemic staffing normalisation or routine cost-cutting as an AI-driven transformation. That framing has already backfired for some ASX tech and software names, with stock prices in the sector falling around 40 per cent at one point as investors worried AI would disrupt their business models before the panic-selling eased.",
+          "Goldman's analysts estimate that broader headcount rebalancing (not AI automation itself) has actually driven three to four times more of the job cuts seen across the tech sector so far.",
+        ]
+      },
+      {
+        id: "what-happens-next",
+        title: "What Happens Next",
+        paragraphs: [
+          "With August reporting season approaching, Goldman expects investors to punish companies that can't show a credible plan for controlling labour costs, and reward those that can demonstrate AI is genuinely lifting efficiency and revenue, rather than just being used as a buzzword.",
+        ]
+      },
+      {
+        id: "koalapply-cta",
+        title: "What This Means for Your Job Search",
+        paragraphs: [
+          "If your employer is on this list, now is the time to get ahead of it. Update your resume and LinkedIn profile before any formal announcement, while you have the time to do it properly. And if the broader market shift has you thinking about your next move, Koalapply tailors your resume and cover letter to each specific role so you can apply quickly and confidently. [Start with your first application for free](/login).",
+        ]
+      },
+      {
+        id: "source",
+        title: "Source",
+        paragraphs: [
+          "This article summarises and references reporting first published by [news.com.au](https://www.news.com.au/finance/work/at-work/goldman-sachs-lists-35-aussie-companies-in-alarming-report-about-wages-and-profits/news-story/2d041b6c37bdbd5dd1845fd52054de1e). For the full original story, [read it here](https://www.news.com.au/finance/work/at-work/goldman-sachs-lists-35-aussie-companies-in-alarming-report-about-wages-and-profits/news-story/2d041b6c37bdbd5dd1845fd52054de1e).",
+        ]
+      },
+    ]
   }
 ];
 
