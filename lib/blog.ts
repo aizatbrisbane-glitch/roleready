@@ -1844,6 +1844,126 @@ export const blogArticles: BlogArticle[] = [
         ]
       },
     ]
+  },
+  {
+    slug: "career-break-impact-resume",
+    title: "Will a Career Break Impact My Resume?",
+    excerpt: "A gap on a resume is not a crime scene. Here is how to address a career break without over-explaining or planting a seed of doubt that wasn't there before.",
+    category: "Job Search",
+    author: "Koalapply",
+    publishDate: "25 July 2026",
+    readingTime: "7 min read",
+    image: "/blog/career-break-impact-resume.png",
+    imageAlt: "Professional sitting at a bright desk reviewing their resume on a laptop, preparing to re-enter the job market after a career break",
+    relatedSlugs: ["why-youre-not-getting-interviews-even-with-experience", "hidden-cost-of-using-same-resume", "how-to-tailor-your-resume-for-each-job"],
+    sections: [
+      {
+        id: "intro",
+        title: "That Depends on What You Do With It",
+        paragraphs: [
+          "That depends less on the gap and more on what you do with it. A resume gap doesn't need an origin story. But if you've got one memorised anyway, you're not alone.",
+          "But here's the thing, a gap on a resume is not a crime scene. Yet even smart, accomplished people sit down to write about their career break and start typing like they're building a legal defense.",
+          "That instinct is worth dropping because recruiters aren't circling gaps like evidence. Instead, they're scanning for one thing: can this person do the job and do they have the right skills? The moment someone over-explains, they've handed the recruiter a reason to wonder if something's actually wrong.",
+          "And if you're worried it's not a person doing the first read but a bot, that's a fair thing to wonder about. Worth knowing either way, running your resume through an [ATS checker](/ats-checker) will usually tell you it's not the gap tripping up the software. It's how the rest of the resume is built around it.",
+        ]
+      },
+      {
+        id: "say-what-happened",
+        title: "Say What Happened and Then Let It Sit",
+        paragraphs: [
+          "The strongest way to explain a career break is to make it sound like old news, because to you, it already is. All you need to share is one sentence that lands like a fact and not an excuse. It's context, offered plainly, the same way you'd mention a role that only lasted eight months because the company went under, or an industry switch because you wanted more out of the work. Here are some examples:",
+        ],
+        bullets: [
+          "\"I took eight months off to care for a family member.\"",
+          "\"I left my role in 2023 to travel and recalibrate, and it's honestly one of the best decisions I've made.\"",
+          "\"I was laid off in a round of cuts, took the summer to regroup, and now I'm back and ready to go.\"",
+          "\"I stepped away to deal with a health issue, which is fully resolved now.\"",
+        ]
+      },
+      {
+        id: "follow-up-sentence",
+        title: "Let the Follow-up Sentence Do the Work",
+        paragraphs: [
+          "Look, the gap is already there, you can't undo it. So what did it actually give you? What did it let you do that you couldn't have done otherwise? And it definitely doesn't make you less capable. Here are some examples to form your own statement:",
+        ],
+        bullets: [
+          "\"That break gave me the headspace to figure out I wanted to move into [X], which is exactly why I'm excited about this role.\"",
+          "\"I also came back sharper. I read a lot, took on some freelance projects, and honestly walked into this interview more focused than I would've been otherwise.\"",
+          "\"I'm mentioning it because I want to be upfront with you, not because it changes anything about what I bring to the table.\"",
+        ]
+      },
+      {
+        id: "phrases-to-avoid",
+        title: "A Few Phrases You Might Want to Avoid for Good",
+        paragraphs: [
+          "That last line does a lot of quiet work. It tells the recruiter you're naming this on purpose, not hiding from it, and now you're both moving on to the good stuff.",
+          "If any of these show up in your resume, your cover letter, or the talking points you've rehearsed for an interview, cut them:",
+        ],
+        bullets: [
+          "\"I know this is a red flag, but...\"",
+          "\"Unfortunately, due to circumstances...\"",
+          "\"I apologise for any inconvenience this gap may cause...\"",
+          "\"I hope this doesn't disqualify me...\"",
+        ]
+      },
+      {
+        id: "personal-reasons",
+        title: "What if the Reason is Personal?",
+        paragraphs: [
+          "Every one of those phrases plants a seed of doubt that wasn't there a sentence earlier. You lived your life and that was never something you needed permission for.",
+          "You don't owe anyone your medical history, your divorce, or the details of your mental health. \"Personal reasons\" is a complete sentence, and it's a completely acceptable one. Add a touch more warmth if you want to: \"I needed to handle some personal matters, and I'm glad to say things have settled now\" works well too. But oversharing is never the price of admission just because someone seems curious. Curiosity doesn't entitle anyone to your whole story.",
+          "The trick is delivery, not disclosure. Say it plainly, hold steady through the question, you've answered it before and you'll answer it again, and pivot to what you're bringing to the table now.",
+        ]
+      },
+      {
+        id: "resume-itself",
+        title: "What to Put on the Resume Itself",
+        paragraphs: [
+          "A simple line in your work history is all it takes:",
+          "Career Break — 2023–2024. Focused on [caregiving / relocation / health / professional development / a specific project]. Returned refreshed and ready to contribute.",
+          "That's it. No essay, no footnotes explaining yourself further. If someone wants more detail, that's what the interview is for, and by then your one-liner should already be ready to go.",
+        ]
+      },
+      {
+        id: "making-sure",
+        title: "Making Sure Your Resume and Cover Letter Are Solid",
+        paragraphs: [
+          "Most resumes get scanned by software before a human ever sees them. And while a career break doesn't trip up an ATS, a resume built badly around one can.",
+          "So if you're not getting interviews, check your resume first. It might be the formatting that's not getting you through the first bot screening. The resume gets you past the gatekeeper and the cover letter is what makes a human want to keep reading.",
+          "If you want a quick, no-cost gut check on how your resume actually reads, Koalapply's [ATS checker](/ats-checker) is free to run. And when you're ready to tailor your resume or cover letter to a specific role, that's there too, whenever you need it.",
+        ]
+      },
+      {
+        id: "frequently-asked-questions",
+        title: "Frequently Asked Questions",
+        faqs: [
+          {
+            q: "Does a career break hurt your chances of getting hired?",
+            a: "Not inherently. Most recruiters care more about whether you can do the job than about what you were doing in the months between roles. The bigger risk is over-explaining the gap in a way that draws unnecessary attention to it."
+          },
+          {
+            q: "How long is too long for a career break?",
+            a: "There's no universal cutoff. A 12-month break with a clear explanation raises fewer questions than a 6-month gap left completely blank on the resume. Context and confidence matter more than duration."
+          },
+          {
+            q: "Do I have to disclose why I took a career break?",
+            a: "No. \"Personal reasons\" is a complete and acceptable answer. You are not required to share medical, family, or personal details with a prospective employer."
+          },
+          {
+            q: "Will an ATS reject my resume because of a career gap?",
+            a: "Gaps alone rarely trigger ATS filters. What's more likely to cause problems is missing keywords or unusual formatting. Run your resume through the [free ATS checker](/ats-checker) to see what might be working against you."
+          },
+          {
+            q: "Should I list a career break on my resume?",
+            a: "Yes. A short, clearly labelled career break line is better than an unexplained time gap. It shows you're being straightforward, which is exactly the tone you want."
+          },
+          {
+            q: "What is Koalapply?",
+            a: "Koalapply is a career management platform for Australian professionals. It helps you tailor your resume and cover letter to specific roles, track applications across your pipeline, and prepare for interviews, all in one place."
+          },
+        ]
+      }
+    ]
   }
 ];
 
