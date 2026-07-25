@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { ApplicationStatus } from "@/types/database";
 
-const STATUSES: ApplicationStatus[] = ["New", "Ready", "Applied", "Interview", "Rejected"];
+const STATUSES: ApplicationStatus[] = ["New", "Ready", "Applied", "Interview", "Rejected", "Withdrawn"];
 
 const statusStyle: Record<ApplicationStatus, { select: string; dot: string; label: string }> = {
   New:       { select: "bg-sky-50      text-sky-800      ring-sky-200",      dot: "bg-sky-400",      label: "Generate your tailored resume and cover letter" },
@@ -14,6 +14,7 @@ const statusStyle: Record<ApplicationStatus, { select: string; dot: string; labe
   Interview: { select: "bg-orange-50   text-orange-800   ring-orange-200",   dot: "bg-orange-400",   label: "Review the role and prepare your talking points" },
   Rejected:  { select: "bg-rose-50     text-rose-700     ring-rose-200",     dot: "bg-rose-400",     label: "Keep as a reference for future applications" },
   Saved:     { select: "bg-violet-50   text-violet-800   ring-violet-200",   dot: "bg-violet-400",   label: "Bookmark — prepare your application when ready" },
+  Withdrawn: { select: "bg-slate-100   text-slate-600    ring-slate-200",    dot: "bg-slate-400",    label: "You chose not to apply to this role" },
 };
 
 type Props = {

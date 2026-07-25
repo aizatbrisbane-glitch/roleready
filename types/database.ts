@@ -1,4 +1,4 @@
-export type ApplicationStatus = "New" | "Ready" | "Applied" | "Interview" | "Rejected" | "Saved";
+export type ApplicationStatus = "New" | "Ready" | "Applied" | "Interview" | "Rejected" | "Saved" | "Withdrawn";
 export type ProfileRole = "user" | "admin" | "founder";
 export type KoalapplyEventType =
   | "USER_SIGNUP"

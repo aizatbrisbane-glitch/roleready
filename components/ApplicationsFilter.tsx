@@ -10,7 +10,7 @@ type Filter = "All" | ApplicationStatus;
 type SummaryState = { summary?: string; loading?: boolean; error?: string };
 type SummaryStateMap = Record<string, SummaryState>;
 
-const STATUSES: ApplicationStatus[] = ["New", "Ready", "Applied", "Interview", "Rejected"];
+const STATUSES: ApplicationStatus[] = ["New", "Ready", "Applied", "Interview", "Rejected", "Withdrawn"];
 const EMPTY = "-";
 const UNDO_DELAY_MS = 5000;
 
@@ -98,11 +98,12 @@ function SummaryPanel({ state, fallbackSummary }: { state?: SummaryState; fallba
 }
 
 const statusStyles: Record<string, { select: string; dot: string }> = {
-  New:       { select: "bg-sky-50 text-sky-800 ring-sky-200",           dot: "bg-sky-400" },
+  New:       { select: "bg-sky-50 text-sky-800 ring-sky-200",             dot: "bg-sky-400" },
   Ready:     { select: "bg-emerald-50 text-emerald-800 ring-emerald-200", dot: "bg-emerald-500" },
-  Applied:   { select: "bg-amber-50 text-amber-800 ring-amber-200",     dot: "bg-amber-400" },
-  Interview: { select: "bg-orange-50 text-orange-800 ring-orange-200",  dot: "bg-orange-400" },
-  Rejected:  { select: "bg-rose-50 text-rose-700 ring-rose-200",        dot: "bg-rose-400" },
+  Applied:   { select: "bg-amber-50 text-amber-800 ring-amber-200",       dot: "bg-amber-400" },
+  Interview: { select: "bg-orange-50 text-orange-800 ring-orange-200",    dot: "bg-orange-400" },
+  Rejected:  { select: "bg-rose-50 text-rose-700 ring-rose-200",          dot: "bg-rose-400" },
+  Withdrawn: { select: "bg-slate-100 text-slate-600 ring-slate-200",      dot: "bg-slate-400" },
 };
 
 function InlineStatusSelect({ applicationId, initialStatus }: { applicationId: string; initialStatus: ApplicationStatus }) {
