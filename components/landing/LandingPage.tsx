@@ -15,6 +15,7 @@ import {
   Briefcase,
   Download,
   FileText,
+  Lock,
   Menu,
   Search,
   ShieldCheck,
@@ -431,13 +432,17 @@ export function LandingPage() {
                 </span>
                 <p className="mt-4 text-2xl font-black tracking-tight text-slate-900 sm:mt-6 sm:text-4xl">Drop your resume here. See what it could look like.</p>
                 <p className="mt-3 text-base font-semibold text-slate-500">PDF or DOCX · Max 4 MB</p>
+                <div className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-[#ece8ff] px-3.5 py-1.5 text-xs font-semibold text-[#2200ff] sm:mt-8 sm:text-sm">
+                  <Sparkles className="h-3.5 w-3.5 shrink-0" />
+                  1 free tailored resume — get 2 free when you subscribe to career tips
+                </div>
                 <button
                   type="button"
                   onClick={(event) => {
                     event.stopPropagation();
                     resumeInputRef.current?.click();
                   }}
-                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-base font-bold text-white shadow-[0_16px_44px_rgba(34,0,255,0.34)] transition hover:bg-[#1a00cc] sm:mt-8 sm:px-7 sm:py-4 sm:text-lg"
+                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-base font-bold text-white shadow-[0_16px_44px_rgba(34,0,255,0.34)] transition hover:bg-[#1a00cc] sm:px-7 sm:py-4 sm:text-lg"
                 >
                   Tailor My Resume for FREE
                 </button>
@@ -449,6 +454,10 @@ export function LandingPage() {
                   <p className="inline-flex items-center gap-1.5 text-xs text-slate-400 sm:text-sm">
                     <Zap className="h-4 w-4" />
                     ATS-friendly PDFs
+                  </p>
+                  <p className="inline-flex items-center gap-1.5 text-xs text-slate-400 sm:text-sm">
+                    <Lock className="h-4 w-4" />
+                    Your resume is never shared without your permission
                   </p>
                 </div>
               </div>
