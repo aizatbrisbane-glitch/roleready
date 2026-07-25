@@ -1755,7 +1755,7 @@ export const blogArticles: BlogArticle[] = [
   },
   {
     slug: "goldman-sachs-35-aussie-companies-job-cuts",
-    featured: true,
+    featured: false,
     title: "Goldman Sachs Flags 35 Aussie Companies at Risk of Job Cuts",
     excerpt: "A Goldman Sachs strategy note has identified 35 ASX-listed companies where wage growth is outpacing revenue growth, signalling potential headcount reductions heading into August reporting season.",
     category: "Job Market",
@@ -1850,6 +1850,7 @@ export const blogArticles: BlogArticle[] = [
     title: "Will a Career Break Impact My Resume?",
     excerpt: "A gap on a resume is not a crime scene. Here is how to address a career break without over-explaining or planting a seed of doubt that wasn't there before.",
     category: "Job Search",
+    featured: true,
     author: "Koalapply",
     publishDate: "25 July 2026",
     readingTime: "7 min read",
