@@ -159,6 +159,13 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
     if (!open) return;
     setMessage(initialMessage ?? "");
     setEmail(initialDraft?.email ?? "");
+    setStep(1);
+    setConfirmEmail(false);
+    setPassword("");
+    setVerificationCode("");
+    setLoading(false);
+    setLoadingStep("");
+    setShowPassword(false);
   }, [initialDraft?.email, initialMessage, open]);
 
   useEffect(() => {
@@ -604,9 +611,9 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
           <>
             {step === 1 && (
               <section className="mt-5">
-                <h2 className="text-3xl font-black tracking-tight text-slate-900">Resume uploaded</h2>
+                <h2 className="text-3xl font-black tracking-tight text-slate-900">{resumeFile ? "Resume uploaded" : "Upload your resume"}</h2>
                 <p className="mt-2 text-base leading-7 text-slate-600">
-                  We will save and extract this after your account is ready.
+                  {resumeFile ? "We will save and extract this after your account is ready." : "Add your CV or resume to get started."}
                 </p>
 
                 <div className="mt-6 rounded-[1.5rem] border border-dashed border-[#d4ccff] bg-[#f7f5ff] p-5">
