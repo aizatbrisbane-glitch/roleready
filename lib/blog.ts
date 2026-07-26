@@ -1860,7 +1860,7 @@ export const blogArticles: BlogArticle[] = [
     sections: [
       {
         id: "intro",
-        title: "That Depends on What You Do With It",
+        title: "Will a Career Break Impact My Resume?",
         paragraphs: [
           "That depends less on the gap and more on what you do with it. A resume gap doesn't need an origin story. But if you've got one memorised anyway, you're not alone.",
           "But here's the thing, a gap on a resume is not a crime scene. Yet even smart, accomplished people sit down to write about their career break and start typing like they're building a legal defense.",
