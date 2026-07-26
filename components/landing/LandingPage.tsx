@@ -494,6 +494,32 @@ export function LandingPage() {
 
 
 
+        {/* ── Walkthrough video ── */}
+        <section className="Koalapply-fade-up bg-slate-50 px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
+          <div className="mx-auto max-w-4xl">
+            <div className="mb-5 flex justify-center">
+              <LimeSwoop />
+            </div>
+            <h2 className="text-center text-4xl font-black leading-tight tracking-tight text-slate-900 sm:text-5xl">
+              See it in action
+            </h2>
+            <p className="mx-auto mt-5 max-w-2xl text-center text-lg leading-8 text-slate-600">
+              Watch how Koalapply turns one resume into a tailored application in seconds.
+            </p>
+            <div className="mt-10 overflow-hidden rounded-[1.75rem] shadow-[0_30px_80px_rgba(34,0,255,0.12)]">
+              <video
+                src="/videos/koalapply-walkthrough.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+                controls
+                className="w-full"
+              />
+            </div>
+          </div>
+        </section>
+
         {/* â"€â"€ How it works â"€â"€ */}
         <section id="how-it-works" className="Koalapply-fade-up bg-white px-5 py-28 sm:px-8 lg:px-10 lg:py-36">
           <div className="mx-auto max-w-6xl">
