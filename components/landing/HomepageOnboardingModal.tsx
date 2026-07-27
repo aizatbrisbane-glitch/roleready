@@ -150,13 +150,6 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
   useEffect(() => {
     if (!open) return;
     analytics.setSignupSource(window.location.pathname);
-    const supabase = createSupabaseBrowserClient();
-    if (!supabase) return;
-    void supabase.auth.getSession().then(({ data }) => setIsAuthenticated(Boolean(data.session)));
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
     setMessage(initialMessage ?? "");
     setEmail(initialDraft?.email ?? "");
     setStep(1);
@@ -166,6 +159,9 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
     setLoading(false);
     setLoadingStep("");
     setShowPassword(false);
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) return;
+    void supabase.auth.getSession().then(({ data }) => setIsAuthenticated(Boolean(data.session)));
   }, [initialDraft?.email, initialMessage, open]);
 
   useEffect(() => {
@@ -558,6 +554,16 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
         </button>
 
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">{stepLabel}</p>
+        <div className="mt-3 flex gap-1.5">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div
+              key={i}
+              className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
+                confirmEmail || i <= step ? "bg-[#2200ff]" : "bg-slate-200"
+              }`}
+            />
+          ))}
+        </div>
 
         {confirmEmail ? (
           <section className="mt-6">

@@ -460,6 +460,12 @@ export function LandingPage() {
                     Your resume is never shared without your permission
                   </p>
                 </div>
+                <a
+                  href="#walkthrough"
+                  className="mt-2 text-xs text-slate-400 underline underline-offset-2 transition hover:text-[#2200ff]"
+                >
+                  Watch how it works →
+                </a>
               </div>
 
               {/* Slideshow — mobile only, appears below upload card */}
@@ -495,7 +501,7 @@ export function LandingPage() {
 
 
         {/* ── Walkthrough video ── */}
-        <section className="Koalapply-fade-up bg-slate-50 px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
+        <section id="walkthrough" className="Koalapply-fade-up bg-slate-50 px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
           <div className="mx-auto max-w-4xl">
             <div className="mb-5 flex justify-center">
               <LimeSwoop />
@@ -701,6 +707,7 @@ export function LandingPage() {
         </section>
 
       </main>
+
       <PublicFooter />
       <HomepageOnboardingModal
         open={onboardingOpen}
