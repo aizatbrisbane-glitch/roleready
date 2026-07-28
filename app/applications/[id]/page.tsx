@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
+  Check,
   CheckCircle2,
   Download,
   ExternalLink,
@@ -80,6 +81,65 @@ function statusGuidance(status: ApplicationStatus, hasDocuments: boolean) {
     body: "Update the status as the application progresses.",
     next: hasDocuments ? "Review documents" : "Generate documents",
   };
+}
+
+const PIPELINE_STAGES: ApplicationStatus[] = ["New", "Ready", "Applied", "Interview"];
+const TERMINAL_STAGES: ApplicationStatus[] = ["Rejected", "Withdrawn", "Saved"];
+
+function ApplicationStatusBar({ status }: { status: ApplicationStatus }) {
+  const isTerminal = TERMINAL_STAGES.includes(status);
+  const currentIndex = PIPELINE_STAGES.indexOf(status);
+
+  const terminalBadge =
+    status === "Rejected" ? "bg-rose-50 text-rose-500 border-rose-100" :
+    status === "Withdrawn" ? "bg-slate-100 text-slate-400 border-slate-200" :
+    "bg-amber-50 text-amber-500 border-amber-100";
+
+  return (
+    <div className="mb-6 md:mb-8">
+      <div className="flex items-center">
+        {PIPELINE_STAGES.map((stage, i) => {
+          const isCompleted = !isTerminal && i < currentIndex;
+          const isCurrent = !isTerminal && i === currentIndex;
+
+          return (
+            <div key={stage} className="flex items-center">
+              {/* Node */}
+              <div className="flex items-center gap-2">
+                <div className={`flex h-6 w-6 items-center justify-center rounded-full border-2 transition-all ${
+                  isCompleted
+                    ? "border-[#2200ff] bg-[#2200ff]"
+                    : isCurrent
+                    ? "border-[#2200ff] bg-white"
+                    : "border-slate-200 bg-white"
+                }`}>
+                  {isCompleted
+                    ? <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                    : <div className={`h-2 w-2 rounded-full ${isCurrent ? "bg-[#2200ff]" : "bg-slate-200"}`} />
+                  }
+                </div>
+                <span className={`text-xs font-medium ${
+                  isCurrent ? "text-slate-900" :
+                  isCompleted ? "text-slate-400" : "text-slate-300"
+                }`}>
+                  {stage}
+                </span>
+              </div>
+              {/* Connector */}
+              {i < PIPELINE_STAGES.length - 1 && (
+                <div className={`mx-3 h-px w-8 shrink-0 md:w-12 ${isCompleted ? "bg-[#2200ff]" : "bg-slate-200"}`} />
+              )}
+            </div>
+          );
+        })}
+        {isTerminal && (
+          <span className={`ml-4 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${terminalBadge}`}>
+            {status}
+          </span>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function jobDisplayCopy(job: NonNullable<ApplicationWithJob["jobs"]>) {
@@ -228,6 +288,8 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
             </div>
           </div>
         </div>
+
+        <ApplicationStatusBar status={status} />
 
         <div className="min-w-0 space-y-6">
 
