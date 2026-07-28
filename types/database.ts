@@ -33,6 +33,8 @@ export type Profile = {
   avatar_storage_path: string;
   job_search_intent: string | null;
   newsletter_subscribed: boolean;
+  monthly_generations_used: number;
+  monthly_generations_reset_at: string;
   role: ProfileRole;
   created_at: string;
   updated_at: string;

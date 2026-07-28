@@ -12,6 +12,8 @@ export type AccessState = {
   validUntil: string | null;
   canGenerate: boolean;
   entitlementId: string | null;
+  userId: string;
+  needsMonthlyReset: boolean;
 };
 
 const FREE_MONTHLY_APPLICATION_LIMIT = 1;
@@ -63,27 +65,25 @@ export async function getAccessState(supabase: SupabaseServerClient, userId: str
       validUntil: activeEntitlement.valid_until,
       canGenerate: remaining > 0,
       entitlementId: activeEntitlement.id,
+      userId,
+      needsMonthlyReset: false,
     };
   }
 
-  const [{ count }, { data: profileRow }] = await Promise.all([
-    supabase
-      .from("applications")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .not("generated_at", "is", null)
-      .gte("generated_at", monthStartIso()),
-    supabase
-      .from("profiles")
-      .select("newsletter_subscribed")
-      .eq("id", userId)
-      .maybeSingle(),
-  ]);
+  const { data: profileRow } = await supabase
+    .from("profiles")
+    .select("newsletter_subscribed, monthly_generations_used, monthly_generations_reset_at")
+    .eq("id", userId)
+    .maybeSingle();
+
+  const needsMonthlyReset =
+    !profileRow?.monthly_generations_reset_at ||
+    profileRow.monthly_generations_reset_at < monthStartIso();
 
   const freeLimit = profileRow?.newsletter_subscribed
     ? FREE_NEWSLETTER_APPLICATION_LIMIT
     : FREE_MONTHLY_APPLICATION_LIMIT;
-  const used = count ?? 0;
+  const used = needsMonthlyReset ? 0 : (profileRow?.monthly_generations_used ?? 0);
   const remaining = Math.max(0, freeLimit - used);
 
   return {
@@ -95,6 +95,8 @@ export async function getAccessState(supabase: SupabaseServerClient, userId: str
     validUntil: null,
     canGenerate: remaining > 0,
     entitlementId: null,
+    userId,
+    needsMonthlyReset,
   };
 }
 
@@ -113,7 +115,17 @@ export async function consumeGenerationCredit(supabase: SupabaseServerClient, ac
       : { ok: false, error: "No application credits remaining." };
   }
 
-  // Free usage is derived from successful generated applications in the current month.
+  // Free tier — write to persistent counter so deleting applications cannot restore credits.
+  const newCount = access.needsMonthlyReset ? 1 : access.applicationsUsed + 1;
+  const patch: Record<string, unknown> = { monthly_generations_used: newCount };
+  if (access.needsMonthlyReset) patch.monthly_generations_reset_at = monthStartIso();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update(patch)
+    .eq("id", access.userId);
+
+  if (error) return { ok: false, error: error.message };
   return { ok: true, error: null };
 }
 
