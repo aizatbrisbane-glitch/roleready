@@ -167,7 +167,7 @@ export async function POST(request: Request) {
         company: jobDetails.company,
         location: jobDetails.location,
         salary: jobDetails.salary,
-        job_url: jobUrl || null,
+        job_url: jobUrl || "",
         description: jobDetails.description,
         source: jobUrl ? detectJobSource(jobUrl) : "Manual"
       })
