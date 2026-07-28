@@ -617,6 +617,11 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
               >
                 {resendCooldown > 0 ? `Resend available in ${resendCooldown}s` : "Resend code"}
               </button>
+              {message && (
+                <p className={`text-center text-sm ${message.startsWith("New code") ? "text-emerald-600" : "text-rose-600"}`}>
+                  {message}
+                </p>
+              )}
             </form>
           </section>
         ) : (
