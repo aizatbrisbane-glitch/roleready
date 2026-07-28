@@ -78,7 +78,7 @@ export async function getAccessState(supabase: SupabaseServerClient, userId: str
 
   const needsMonthlyReset =
     !profileRow?.monthly_generations_reset_at ||
-    profileRow.monthly_generations_reset_at < monthStartIso();
+    new Date(profileRow.monthly_generations_reset_at) < new Date(monthStartIso());
 
   const freeLimit = profileRow?.newsletter_subscribed
     ? FREE_NEWSLETTER_APPLICATION_LIMIT
