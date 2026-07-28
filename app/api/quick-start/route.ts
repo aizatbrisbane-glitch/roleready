@@ -88,9 +88,10 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const jobUrl = normaliseJobUrl(String(formData.get("job_url") ?? "").trim());
+  const jobDescriptionFallback = String(formData.get("job_description_fallback") ?? "").trim();
 
-  if (!jobUrl) {
-    return NextResponse.json({ error: "Paste a job ad link first." }, { status: 400 });
+  if (!jobUrl && !jobDescriptionFallback) {
+    return NextResponse.json({ error: "Paste a job ad link or job description first." }, { status: 400 });
   }
 
   try {
@@ -116,27 +117,46 @@ export async function POST(request: Request) {
       supabase
     });
 
-    let jobDetails;
-    try {
-      jobDetails = await fetchJobAdDetails(jobUrl);
-    } catch (error) {
-      if (isBlockedJobBoard(jobUrl)) {
-        return NextResponse.json(
-          {
-            errorCode: JOB_TEXT_UNAVAILABLE,
-            source: detectJobSource(jobUrl),
-            jobUrl,
-            error: "We could not read that job link. Try the direct job ad URL instead of a search results page."
-          },
-          { status: 422 }
-        );
+    let jobDetails: { title: string; company: string; location: string; salary: string; description: string };
+
+    if (jobUrl) {
+      let scraped;
+      try {
+        scraped = await fetchJobAdDetails(jobUrl);
+      } catch (error) {
+        if (isBlockedJobBoard(jobUrl)) {
+          return NextResponse.json(
+            {
+              errorCode: JOB_TEXT_UNAVAILABLE,
+              source: detectJobSource(jobUrl),
+              jobUrl,
+              error: "We could not read that job link. Try the direct job ad URL instead of a search results page."
+            },
+            { status: 422 }
+          );
+        }
+        throw new Error(error instanceof Error ? error.message : "Could not read this job link.");
       }
 
-      throw new Error(error instanceof Error ? error.message : "Could not read this job link.");
-    }
+      if (!scraped.description.trim() && !jobDescriptionFallback) {
+        return NextResponse.json({ error: "I could not find readable job ad text at that link. Try the direct job ad URL." }, { status: 400 });
+      }
 
-    if (!jobDetails.description.trim()) {
-      return NextResponse.json({ error: "I could not find readable job ad text at that link. Try the direct job ad URL." }, { status: 400 });
+      jobDetails = {
+        title: scraped.title,
+        company: scraped.company,
+        location: scraped.location,
+        salary: scraped.salary,
+        description: scraped.description.trim() || jobDescriptionFallback,
+      };
+    } else {
+      jobDetails = {
+        title: "",
+        company: "",
+        location: "",
+        salary: "",
+        description: jobDescriptionFallback,
+      };
     }
 
     const { data: job, error: jobError } = await supabase
@@ -147,7 +167,7 @@ export async function POST(request: Request) {
         company: jobDetails.company,
         location: jobDetails.location,
         salary: jobDetails.salary,
-        job_url: jobUrl,
+        job_url: jobUrl || null,
         description: jobDetails.description,
         source: jobUrl ? detectJobSource(jobUrl) : "Manual"
       })

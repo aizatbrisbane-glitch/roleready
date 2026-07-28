@@ -9,7 +9,7 @@ import { analytics } from "@/lib/analytics";
 export const HOMEPAGE_ONBOARDING_DRAFT_KEY = "Koalapply_home_onboarding_draft";
 export const GRAB_PREFILL_STORAGE_KEY = "Koalapply_grab_prefill";
 
-type JobMode = "url" | "browse";
+type JobMode = "url" | "browse" | "description";
 
 export type StoredDraft = {
   resumeFileName?: string;
@@ -128,6 +128,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
   const [coverLetterFileKey, setCoverLetterFileKey] = useState(initialDraft?.coverLetterFileKey ?? "");
   const [jobMode, setJobMode] = useState<JobMode>(initialDraft?.jobMode === "browse" ? "browse" : "url");
   const [jobUrl, setJobUrl] = useState(initialDraft?.jobUrl ?? "");
+  const [jobDescription, setJobDescription] = useState(initialDraft?.jobDescription ?? "");
   const [browseKeywords, setBrowseKeywords] = useState(initialDraft?.browse?.keywords ?? "");
   const [browseLocation, setBrowseLocation] = useState(initialDraft?.browse?.location ?? "");
   const [browseWorkType, setBrowseWorkType] = useState(initialDraft?.browse?.workType ?? "");
@@ -254,6 +255,10 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       setMessage("Paste the job URL first.");
       return false;
     }
+    if (jobMode === "description" && !jobDescription.trim()) {
+      setMessage("Paste the job description first.");
+      return false;
+    }
     if (jobMode === "browse" && !browseKeywords.trim()) {
       setMessage("Add at least a keyword so we can prepare your job search.");
       return false;
@@ -322,6 +327,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
     formData.append("resume_file", resumeFile);
     if (coverLetterFile) formData.append("cover_letter_file", coverLetterFile);
     if (jobMode === "url") formData.append("job_url", jobUrl.trim());
+    if (jobMode === "description") formData.append("job_description_fallback", jobDescription.trim());
 
     setLoadingStep("Saving your resume…");
     if (jobMode === "url") {
@@ -710,9 +716,10 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
             {step === 3 && (
               <section className="mt-5">
                 <h2 className="text-3xl font-black tracking-tight text-slate-900">What role do you want to apply for?</h2>
-                <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                <div className="mt-5 grid gap-2 sm:grid-cols-3">
                   {[
                     ["url", "Paste Job URL"],
+                    ["description", "Paste Job Description"],
                     ["browse", "Browse Jobs With Koalapply"],
                   ].map(([value, label]) => (
                     <button
@@ -741,6 +748,19 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                       placeholder="https://..."
                       value={jobUrl}
                       onChange={(event) => setJobUrl(event.target.value)}
+                    />
+                  </label>
+                )}
+
+                {jobMode === "description" && (
+                  <label className="mt-5 block">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Job Description</span>
+                    <textarea
+                      className="w-full resize-y rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#d4ccff]"
+                      placeholder="Paste the full job description here..."
+                      rows={6}
+                      value={jobDescription}
+                      onChange={(e) => setJobDescription(e.target.value)}
                     />
                   </label>
                 )}
