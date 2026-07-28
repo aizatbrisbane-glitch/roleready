@@ -50,11 +50,10 @@ function firstName(name?: string | null) {
 }
 
 function matchLabel(score: number | null) {
-  if (score === null) return "Worth reviewing";
-  if (score >= 85) return "Strong match";
-  if (score >= 70) return "Good match";
-  if (score >= 50) return "Worth reviewing";
-  return "Needs tailoring";
+  if (score === null) return "Medium match";
+  if (score >= 70) return "High match";
+  if (score >= 45) return "Medium match";
+  return "Low match";
 }
 
 function cachedMatchToGrabResult(row: CachedGrabbedJob): GrabResult {
@@ -84,10 +83,9 @@ function formatSalary(min?: number, max?: number) {
 }
 
 function matchPillClass(score: number) {
-  if (score >= 85) return "bg-[#d4ccff] text-[#1a00cc]";
-  if (score >= 70) return "bg-amber-100 text-amber-700";
-  if (score >= 50) return "bg-violet-100 text-violet-700";
-  return "bg-rose-50 text-rose-600";
+  if (score >= 70) return "bg-[#d4ccff] text-[#1a00cc]";
+  if (score >= 45) return "bg-amber-100 text-amber-700";
+  return "bg-slate-100 text-slate-500";
 }
 
 function getGreeting(): string {
@@ -169,14 +167,12 @@ function GrabbedMatchCard({
       <div className="mt-4 flex items-center justify-between gap-2 sm:mt-0 sm:shrink-0 sm:justify-end md:gap-3">
         {/* Score */}
         <div className="min-w-0 text-left sm:text-right">
-          <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-bold tabular-nums sm:px-3 sm:text-sm ${matchPillClass(job.matchScore)}`}>
-            <span className="sm:hidden">~{job.matchScore}%</span>
-            <span className="hidden sm:inline">~{job.matchScore}% Match</span>
+          <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-bold sm:px-3 sm:text-sm ${matchPillClass(job.matchScore)}`}>
+            {matchLabel(job.matchScore)}
           </span>
-          <p className="mt-0.5 hidden items-center gap-1 text-xs text-slate-500 sm:flex sm:justify-end">
-            {label}
-            <span title="Estimated match — full analysis runs when you generate your application." className="cursor-help">
-              <Info className="h-3 w-3 text-slate-400" />
+          <p className="mt-0.5 hidden items-center justify-end gap-1 text-xs text-slate-400 sm:flex">
+            <span title="High = strong skill and title alignment. Medium = some relevant experience. Low = fewer overlapping skills. Full analysis runs when you generate your application." className="cursor-help">
+              <Info className="h-3 w-3" />
             </span>
           </p>
         </div>

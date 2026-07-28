@@ -18,9 +18,15 @@ function formatSalary(min?: number, max?: number): string {
 }
 
 function scoreBadgeClass(score: number): string {
-  if (score >= 80) return "bg-[#d4ccff] text-[#1a00cc]";
-  if (score >= 60) return "bg-amber-100 text-amber-800";
-  return "bg-slate-100 text-slate-600";
+  if (score >= 70) return "bg-[#d4ccff] text-[#1a00cc]";
+  if (score >= 45) return "bg-amber-100 text-amber-800";
+  return "bg-slate-100 text-slate-500";
+}
+
+function scoreLabel(score: number): string {
+  if (score >= 70) return "High match";
+  if (score >= 45) return "Medium match";
+  return "Low match";
 }
 
 export function GrabPanel({ hasResume }: Props) {
@@ -167,7 +173,7 @@ export function GrabPanel({ hasResume }: Props) {
                       <span
                         className={`mt-0.5 shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold tabular-nums ${scoreBadgeClass(job.matchScore)}`}
                       >
-                        {job.matchScore}%
+                        {scoreLabel(job.matchScore)}
                       </span>
 
                       <div className="min-w-0">
