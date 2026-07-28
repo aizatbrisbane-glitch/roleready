@@ -579,6 +579,9 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
               <p className="mt-3 text-base leading-7 text-slate-600">
                 We sent a {EMAIL_OTP_LENGTH}-digit code to <span className="font-bold text-slate-900">{email}</span>. This confirms the email belongs to you before we save your application.
               </p>
+              <p className="mt-2 text-sm text-slate-400">
+                Can&apos;t find it? Check your <span className="font-medium">junk or spam</span> folder.
+              </p>
             </div>
 
             <form onSubmit={verifyEmailCode} className="mt-5 space-y-4">
