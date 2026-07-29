@@ -149,6 +149,10 @@ export function ApplicationDetailClient({
         openAccordion={openAccordion}
         onAccordionChange={setOpenAccordion}
         highlightKeyword={highlightKeyword}
+        onDocumentSaved={(field, content) => {
+          if (field === "tailored_resume") setTailoredResume(content);
+          else setCoverLetter(content);
+        }}
       />
     </>
   );

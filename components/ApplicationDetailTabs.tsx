@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, Banknote, BookOpen, CheckCircle2, ChevronDown, Download, Lightbulb, MapPin, Sparkles, Star, TrendingUp, User, UserCheck } from "lucide-react";
+import { AlertTriangle, Banknote, BookOpen, CheckCircle2, ChevronDown, Download, Lightbulb, MapPin, Pencil, Sparkles, Star, TrendingUp, User, UserCheck } from "lucide-react";
 import { CoverLetterRenderer, ResumeRenderer } from "@/components/ResumeRenderer";
+import { DocumentEditor } from "@/components/DocumentEditor";
 import type { ApplicationStatus, InterviewQuestion, Reference } from "@/types/database";
 
 type AnalysisSection = { heading: string; bullets: string[]; body: string };
@@ -152,6 +153,7 @@ type Props = {
   openAccordion: Tab | null;
   onAccordionChange: (tab: Tab | null) => void;
   highlightKeyword?: string | null;
+  onDocumentSaved: (field: "tailored_resume" | "cover_letter", content: string) => void;
 };
 
 const LOCATION_TYPES = ["Not specified", "Remote", "Hybrid", "On-site"];
@@ -194,6 +196,7 @@ export function ApplicationDetailTabs({
   openAccordion,
   onAccordionChange,
   highlightKeyword,
+  onDocumentSaved,
 }: Props) {
 
   const [roleSummary, setRoleSummary] = useState(initialRoleSummary ?? "");
@@ -222,6 +225,36 @@ export function ApplicationDetailTabs({
   const [interviewError, setInterviewError] = useState("");
   const [interviewSaveMessage, setInterviewSaveMessage] = useState("");
   const [interviewContext, setInterviewContext] = useState("");
+
+  const [editingResume, setEditingResume] = useState(false);
+  const [editingCover, setEditingCover] = useState(false);
+  const [resumeDraft, setResumeDraft] = useState("");
+  const [coverDraft, setCoverDraft] = useState("");
+  const [docSaving, setDocSaving] = useState(false);
+  const [docSaveMessage, setDocSaveMessage] = useState("");
+
+  async function saveDocument(field: "tailored_resume" | "cover_letter", content: string) {
+    setDocSaving(true);
+    setDocSaveMessage("");
+    try {
+      const res = await fetch(`/api/applications/${applicationId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [field]: content }),
+      });
+      if (res.ok) {
+        onDocumentSaved(field, content);
+        if (field === "tailored_resume") setEditingResume(false);
+        else setEditingCover(false);
+      } else {
+        setDocSaveMessage("Save failed. Try again.");
+      }
+    } catch {
+      setDocSaveMessage("Network error. Try again.");
+    } finally {
+      setDocSaving(false);
+    }
+  }
 
   const showInterviewPulse = status === "Interview" && interviewQuestions.length === 0;
 
@@ -545,22 +578,41 @@ export function ApplicationDetailTabs({
     if (tab === "resume") return (
       <div>
         {tailoredResume ? (
-          <>
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-3">
-              <span className="text-sm text-slate-500">Tailored resume</span>
-              <div className="flex gap-2">
-                <a href={`/api/applications/${applicationId}/export?type=resume&format=docx`} className="inline-flex items-center gap-1.5 rounded-full bg-[#2200ff] px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[#1a00cc]">
-                  <Download className="h-3.5 w-3.5" /> DOCX
-                </a>
-                <a href={`/api/applications/${applicationId}/export?type=resume&format=pdf`} className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50">
-                  <Download className="h-3.5 w-3.5" /> PDF
-                </a>
+          editingResume ? (
+            <DocumentEditor
+              content={resumeDraft}
+              onChange={setResumeDraft}
+              onSave={(content) => saveDocument("tailored_resume", content)}
+              onCancel={() => { setEditingResume(false); setDocSaveMessage(""); }}
+              saving={docSaving}
+              saveMessage={docSaveMessage}
+              PreviewComponent={ResumeRenderer}
+            />
+          ) : (
+            <>
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-3">
+                <span className="text-sm text-slate-500">Tailored resume</span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setResumeDraft(tailoredResume); setEditingResume(true); setDocSaveMessage(""); }}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </button>
+                  <a href={`/api/applications/${applicationId}/export?type=resume&format=docx`} className="inline-flex items-center gap-1.5 rounded-full bg-[#2200ff] px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[#1a00cc]">
+                    <Download className="h-3.5 w-3.5" /> DOCX
+                  </a>
+                  <a href={`/api/applications/${applicationId}/export?type=resume&format=pdf`} className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50">
+                    <Download className="h-3.5 w-3.5" /> PDF
+                  </a>
+                </div>
               </div>
-            </div>
-            <div className="max-h-[680px] overflow-auto rounded-b-[1.6rem]">
-              <ResumeRenderer content={tailoredResume} highlightKeyword={highlightKeyword} />
-            </div>
-          </>
+              <div className="max-h-[680px] overflow-auto rounded-b-[1.6rem]">
+                <ResumeRenderer content={tailoredResume} highlightKeyword={highlightKeyword} />
+              </div>
+            </>
+          )
         ) : (
           <p className="px-5 py-8 text-sm italic text-slate-400">Generate the application to see your tailored resume here.</p>
         )}
@@ -570,22 +622,41 @@ export function ApplicationDetailTabs({
     if (tab === "cover") return (
       <div>
         {coverLetter ? (
-          <>
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-3">
-              <span className="text-sm text-slate-500">Cover letter</span>
-              <div className="flex gap-2">
-                <a href={`/api/applications/${applicationId}/export?type=cover&format=docx`} className="inline-flex items-center gap-1.5 rounded-full bg-[#2200ff] px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[#1a00cc]">
-                  <Download className="h-3.5 w-3.5" /> DOCX
-                </a>
-                <a href={`/api/applications/${applicationId}/export?type=cover&format=pdf`} className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50">
-                  <Download className="h-3.5 w-3.5" /> PDF
-                </a>
+          editingCover ? (
+            <DocumentEditor
+              content={coverDraft}
+              onChange={setCoverDraft}
+              onSave={(content) => saveDocument("cover_letter", content)}
+              onCancel={() => { setEditingCover(false); setDocSaveMessage(""); }}
+              saving={docSaving}
+              saveMessage={docSaveMessage}
+              PreviewComponent={CoverLetterRenderer}
+            />
+          ) : (
+            <>
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-3">
+                <span className="text-sm text-slate-500">Cover letter</span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setCoverDraft(coverLetter); setEditingCover(true); setDocSaveMessage(""); }}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </button>
+                  <a href={`/api/applications/${applicationId}/export?type=cover&format=docx`} className="inline-flex items-center gap-1.5 rounded-full bg-[#2200ff] px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[#1a00cc]">
+                    <Download className="h-3.5 w-3.5" /> DOCX
+                  </a>
+                  <a href={`/api/applications/${applicationId}/export?type=cover&format=pdf`} className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50">
+                    <Download className="h-3.5 w-3.5" /> PDF
+                  </a>
+                </div>
               </div>
-            </div>
-            <div className="max-h-[680px] overflow-auto rounded-b-[1.6rem]">
-              <CoverLetterRenderer content={coverLetter} highlightKeyword={highlightKeyword} />
-            </div>
-          </>
+              <div className="max-h-[680px] overflow-auto rounded-b-[1.6rem]">
+                <CoverLetterRenderer content={coverLetter} highlightKeyword={highlightKeyword} />
+              </div>
+            </>
+          )
         ) : (
           <p className="px-5 py-8 text-sm italic text-slate-400">Generate the application to see your cover letter here.</p>
         )}
