@@ -165,18 +165,6 @@ function GrabbedMatchCard({
 
       {/* Right side */}
       <div className="mt-4 flex items-center justify-between gap-2 sm:mt-0 sm:shrink-0 sm:justify-end md:gap-3">
-        {/* Score */}
-        <div className="min-w-0 text-left sm:text-right">
-          <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-bold sm:px-3 sm:text-sm ${matchPillClass(job.matchScore)}`}>
-            {matchLabel(job.matchScore)}
-          </span>
-          <p className="mt-0.5 hidden items-center justify-end gap-1 text-xs text-slate-400 sm:flex">
-            <span title="High = strong skill and title alignment. Medium = some relevant experience. Low = fewer overlapping skills. Full analysis runs when you generate your application." className="cursor-help">
-              <Info className="h-3 w-3" />
-            </span>
-          </p>
-        </div>
-
         {/* Action button */}
         {importedApplicationId ? (
           <Link
@@ -239,7 +227,13 @@ export function DashboardTabs({
   const [matchError, setMatchError] = useState("");
   const [matchNotice, setMatchNotice] = useState("");
   const [keywordQuery, setKeywordQuery] = useState(grabbedMatches[0]?.search_query ?? "");
-  const [locationQuery, setLocationQuery] = useState(profileLocation ?? "");
+  const [locationQuery, setLocationQuery] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = window.localStorage.getItem("koalapply_search_location");
+      if (saved !== null) return saved;
+    }
+    return profileLocation ?? "";
+  });
   const [workTypes, setWorkTypes] = useState<Set<string>>(new Set());
   const [salaryMin, setSalaryMin] = useState("");
   const [importing, setImporting] = useState<Record<string, boolean>>({});
@@ -452,7 +446,7 @@ export function DashboardTabs({
               Find jobs that match your resume ✨
             </h2>
             <p className="mt-1 text-sm leading-6 text-slate-500">
-              Top matches discovered from live job boards and scored against your resume.
+              Jobs sorted by estimated fit. Exact match score shown after you generate your tailored resume.
             </p>
 
             {/* Filter bar */}
@@ -472,14 +466,33 @@ export function DashboardTabs({
               {/* Location */}
               <div>
                 <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Job location</p>
-                <input
-                  list="au-locations"
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
-                  placeholder="e.g. Sydney"
-                  value={locationQuery}
-                  onChange={(e) => setLocationQuery(e.target.value)}
-                  onKeyDown={onEnter}
-                />
+                <div className="relative">
+                  <input
+                    list="au-locations"
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 pr-8 text-sm text-slate-900 shadow-sm outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
+                    placeholder="e.g. Sydney"
+                    value={locationQuery}
+                    onChange={(e) => {
+                      setLocationQuery(e.target.value);
+                      window.localStorage.setItem("koalapply_search_location", e.target.value);
+                    }}
+                    onFocus={(e) => e.target.select()}
+                    onKeyDown={onEnter}
+                  />
+                  {locationQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLocationQuery("");
+                        window.localStorage.setItem("koalapply_search_location", "");
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      aria-label="Clear location"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
                 <datalist id="au-locations">
                   <option value="Brisbane" />
                   <option value="Sydney" />

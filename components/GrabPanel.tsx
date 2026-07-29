@@ -170,12 +170,6 @@ export function GrabPanel({ hasResume }: Props) {
                 return (
                   <li key={job.id} className="flex flex-wrap items-start justify-between gap-3 py-4 first:pt-0 last:pb-0">
                     <div className="flex min-w-0 flex-1 gap-3">
-                      <span
-                        className={`mt-0.5 shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold tabular-nums ${scoreBadgeClass(job.matchScore)}`}
-                      >
-                        {scoreLabel(job.matchScore)}
-                      </span>
-
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-1.5">
                           <a
