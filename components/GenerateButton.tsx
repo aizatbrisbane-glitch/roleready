@@ -38,9 +38,9 @@ function getStageLabel(pct: number) {
 // Asymptotic curve: fast early, crawls near 95
 function nextProgress(current: number) {
   if (current < 40) return current + 1.1;
-  if (current < 65) return current + 0.55;
-  if (current < 82) return current + 0.22;
-  return current + 0.06;
+  if (current < 65) return current + 0.45;
+  if (current < 82) return current + 0.30;
+  return current + 0.25;
 }
 
 export function GenerateButton({ applicationId, hasDocuments, canGenerate, newsletterSubscribed, autoGenerate, generateHint }: Props) {
