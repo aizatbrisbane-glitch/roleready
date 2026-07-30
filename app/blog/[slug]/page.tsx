@@ -111,6 +111,16 @@ export default async function BlogArticlePage({ params }: Props) {
                         <p key={paragraph} className="text-base leading-8 text-slate-600">{renderInlineLinks(paragraph)}</p>
                       ))}
                     </div>
+                    {section.items?.map((item) => (
+                      <div key={item.heading} className="mt-6">
+                        <h3 className="text-lg font-bold text-slate-900">{item.heading}</h3>
+                        <div className="mt-2 space-y-3">
+                          {item.paragraphs.map((p) => (
+                            <p key={p} className="text-base leading-8 text-slate-600">{renderInlineLinks(p)}</p>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                     {section.bullets ? (
                       <ul className="mt-5 space-y-3">
                         {section.bullets.map((bullet) => (

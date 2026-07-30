@@ -15,6 +15,7 @@ export type ArticleSection = {
   paragraphs?: string[];
   bullets?: string[];
   faqs?: { q: string; a: string }[];
+  items?: { heading: string; paragraphs: string[] }[];
 };
 
 export type BlogArticle = {
@@ -1981,14 +1982,13 @@ export const blogArticles: BlogArticle[] = [
     sections: [
       {
         id: "intro",
-        title: "Ghosting: When a Job Comes Back from the Dead",
+        title: "The Job You Already Applied For Is Back",
         paragraphs: [
           "You know the job.",
           "You spent an evening tailoring your resume, writing a cover letter and convincing yourself this might finally be the one. You clicked apply, checked your inbox approximately 47 times, then heard absolutely nothing.",
           "No rejection. No update. Not even an automated \"thanks, but no thanks\".",
           "Eventually, you accepted that the job had disappeared into the recruitment void.",
-          "Then, weeks or months later, it returned.",
-          "Same title. Same company. Same suspiciously enthusiastic description of a \"fast-paced environment\". The job you already applied for is suddenly back on LinkedIn, SEEK or another job board, looking very much alive.",
+          "Then, weeks or months later, it returned. Same title. Same company. Same suspiciously enthusiastic description of a \"fast-paced environment\". The job you already applied for is suddenly back on LinkedIn, SEEK or another job board, looking very much alive.",
           "So why do jobs keep coming back from the dead? And should you apply again, or leave this particular ghost firmly in the past?",
         ]
       },
@@ -1997,142 +1997,116 @@ export const blogArticles: BlogArticle[] = [
         title: "Why Has the Job Been Reposted?",
         paragraphs: [
           "A reposted job does not always mean the company rejected everyone and decided to start again. There are several possible explanations.",
-        ]
-      },
-      {
-        id: "not-right-person",
-        title: "They Did Not Find the Right Person",
-        paragraphs: [
-          "Sometimes the employer interviewed candidates but could not find someone with the right combination of skills, experience, salary expectations and cultural fit.",
-          "The shortlist may have been strong, just not strong enough for the hiring manager to make a decision. Or the employer may have been searching for a unicorn on a donkey budget.",
-          "Either way, the role gets reposted.",
-        ]
-      },
-      {
-        id: "candidate-pulled-out",
-        title: "Their Preferred Candidate Pulled Out",
-        paragraphs: [
-          "A company may have made an offer, only for the successful candidate to accept another job, receive a counteroffer or decide the opportunity was not right for them.",
-          "That sends the employer back to the beginning, possibly with slightly more realistic expectations.",
-        ]
-      },
-      {
-        id: "process-paused",
-        title: "The Hiring Process Was Paused",
-        paragraphs: [
-          "Budgets change. Managers leave. Teams restructure. Approvals get delayed. Someone important goes on leave and the recruitment process quietly stops moving.",
-          "The job may be reposted once the company is ready to hire again.",
-        ]
-      },
-      {
-        id: "auto-renewed",
-        title: "The Advertisement Automatically Renewed",
-        paragraphs: [
-          "Some job boards automatically refresh or renew listings. This can make an old role appear new, even when the employer is already interviewing candidates or has stopped actively reviewing applications.",
-          "Before assuming the job has risen from the dead, check whether the wording, closing date or job reference number has changed.",
-        ]
-      },
-      {
-        id: "multiple-hires",
-        title: "The Company Is Hiring More Than One Person",
-        paragraphs: [
-          "A repeated advertisement may be part of ongoing recruitment, particularly for sales, customer service, healthcare, technology, hospitality or other high-volume roles.",
-          "The business may also be growing and need several people with the same skills.",
-        ]
-      },
-      {
-        id: "hire-didnt-work-out",
-        title: "The New Hire Did Not Work Out",
-        paragraphs: [
-          "This is the slightly awkward possibility.",
-          "The company may have hired someone who resigned quickly, failed probation or discovered that the \"flexible hybrid culture\" meant being flexible enough to come into the office five days a week.",
-          "One failed hire does not automatically make the company a bad employer. But if the same role keeps appearing every few months, it deserves a closer look.",
+        ],
+        items: [
+          {
+            heading: "They did not find the right person",
+            paragraphs: [
+              "Sometimes the employer interviewed candidates but could not find someone with the right combination of skills, experience, salary expectations and cultural fit. The shortlist may have been strong, just not strong enough for the hiring manager to make a decision. Or the employer may have been searching for a unicorn on a donkey budget. Either way, the role gets reposted.",
+            ]
+          },
+          {
+            heading: "Their preferred candidate pulled out",
+            paragraphs: [
+              "A company may have made an offer, only for the successful candidate to accept another job, receive a counteroffer or decide the opportunity was not right for them. That sends the employer back to the beginning, possibly with slightly more realistic expectations.",
+            ]
+          },
+          {
+            heading: "The hiring process was paused",
+            paragraphs: [
+              "Budgets change. Managers leave. Teams restructure. Approvals get delayed. Someone important goes on leave and the recruitment process quietly stops moving. The job may be reposted once the company is ready to hire again.",
+            ]
+          },
+          {
+            heading: "The advertisement automatically renewed",
+            paragraphs: [
+              "Some job boards automatically refresh or renew listings. This can make an old role appear new, even when the employer is already interviewing candidates or has stopped actively reviewing applications. Before assuming the job has risen from the dead, check whether the wording, closing date or job reference number has changed.",
+            ]
+          },
+          {
+            heading: "The company is hiring more than one person",
+            paragraphs: [
+              "A repeated advertisement may be part of ongoing recruitment, particularly for sales, customer service, healthcare, technology, hospitality or other high-volume roles. The business may also be growing and need several people with the same skills.",
+            ]
+          },
+          {
+            heading: "The new hire did not work out",
+            paragraphs: [
+              "The company may have hired someone who resigned quickly, failed probation or discovered that the \"flexible hybrid culture\" meant being flexible enough to come into the office five days a week. One failed hire does not automatically make the company a bad employer. But if the same role keeps appearing every few months, it deserves a closer look.",
+            ]
+          },
         ]
       },
       {
         id: "should-you-apply",
         title: "Should You Apply Again?",
         paragraphs: [
-          "Possibly.",
-          "A previous rejection does not always mean you are permanently ruled out. Hiring decisions are based on the candidates available at a particular time, the needs of the team and the preferences of the people involved.",
-          "The situation may be different now.",
+          "Possibly. A previous rejection does not always mean you are permanently ruled out. Hiring decisions are based on the candidates available at a particular time, the needs of the team and the preferences of the people involved. The situation may be different now.",
+          "Consider reapplying when:",
         ],
         bullets: [
           "The job description has changed.",
-          "You have gained new skills or experience.",
-          "You have improved your resume.",
+          "You have gained new skills or experience since your last application.",
+          "You have meaningfully improved your resume.",
           "The company is recruiting for multiple positions.",
-          "Enough time has passed for the hiring needs to have changed.",
+          "Enough time has passed for the hiring needs to have shifted.",
           "You reached the final stages previously and received encouraging feedback.",
         ]
       },
       {
-        id: "reapply-tips",
+        id: "make-it-stronger",
         title: "Make Your Application Stronger Before Reapplying",
         paragraphs: [
-          "You might also reapply if you never received a response. Your first application may not have reached a human, especially if your resume was not well aligned with the role or easily read by the employer's applicant tracking system.",
+          "You might also reapply if you never received a response at all. Your first application may not have reached a human, especially if your resume was not well aligned with the role or easily read by the employer's applicant tracking system.",
           "Before submitting again, run your resume through Koalapply's free [ATS checker](/ats-checker). It can help you identify missing keywords, formatting issues and gaps between your resume and the job description.",
-          "Do not simply resend the exact same application and hope the recruitment gods have become more generous.",
-          "Update your resume. Review the advertisement carefully. Strengthen your opening summary. Make your most relevant experience easier to find. Show the employer why your application deserves another look.",
+          "Do not simply resend the exact same application and hope the recruitment gods have become more generous. Update your resume, review the advertisement carefully, strengthen your opening summary and make your most relevant experience easier to find. Show the employer why your application deserves another look.",
         ]
       },
       {
         id: "when-to-leave-alone",
         title: "When Should You Leave the Job Alone?",
         paragraphs: [
-          "Reapplying is not always the best use of your time.",
-        ]
-      },
-      {
-        id: "constantly-advertised",
-        title: "The Role Is Constantly Advertised",
-        paragraphs: [
-          "If the same job appears every few weeks, the company may have high turnover, unrealistic expectations or a hiring process that is not working.",
-          "One repost is normal. Six reposts starts to look like a subscription service.",
-        ]
-      },
-      {
-        id: "description-changing",
-        title: "The Description Keeps Changing Dramatically",
-        paragraphs: [
-          "A role that moves from coordinator to manager responsibilities, then adds sales targets, administration, events and executive support may indicate that the employer does not know what it needs.",
-          "That confusion rarely disappears once someone is hired.",
-        ]
-      },
-      {
-        id: "salary-fallen",
-        title: "The Salary Has Fallen but the Expectations Have Grown",
-        paragraphs: [
-          "Sometimes a reposted advertisement returns with a lower salary and a longer list of responsibilities.",
-          "That is not a second chance. That is a warning label.",
-        ]
-      },
-      {
-        id: "treated-poorly",
-        title: "The Company Previously Treated You Poorly",
-        paragraphs: [
-          "Recruitment provides an early glimpse of how an organisation communicates.",
-          "If the company cancelled interviews without explanation, asked you to complete hours of unpaid work, disappeared after multiple interviews or behaved disrespectfully, consider whether you want to restart that relationship.",
-          "A company does not need to offer you a job, but it should still treat your time with basic professionalism.",
-        ]
-      },
-      {
-        id: "applied-multiple-times",
-        title: "You Have Applied Several Times Without Progress",
-        paragraphs: [
-          "There is persistence, and then there is repeatedly knocking on a door that nobody intends to open.",
-          "If you have applied for the same role multiple times without reaching an interview, focus your energy elsewhere. You may have better luck applying for a different position within the company or building experience that closes the most obvious gaps.",
+          "Reapplying is not always the best use of your time. Think twice about the following situations.",
+        ],
+        items: [
+          {
+            heading: "The role is constantly advertised",
+            paragraphs: [
+              "If the same job appears every few weeks, the company may have high turnover, unrealistic expectations or a hiring process that is not working. One repost is normal. Six reposts starts to look like a subscription service.",
+            ]
+          },
+          {
+            heading: "The description keeps changing dramatically",
+            paragraphs: [
+              "A role that moves from coordinator to manager responsibilities, then adds sales targets, administration, events and executive support may indicate that the employer does not know what it needs. That confusion rarely disappears once someone is hired.",
+            ]
+          },
+          {
+            heading: "The salary has fallen but the expectations have grown",
+            paragraphs: [
+              "Sometimes a reposted advertisement returns with a lower salary and a longer list of responsibilities. That is not a second chance. That is a warning label.",
+            ]
+          },
+          {
+            heading: "The company previously treated you poorly",
+            paragraphs: [
+              "Recruitment provides an early glimpse of how an organisation communicates. If the company cancelled interviews without explanation, asked you to complete hours of unpaid work, disappeared after multiple interviews or behaved disrespectfully, consider whether you want to restart that relationship. A company does not need to offer you a job, but it should still treat your time with basic professionalism.",
+            ]
+          },
+          {
+            heading: "You have applied several times without progress",
+            paragraphs: [
+              "There is persistence, and then there is repeatedly knocking on a door that nobody intends to open. If you have applied for the same role multiple times without reaching an interview, focus your energy elsewhere. You may have better luck applying for a different position within the company or building experience that closes the most obvious gaps.",
+            ]
+          },
         ]
       },
       {
         id: "check-if-applied",
         title: "Check Whether You Have Already Applied",
         paragraphs: [
-          "The biggest trap with zombie job advertisements is forgetting that you have seen them before.",
-          "Job descriptions are often copied, slightly renamed or reposted on multiple platforms. What looks like a fresh opportunity may be the same role you applied for three months ago at 11.47 pm while emotionally supported by a packet of biscuits.",
-          "Koalapply helps you keep track of the jobs you have applied for, the resume version you used and where each application sits.",
-          "That means you can quickly check whether the job is genuinely new, previously rejected or still sitting in the mysterious status known as \"under review\".",
-          "It also stops you from wasting time recreating an application you have already submitted.",
+          "The biggest trap with zombie job advertisements is forgetting that you have seen them before. Job descriptions are often copied, slightly renamed or reposted on multiple platforms. What looks like a fresh opportunity may be the same role you applied for three months ago at 11.47 pm while emotionally supported by a packet of biscuits.",
+          "Koalapply helps you keep track of the jobs you have applied for, the resume version you used and where each application sits. That means you can quickly check whether the job is genuinely new, previously rejected or still sitting in the mysterious status known as \"under review\". It also stops you from wasting time recreating an application you have already submitted.",
         ]
       },
       {
@@ -2152,8 +2126,7 @@ export const blogArticles: BlogArticle[] = [
           "Sometimes the employer simply did not find the right candidate. Sometimes circumstances changed. Sometimes the job advertisement is less of a comeback and more of a recurring cry for help.",
           "Reapply when there is a genuine reason to believe the outcome could be different. Make your application stronger, tailor it properly and show what has changed since the first time.",
           "But keep track of where you have already applied, watch for patterns and do not let one zombie job consume your entire search.",
-          "Some roles deserve a second chance.",
-          "Others should be returned to the graveyard.",
+          "Some roles deserve a second chance. Others should be returned to the graveyard.",
         ]
       },
     ]
