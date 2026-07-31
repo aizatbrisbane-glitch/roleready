@@ -96,7 +96,13 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
         fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }), keepalive: true }).catch(() => {});
       }
       const userId = data.session.user.id;
-      fetch("/api/track/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ method: "email" }), keepalive: true }).catch(() => {});
+      try {
+        await fetch("/api/track/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ method: "email" }),
+        });
+      } catch { /* tracking failure must never block signup */ }
       analytics.signupComplete({ method: "email", source: analytics.getSignupSource(), userId });
       window.location.href = redirectTo;
       return;
@@ -114,8 +120,18 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
     const supabase = getSupabase();
     if (!supabase) { setLoading(false); return; }
 
+    // DEBUG — remove once server-side signup tracking is confirmed working
+    console.log("[DEBUG signup-track] verifyOtp: starting OTP verification");
+
     const cleanCode = otp.replace(/\D/g, "");
     const { data: verifyData, error } = await supabase.auth.verifyOtp({ email, token: cleanCode, type: "signup" });
+
+    // DEBUG — remove once confirmed
+    console.log("[DEBUG signup-track] verifyOtp result:", {
+      userId: verifyData?.user?.id ?? null,
+      hasSession: !!verifyData?.session,
+      errorMessage: error?.message ?? null,
+    });
 
     if (error) {
       setMessage(error.message);
@@ -126,9 +142,32 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
     if (newsletterOptIn) {
       fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }), keepalive: true }).catch(() => {});
     }
+
     const userId = verifyData.user?.id;
-    fetch("/api/track/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ method: "email_otp" }), keepalive: true }).catch(() => {});
+
+    // DEBUG — remove once confirmed
+    console.log("[DEBUG signup-track] About to call /api/track/signup, userId:", userId ?? "(none)");
+
+    // Await before navigating — keepalive:true was unreliable; same-origin call resolves in <100ms
+    try {
+      const res = await fetch("/api/track/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ method: "email_otp" }),
+      });
+      // DEBUG — remove once confirmed
+      const body = await res.json().catch(() => ({}));
+      console.log("[DEBUG signup-track] /api/track/signup response:", res.status, body);
+    } catch (err) {
+      // DEBUG — remove once confirmed
+      console.error("[DEBUG signup-track] /api/track/signup fetch error:", err);
+    }
+
     analytics.signupComplete({ method: "email_otp", source: analytics.getSignupSource(), userId });
+
+    // DEBUG — remove once confirmed
+    console.log("[DEBUG signup-track] Navigating to:", redirectTo);
+
     window.location.href = redirectTo;
   }
 
