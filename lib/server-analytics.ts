@@ -95,14 +95,37 @@ async function sendGA4Event(clientId: string, events: object[]) {
 
 const LINKEDIN_ACCESS_TOKEN = process.env.LINKEDIN_ACCESS_TOKEN;
 const LINKEDIN_SIGNUP_CONVERSION_ID = process.env.LINKEDIN_SIGNUP_CONVERSION_ID;
+const LINKEDIN_PURCHASE_CONVERSION_ID = process.env.LINKEDIN_PURCHASE_CONVERSION_ID;
 
-async function sendLinkedInConversion(email: string, conversionId: string) {
+async function sendLinkedInConversion(
+  email: string,
+  conversionId: string,
+  conversionValue?: { valueCents: number; currency: string }
+) {
   if (!LINKEDIN_ACCESS_TOKEN) {
     console.warn("[server-analytics] LinkedIn CAPI: LINKEDIN_ACCESS_TOKEN not set — skipping");
     return;
   }
 
-  console.log(`[server-analytics] LinkedIn CAPI: sending conversion ${conversionId}`);
+  const valueLabel = conversionValue
+    ? ` | value: ${(conversionValue.valueCents / 100).toFixed(2)} ${conversionValue.currency.toUpperCase()}`
+    : "";
+  console.log(`[server-analytics] LinkedIn CAPI: sending conversion ${conversionId}${valueLabel}`);
+
+  const body: Record<string, unknown> = {
+    conversion: `urn:lla:llaPartnerConversion:${conversionId}`,
+    conversionHappenedAt: Date.now(),
+    user: {
+      userIds: [{ idType: "SHA256_EMAIL", idValue: sha256(email) }],
+    },
+  };
+
+  if (conversionValue) {
+    body.conversionValue = {
+      currencyCode: conversionValue.currency.toUpperCase(),
+      amount: (conversionValue.valueCents / 100).toFixed(2),
+    };
+  }
 
   let res: Response;
   try {
@@ -113,13 +136,7 @@ async function sendLinkedInConversion(email: string, conversionId: string) {
         "LinkedIn-Version": "202407",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        conversion: `urn:lla:llaPartnerConversion:${conversionId}`,
-        conversionHappenedAt: Date.now(),
-        user: {
-          userIds: [{ idType: "SHA256_EMAIL", idValue: sha256(email) }],
-        },
-      }),
+      body: JSON.stringify(body),
     });
   } catch (err) {
     console.error("[server-analytics] LinkedIn CAPI: fetch() threw (network error):", err);
@@ -228,7 +245,21 @@ export async function trackPurchaseServerSide(opts: {
         },
       },
     ]),
+
+    opts.email && LINKEDIN_PURCHASE_CONVERSION_ID
+      ? sendLinkedInConversion(opts.email, LINKEDIN_PURCHASE_CONVERSION_ID, {
+          valueCents: opts.valueCents,
+          currency: opts.currency,
+        })
+      : Promise.resolve(),
   ]);
+
+  if (!opts.email) {
+    console.warn("[server-analytics] trackPurchaseServerSide: no email — LinkedIn CAPI skipped");
+  }
+  if (!LINKEDIN_PURCHASE_CONVERSION_ID) {
+    console.warn("[server-analytics] trackPurchaseServerSide: LINKEDIN_PURCHASE_CONVERSION_ID not set — LinkedIn CAPI skipped");
+  }
 
   logSettledResults("trackPurchaseServerSide", results);
 }
