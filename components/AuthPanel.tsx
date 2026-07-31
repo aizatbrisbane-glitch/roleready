@@ -93,10 +93,10 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
 
     if (data.session) {
       if (newsletterOptIn) {
-        fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) }).catch(() => {});
+        fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }), keepalive: true }).catch(() => {});
       }
       const userId = data.session.user.id;
-      fetch("/api/track/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ method: "email" }) }).catch(() => {});
+      fetch("/api/track/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ method: "email" }), keepalive: true }).catch(() => {});
       analytics.signupComplete({ method: "email", source: analytics.getSignupSource(), userId });
       window.location.href = redirectTo;
       return;
@@ -124,10 +124,10 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
     }
 
     if (newsletterOptIn) {
-      fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) }).catch(() => {});
+      fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }), keepalive: true }).catch(() => {});
     }
     const userId = verifyData.user?.id;
-    fetch("/api/track/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ method: "email_otp" }) }).catch(() => {});
+    fetch("/api/track/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ method: "email_otp" }), keepalive: true }).catch(() => {});
     analytics.signupComplete({ method: "email_otp", source: analytics.getSignupSource(), userId });
     window.location.href = redirectTo;
   }
