@@ -426,9 +426,13 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
 
       if (signUpData.session) {
         if (newsletterOptIn) {
-          fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) }).catch(() => {});
+          fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }), keepalive: true }).catch(() => {});
         }
-        analytics.signupComplete({ method: "email", source: analytics.getSignupSource() });
+        const userId = signUpData.session.user.id;
+        try {
+          await fetch("/api/track/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ method: "email" }) });
+        } catch { /* tracking failure must never block signup */ }
+        analytics.signupComplete({ method: "email", source: analytics.getSignupSource(), userId });
         setIsAuthenticated(true);
         await submitAuthenticated();
         return;
@@ -437,9 +441,13 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       const { data: refreshedSessionData } = await supabase.auth.getSession();
       if (refreshedSessionData.session) {
         if (newsletterOptIn) {
-          fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) }).catch(() => {});
+          fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }), keepalive: true }).catch(() => {});
         }
-        analytics.signupComplete({ method: "email", source: analytics.getSignupSource() });
+        const userId = refreshedSessionData.session.user.id;
+        try {
+          await fetch("/api/track/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ method: "email" }) });
+        } catch { /* tracking failure must never block signup */ }
+        analytics.signupComplete({ method: "email", source: analytics.getSignupSource(), userId });
         setIsAuthenticated(true);
         await submitAuthenticated();
         return;
@@ -470,10 +478,20 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       const supabase = createSupabaseBrowserClient();
       if (!supabase) throw new Error("Supabase is not configured.");
 
-      const { error } = await supabase.auth.verifyOtp({
+      // DEBUG — remove once server-side signup tracking is confirmed working
+      console.error("[DEBUG signup-track] HomepageOnboardingModal verifyEmailCode: calling verifyOtp");
+
+      const { data: verifyData, error } = await supabase.auth.verifyOtp({
         email,
         token: cleanCode,
         type: "signup",
+      });
+
+      // DEBUG — remove once confirmed
+      console.error("[DEBUG signup-track] verifyOtp result:", {
+        userId: verifyData?.user?.id ?? null,
+        hasSession: !!verifyData?.session,
+        errorMessage: error?.message ?? null,
       });
 
       if (error) {
@@ -486,9 +504,30 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       }
 
       if (newsletterOptIn) {
-        fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) }).catch(() => {});
+        fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }), keepalive: true }).catch(() => {});
       }
-      analytics.signupComplete({ method: "email_otp", source: analytics.getSignupSource() });
+
+      const userId = verifyData?.user?.id;
+
+      // DEBUG — remove once confirmed
+      console.error("[DEBUG signup-track] About to call /api/track/signup, userId:", userId ?? "(none)");
+
+      // Awaited before submitAuthenticated so the request completes before any navigation
+      try {
+        const res = await fetch("/api/track/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ method: "email_otp" }),
+        });
+        // DEBUG — remove once confirmed
+        const body = await res.json().catch(() => ({}));
+        console.error("[DEBUG signup-track] /api/track/signup response:", res.status, body);
+      } catch (err) {
+        // DEBUG — remove once confirmed
+        console.error("[DEBUG signup-track] /api/track/signup fetch error:", err);
+      }
+
+      analytics.signupComplete({ method: "email_otp", source: analytics.getSignupSource(), userId });
       setIsAuthenticated(true);
       await submitAuthenticated();
     } catch (error) {
