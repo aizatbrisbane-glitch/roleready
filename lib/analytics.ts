@@ -1,6 +1,8 @@
 declare global {
   interface Window {
     gtag?: (...args: unknown[]) => void;
+    fbq?: (...args: unknown[]) => void;
+    lintrk?: (action: string, payload?: Record<string, unknown>) => void;
   }
 }
 
@@ -32,17 +34,25 @@ export const analytics = {
   /**
    * User completed account creation.
    * Uses GA4's recommended `sign_up` event name so it's auto-recognised as a conversion.
+   * Also fires Meta Pixel CompleteRegistration and LinkedIn lintrk conversion.
+   * For Google OAuth signups, trackSignupServerSide() handles everything server-side instead.
    */
   signupComplete(opts: { method: "email" | "email_otp" | "google"; source: string }) {
     fireEvent("sign_up", {
       method: opts.method,
       source: opts.source,
     });
+    window.fbq?.("track", "CompleteRegistration", { method: opts.method });
+    const linkedInConvId = process.env.NEXT_PUBLIC_LINKEDIN_SIGNUP_CONVERSION_ID;
+    if (linkedInConvId) {
+      window.lintrk?.("track", { conversion_id: Number(linkedInConvId) });
+    }
   },
 
   /**
    * User completed a Stripe checkout.
    * Uses GA4's recommended `purchase` event name with standard ecommerce params.
+   * Also fires Meta Pixel Purchase — event_id matches the server-side CAPI call so Meta deduplicates.
    */
   purchaseComplete(opts: { plan: string; value: number; currency: string; transactionId: string }) {
     fireEvent("purchase", {
@@ -51,6 +61,12 @@ export const analytics = {
       currency: opts.currency,
       items: opts.plan,
     });
+    window.fbq?.(
+      "track",
+      "Purchase",
+      { value: opts.value, currency: opts.currency, content_name: opts.plan },
+      { eventID: `purchase_${opts.transactionId}` }
+    );
   },
 
   /** User clicked "Check my score" on the ATS checker tool */

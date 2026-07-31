@@ -6,6 +6,7 @@ import { getStripeClient } from "@/lib/stripe";
 import { getStripeWebhookSecret } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { logEvent } from "@/lib/events";
+import { trackPurchaseServerSide } from "@/lib/server-analytics";
 import type { EntitlementPlanType } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -154,6 +155,16 @@ export async function POST(request: Request) {
   void logEvent("SUBSCRIPTION_STARTED", resolvedUserId, {
     plan_type: planType,
     amount_cents: session.amount_total ?? 0,
+  });
+
+  // Fire server-side purchase events — more reliable than client-side redirect page
+  void trackPurchaseServerSide({
+    email: session.customer_details?.email ?? undefined,
+    userId: resolvedUserId,
+    transactionId: sessionId,
+    valueCents: session.amount_total ?? 0,
+    currency: session.currency ?? "aud",
+    planType,
   });
 
   return NextResponse.json({ received: true });
