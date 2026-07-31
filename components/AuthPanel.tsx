@@ -95,7 +95,9 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
       if (newsletterOptIn) {
         fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) }).catch(() => {});
       }
-      analytics.signupComplete({ method: "email", source: analytics.getSignupSource() });
+      const userId = data.session.user.id;
+      fetch("/api/track/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ method: "email" }) }).catch(() => {});
+      analytics.signupComplete({ method: "email", source: analytics.getSignupSource(), userId });
       window.location.href = redirectTo;
       return;
     }
@@ -113,7 +115,7 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
     if (!supabase) { setLoading(false); return; }
 
     const cleanCode = otp.replace(/\D/g, "");
-    const { error } = await supabase.auth.verifyOtp({ email, token: cleanCode, type: "signup" });
+    const { data: verifyData, error } = await supabase.auth.verifyOtp({ email, token: cleanCode, type: "signup" });
 
     if (error) {
       setMessage(error.message);
@@ -124,7 +126,9 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
     if (newsletterOptIn) {
       fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) }).catch(() => {});
     }
-    analytics.signupComplete({ method: "email_otp", source: analytics.getSignupSource() });
+    const userId = verifyData.user?.id;
+    fetch("/api/track/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ method: "email_otp" }) }).catch(() => {});
+    analytics.signupComplete({ method: "email_otp", source: analytics.getSignupSource(), userId });
     window.location.href = redirectTo;
   }
 

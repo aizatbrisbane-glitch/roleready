@@ -37,12 +37,18 @@ export const analytics = {
    * Also fires Meta Pixel CompleteRegistration and LinkedIn lintrk conversion.
    * For Google OAuth signups, trackSignupServerSide() handles everything server-side instead.
    */
-  signupComplete(opts: { method: "email" | "email_otp" | "google"; source: string }) {
+  signupComplete(opts: { method: "email" | "email_otp" | "google"; source: string; userId?: string }) {
     fireEvent("sign_up", {
       method: opts.method,
       source: opts.source,
     });
-    window.fbq?.("track", "CompleteRegistration", { method: opts.method });
+    // eventID matches the server-side CAPI call so Meta deduplicates and counts it once
+    window.fbq?.(
+      "track",
+      "CompleteRegistration",
+      { method: opts.method },
+      opts.userId ? { eventID: `signup_${opts.userId}` } : undefined
+    );
     const linkedInConvId = process.env.NEXT_PUBLIC_LINKEDIN_SIGNUP_CONVERSION_ID;
     if (linkedInConvId) {
       window.lintrk?.("track", { conversion_id: Number(linkedInConvId) });
