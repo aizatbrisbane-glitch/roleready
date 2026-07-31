@@ -14,18 +14,36 @@ const META_TEST_EVENT_CODE = process.env.META_TEST_EVENT_CODE;
 
 async function sendMetaEvent(events: object[]) {
   if (!META_CAPI_TOKEN) {
-    console.warn("[server-analytics] META_CONVERSIONS_API_TOKEN not set — skipping Meta CAPI");
+    console.warn("[server-analytics] Meta CAPI: META_CONVERSIONS_API_TOKEN not set — skipping");
     return;
   }
+
+  console.log(
+    `[server-analytics] Meta CAPI: sending ${events.length} event(s) to pixel ${META_PIXEL_ID}` +
+    ` | token prefix: ${META_CAPI_TOKEN.slice(0, 8)}...` +
+    (META_TEST_EVENT_CODE ? ` | test_event_code: ${META_TEST_EVENT_CODE}` : " | NO test_event_code (live mode)")
+  );
+
   const body: Record<string, unknown> = { data: events, access_token: META_CAPI_TOKEN };
   if (META_TEST_EVENT_CODE) body.test_event_code = META_TEST_EVENT_CODE;
-  const res = await fetch(`https://graph.facebook.com/v19.0/${META_PIXEL_ID}/events`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    console.error("[server-analytics] Meta CAPI error:", await res.text());
+
+  let res: Response;
+  try {
+    res = await fetch(`https://graph.facebook.com/v19.0/${META_PIXEL_ID}/events`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch (err) {
+    console.error("[server-analytics] Meta CAPI: fetch() threw (network error):", err);
+    return;
+  }
+
+  const responseText = await res.text();
+  if (res.ok) {
+    console.log(`[server-analytics] Meta CAPI: ${res.status} OK — response: ${responseText}`);
+  } else {
+    console.error(`[server-analytics] Meta CAPI: ${res.status} ERROR — response: ${responseText}`);
   }
 }
 
@@ -38,27 +56,41 @@ const GA4_API_SECRET = process.env.GA4_API_SECRET;
 
 async function sendGA4Event(clientId: string, events: object[]) {
   if (!GA4_API_SECRET) {
-    console.warn("[server-analytics] GA4_API_SECRET not set — skipping GA4 Measurement Protocol");
+    console.warn("[server-analytics] GA4 MP: GA4_API_SECRET not set — skipping");
     return;
   }
-  const res = await fetch(
-    `https://www.google-analytics.com/mp/collect?measurement_id=${GA4_MEASUREMENT_ID}&api_secret=${GA4_API_SECRET}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ client_id: clientId, events }),
-    }
+
+  console.log(
+    `[server-analytics] GA4 MP: sending ${events.length} event(s) to ${GA4_MEASUREMENT_ID}` +
+    ` | secret prefix: ${GA4_API_SECRET.slice(0, 4)}... | client_id: ${clientId}`
   );
-  if (!res.ok) {
-    console.error("[server-analytics] GA4 Measurement Protocol error:", await res.text());
+
+  let res: Response;
+  try {
+    res = await fetch(
+      `https://www.google-analytics.com/mp/collect?measurement_id=${GA4_MEASUREMENT_ID}&api_secret=${GA4_API_SECRET}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ client_id: clientId, events }),
+      }
+    );
+  } catch (err) {
+    console.error("[server-analytics] GA4 MP: fetch() threw (network error):", err);
+    return;
+  }
+
+  const responseText = await res.text();
+  if (res.ok) {
+    // GA4 Measurement Protocol returns 204 No Content on success — empty body is expected
+    console.log(`[server-analytics] GA4 MP: ${res.status} OK — response: "${responseText}"`);
+  } else {
+    console.error(`[server-analytics] GA4 MP: ${res.status} ERROR — response: ${responseText}`);
   }
 }
 
 // ---------------------------------------------------------------------------
 // LinkedIn Conversions API (server-side)
-// Docs: https://learn.microsoft.com/en-us/linkedin/marketing/conversions/conversion-tracking
-// Requires: LINKEDIN_ACCESS_TOKEN (OAuth token with rw_conversions scope)
-//           LINKEDIN_SIGNUP_CONVERSION_ID (numeric ID from LinkedIn Campaign Manager)
 // ---------------------------------------------------------------------------
 
 const LINKEDIN_ACCESS_TOKEN = process.env.LINKEDIN_ACCESS_TOKEN;
@@ -66,45 +98,67 @@ const LINKEDIN_SIGNUP_CONVERSION_ID = process.env.LINKEDIN_SIGNUP_CONVERSION_ID;
 
 async function sendLinkedInConversion(email: string, conversionId: string) {
   if (!LINKEDIN_ACCESS_TOKEN) {
-    console.warn("[server-analytics] LINKEDIN_ACCESS_TOKEN not set — skipping LinkedIn CAPI");
+    console.warn("[server-analytics] LinkedIn CAPI: LINKEDIN_ACCESS_TOKEN not set — skipping");
     return;
   }
-  const res = await fetch("https://api.linkedin.com/rest/conversionEvents", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${LINKEDIN_ACCESS_TOKEN}`,
-      "LinkedIn-Version": "202407",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      conversion: `urn:lla:llaPartnerConversion:${conversionId}`,
-      conversionHappenedAt: Date.now(),
-      user: {
-        userIds: [{ idType: "SHA256_EMAIL", idValue: sha256(email) }],
+
+  console.log(`[server-analytics] LinkedIn CAPI: sending conversion ${conversionId}`);
+
+  let res: Response;
+  try {
+    res = await fetch("https://api.linkedin.com/rest/conversionEvents", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LINKEDIN_ACCESS_TOKEN}`,
+        "LinkedIn-Version": "202407",
+        "Content-Type": "application/json",
       },
-    }),
-  });
-  if (!res.ok) {
-    console.error("[server-analytics] LinkedIn CAPI error:", await res.text());
+      body: JSON.stringify({
+        conversion: `urn:lla:llaPartnerConversion:${conversionId}`,
+        conversionHappenedAt: Date.now(),
+        user: {
+          userIds: [{ idType: "SHA256_EMAIL", idValue: sha256(email) }],
+        },
+      }),
+    });
+  } catch (err) {
+    console.error("[server-analytics] LinkedIn CAPI: fetch() threw (network error):", err);
+    return;
   }
+
+  const responseText = await res.text();
+  if (res.ok) {
+    console.log(`[server-analytics] LinkedIn CAPI: ${res.status} OK — response: "${responseText}"`);
+  } else {
+    console.error(`[server-analytics] LinkedIn CAPI: ${res.status} ERROR — response: ${responseText}`);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Helpers to surface Promise.allSettled rejections
+// ---------------------------------------------------------------------------
+
+function logSettledResults(label: string, results: PromiseSettledResult<unknown>[]) {
+  results.forEach((result, i) => {
+    if (result.status === "rejected") {
+      console.error(`[server-analytics] ${label}: promise[${i}] rejected —`, result.reason);
+    }
+  });
 }
 
 // ---------------------------------------------------------------------------
 // Public helpers
 // ---------------------------------------------------------------------------
 
-/**
- * Call from auth/callback after a confirmed new Google OAuth signup.
- * Fires Meta CAPI CompleteRegistration, GA4 sign_up, LinkedIn CAPI Lead conversion.
- */
 export async function trackSignupServerSide(opts: {
   email: string;
   userId: string;
   method: string;
 }) {
+  console.log(`[server-analytics] trackSignupServerSide: method=${opts.method} userId=${opts.userId}`);
   const eventTime = Math.floor(Date.now() / 1000);
 
-  await Promise.allSettled([
+  const results = await Promise.allSettled([
     sendMetaEvent([
       {
         event_name: "CompleteRegistration",
@@ -127,13 +181,10 @@ export async function trackSignupServerSide(opts: {
       ? sendLinkedInConversion(opts.email, LINKEDIN_SIGNUP_CONVERSION_ID)
       : Promise.resolve(),
   ]);
+
+  logSettledResults("trackSignupServerSide", results);
 }
 
-/**
- * Call from the Stripe webhook after checkout.session.completed is processed.
- * Fires Meta CAPI Purchase and GA4 Measurement Protocol purchase.
- * event_id uses the Stripe session ID so Meta can deduplicate against the client-side pixel.
- */
 export async function trackPurchaseServerSide(opts: {
   email?: string;
   userId: string;
@@ -142,12 +193,13 @@ export async function trackPurchaseServerSide(opts: {
   currency: string;
   planType: string;
 }) {
+  console.log(`[server-analytics] trackPurchaseServerSide: txn=${opts.transactionId} userId=${opts.userId}`);
   const eventTime = Math.floor(Date.now() / 1000);
   const value = opts.valueCents / 100;
   const userData: Record<string, unknown> = {};
   if (opts.email) userData.em = [sha256(opts.email)];
 
-  await Promise.allSettled([
+  const results = await Promise.allSettled([
     sendMetaEvent([
       {
         event_name: "Purchase",
@@ -177,4 +229,6 @@ export async function trackPurchaseServerSide(opts: {
       },
     ]),
   ]);
+
+  logSettledResults("trackPurchaseServerSide", results);
 }
