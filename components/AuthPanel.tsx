@@ -121,13 +121,13 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
     if (!supabase) { setLoading(false); return; }
 
     // DEBUG — remove once server-side signup tracking is confirmed working
-    console.log("[DEBUG signup-track] verifyOtp: starting OTP verification");
+    console.error("[DEBUG signup-track] verifyOtp: starting OTP verification");
 
     const cleanCode = otp.replace(/\D/g, "");
     const { data: verifyData, error } = await supabase.auth.verifyOtp({ email, token: cleanCode, type: "signup" });
 
     // DEBUG — remove once confirmed
-    console.log("[DEBUG signup-track] verifyOtp result:", {
+    console.error("[DEBUG signup-track] verifyOtp result:", {
       userId: verifyData?.user?.id ?? null,
       hasSession: !!verifyData?.session,
       errorMessage: error?.message ?? null,
@@ -146,7 +146,7 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
     const userId = verifyData.user?.id;
 
     // DEBUG — remove once confirmed
-    console.log("[DEBUG signup-track] About to call /api/track/signup, userId:", userId ?? "(none)");
+    console.error("[DEBUG signup-track] About to call /api/track/signup, userId:", userId ?? "(none)");
 
     // Await before navigating — keepalive:true was unreliable; same-origin call resolves in <100ms
     try {
@@ -157,7 +157,7 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
       });
       // DEBUG — remove once confirmed
       const body = await res.json().catch(() => ({}));
-      console.log("[DEBUG signup-track] /api/track/signup response:", res.status, body);
+      console.error("[DEBUG signup-track] /api/track/signup response:", res.status, body);
     } catch (err) {
       // DEBUG — remove once confirmed
       console.error("[DEBUG signup-track] /api/track/signup fetch error:", err);
@@ -166,7 +166,7 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
     analytics.signupComplete({ method: "email_otp", source: analytics.getSignupSource(), userId });
 
     // DEBUG — remove once confirmed
-    console.log("[DEBUG signup-track] Navigating to:", redirectTo);
+    console.error("[DEBUG signup-track] Navigating to:", redirectTo);
 
     window.location.href = redirectTo;
   }
