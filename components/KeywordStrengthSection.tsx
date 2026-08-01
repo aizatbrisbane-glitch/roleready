@@ -59,6 +59,18 @@ export function KeywordStrengthSection({
   const hasAnyDoc = hasTailoredResume || hasCoverLetter;
   const defaultTarget: Target = hasBothDocs ? "both" : hasTailoredResume ? "resume" : "cover_letter";
 
+  // Live keyword match score: starts at AI matchScore, rises as gaps are covered.
+  const totalKeywords = missingKeywords.length;
+  const base = matchScore ?? 0;
+  const initialScore = totalKeywords === 0
+    ? base
+    : Math.min(100, Math.round(base + strengthenedKeywords.length * (100 - base) / totalKeywords));
+  const localStrengthenedCount = Object.values(states).filter((s) => s.phase === "success").length;
+  const liveScore = totalKeywords === 0
+    ? base
+    : Math.min(100, Math.round(base + localStrengthenedCount * (100 - base) / totalKeywords));
+  const scoreImproved = liveScore > initialScore;
+
   const displayItems = hasRealKeywords
     ? missingKeywords
     : ["Review job requirements", "Check resume emphasis", "Personalise your opening"];
@@ -192,9 +204,9 @@ export function KeywordStrengthSection({
               {missingKeywords.length} keyword{missingKeywords.length !== 1 ? "s" : ""}
             </span>
           )}
-          {matchScore !== null && (
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
-              Match: {matchScore}%
+          {matchScore !== null && totalKeywords > 0 && (
+            <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${scoreImproved ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600"}`}>
+              {liveScore}% keyword match
             </span>
           )}
         </div>
@@ -203,6 +215,23 @@ export function KeywordStrengthSection({
 
       {isOpen && (
         <div className="border-t border-slate-100 px-5 pb-5 pt-4 md:px-6 md:pb-6">
+          {matchScore !== null && totalKeywords > 0 && (
+            <div className="mb-4 rounded-2xl bg-slate-50 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Keyword match with this job description</p>
+              <div className="mt-1.5 flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-slate-900">{liveScore}%</span>
+                {scoreImproved && (
+                  <span className="text-xs text-slate-400">was {initialScore}%</span>
+                )}
+              </div>
+              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                <div
+                  className="h-full rounded-full bg-[#2200ff] transition-all duration-500"
+                  style={{ width: `${liveScore}%` }}
+                />
+              </div>
+            </div>
+          )}
           <p className="mb-4 text-sm text-slate-500">
             {hasRealKeywords
               ? "Based on your master documents, these keywords are missing from your application. Review them and see if any are genuinely relevant to your experience — if so, add them to your master resume first, then regenerate."
