@@ -375,6 +375,7 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
               strengthenedKeywords={application.strengthened_keywords ?? []}
               strengthenedKeywordSnippets={application.strengthened_keyword_snippets ?? {}}
               keywordImportance={application.keyword_importance ?? {}}
+              skippedKeywords={application.skipped_keywords ?? []}
             />
 
         </div>

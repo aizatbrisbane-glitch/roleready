@@ -15,6 +15,7 @@ type KeywordState =
   | { phase: "reviewing"; target: Target; tailoredResume: string | null; coverLetter: string | null; snippet: string }
   | { phase: "saving" }
   | { phase: "success"; target: Target | null; snippet: string }
+  | { phase: "skipped" }
   | { phase: "error"; message: string };
 
 type Importance = "required" | "preferred" | "unspecified";
@@ -29,6 +30,7 @@ type Props = {
   strengthenedKeywords: string[];
   strengthenedKeywordSnippets: Record<string, string>;
   keywordImportance: Record<string, string>;
+  skippedKeywords: string[];
   onDocumentUpdate: (update: DocumentUpdate) => void;
 };
 
@@ -44,6 +46,7 @@ export function KeywordStrengthSection({
   strengthenedKeywords,
   strengthenedKeywordSnippets,
   keywordImportance,
+  skippedKeywords,
   onDocumentUpdate,
 }: Props) {
   const [isOpen, setIsOpen] = useState(missingKeywords.length > 0);
@@ -52,6 +55,9 @@ export function KeywordStrengthSection({
     const initial: Record<string, KeywordState> = {};
     for (const kw of strengthenedKeywords) {
       initial[kw] = { phase: "success", target: null, snippet: strengthenedKeywordSnippets[kw] ?? "" };
+    }
+    for (const kw of skippedKeywords) {
+      if (!initial[kw]) initial[kw] = { phase: "skipped" };
     }
     return initial;
   });
@@ -211,6 +217,15 @@ export function KeywordStrengthSection({
     }
   }
 
+  async function handleSkip(keyword: string) {
+    setState(keyword, { phase: "skipped" });
+    await fetch(`/api/applications/${applicationId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ skipped_keywords: [...new Set([...skippedKeywords, keyword])] }),
+    }).catch(() => {});
+  }
+
   return (
     <section className="rounded-[1.6rem] border border-slate-100 bg-white shadow-sm">
       <button
@@ -262,6 +277,7 @@ export function KeywordStrengthSection({
             {(showAll ? displayItems : displayItems.slice(0, 3)).map((item) => {
               const state = getState(item);
               const isSuccess = state.phase === "success";
+              const isSkipped = state.phase === "skipped";
               const isExpanding = state.phase === "expanding";
               const isLoading = state.phase === "loading";
               const isReviewing = state.phase === "reviewing";
@@ -272,7 +288,7 @@ export function KeywordStrengthSection({
                 <div
                   key={item}
                   className={`rounded-2xl px-4 py-3 transition-colors ${
-                    isSuccess ? "bg-green-50" : isError ? "bg-rose-50" : isReviewing || isSaving ? "bg-amber-50" : "bg-slate-50"
+                    isSuccess ? "bg-green-50" : isSkipped ? "bg-slate-50 opacity-60" : isError ? "bg-rose-50" : isReviewing || isSaving ? "bg-amber-50" : "bg-slate-50"
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -287,7 +303,18 @@ export function KeywordStrengthSection({
                     {hasRealKeywords && !isSuccess && importanceBadge(item)}
                   </div>
 
-                  {isSuccess && state.phase === "success" ? (
+                  {isSkipped ? (
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <p className="text-xs text-slate-400">Not applicable</p>
+                      <button
+                        type="button"
+                        onClick={() => setState(item, { phase: "idle" })}
+                        className="text-xs text-slate-400 underline underline-offset-2 hover:text-slate-600"
+                      >
+                        Undo
+                      </button>
+                    </div>
+                  ) : isSuccess && state.phase === "success" ? (
                     <>
                       <p className="mt-1 text-xs font-semibold leading-5 text-green-600">Added to {targetLabel(state.target)}</p>
                       {state.snippet ? (
@@ -401,14 +428,23 @@ export function KeywordStrengthSection({
                       {hasRealKeywords && (
                         isPremium ? (
                           hasAnyDoc ? (
-                            <button
-                              type="button"
-                              onClick={() => setState(item, { phase: "expanding" })}
-                              className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-[#2200ff]/20 bg-white px-3 py-1.5 text-xs font-semibold text-[#2200ff] transition hover:bg-[#ece8ff]"
-                            >
-                              <Sparkles className="h-3 w-3" />
-                              {addButtonLabel()}
-                            </button>
+                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setState(item, { phase: "expanding" })}
+                                className="inline-flex items-center gap-1.5 rounded-full border border-[#2200ff]/20 bg-white px-3 py-1.5 text-xs font-semibold text-[#2200ff] transition hover:bg-[#ece8ff]"
+                              >
+                                <Sparkles className="h-3 w-3" />
+                                {addButtonLabel()}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleSkip(item)}
+                                className="text-xs text-slate-400 underline underline-offset-2 hover:text-slate-500"
+                              >
+                                Skip — not applicable
+                              </button>
+                            </div>
                           ) : (
                             <p className="mt-2 text-xs text-slate-400">Generate your application first.</p>
                           )

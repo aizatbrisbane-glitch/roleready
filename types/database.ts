@@ -229,6 +229,7 @@ export type Application = {
   strengthened_keywords: string[];
   strengthened_keyword_snippets: Record<string, string>;
   keyword_importance: Record<string, string> | null;
+  skipped_keywords: string[] | null;
   reference_ids: string[];
   include_references_in_cv: boolean;
   interview_questions: InterviewQuestion[] | null;
