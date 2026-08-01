@@ -36,6 +36,7 @@ type Props = {
   hasCoverLetter: boolean;
   strengthenedKeywords: string[];
   strengthenedKeywordSnippets: Record<string, string>;
+  keywordImportance: Record<string, string>;
 };
 
 export function ApplicationDetailClient({
@@ -61,6 +62,7 @@ export function ApplicationDetailClient({
   hasCoverLetter,
   strengthenedKeywords,
   strengthenedKeywordSnippets,
+  keywordImportance,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("notes");
   const [openAccordion, setOpenAccordion] = useState<Tab | null>("notes");
@@ -125,6 +127,7 @@ export function ApplicationDetailClient({
         hasCoverLetter={hasCoverLetter}
         strengthenedKeywords={strengthenedKeywords}
         strengthenedKeywordSnippets={strengthenedKeywordSnippets}
+        keywordImportance={keywordImportance}
         onDocumentUpdate={handleDocumentUpdate}
       />
       <ApplicationDetailTabs

@@ -16,6 +16,7 @@ type GeneratedApplication = {
   matchScore: number;
   matchExplanation: string;
   missingKeywords: string[];
+  keywordImportance: Record<string, "required" | "preferred" | "unspecified">;
   tailoredResume: string;
   coverLetter: string;
 };
@@ -23,7 +24,7 @@ type GeneratedApplication = {
 const responseSchema = {
   type: "object",
   additionalProperties: false,
-  required: ["matchScore", "matchExplanation", "missingKeywords", "tailoredResume", "coverLetter"],
+  required: ["matchScore", "matchExplanation", "missingKeywords", "keywordImportance", "tailoredResume", "coverLetter"],
   properties: {
     matchScore: {
       type: "integer",
@@ -37,6 +38,10 @@ const responseSchema = {
       type: "array",
       description: "Short skill or keyword strings that appear in the job ad but are absent or weak in the resume.",
       items: { type: "string" }
+    },
+    keywordImportance: {
+      type: "object",
+      description: "For each keyword in missingKeywords, its importance in the job description: 'required' if it appears in must-have/essential/required sections, 'preferred' if it appears in nice-to-have/preferred/desirable sections, 'unspecified' if unclear. Must have one entry per keyword."
     },
     tailoredResume: {
       type: "string",
@@ -326,6 +331,7 @@ export async function POST(request: Request, { params }: Props) {
         match_score: generated.matchScore,
         match_explanation: generated.matchExplanation,
         missing_keywords: generated.missingKeywords,
+        keyword_importance: generated.keywordImportance ?? {},
         tailored_resume: generated.tailoredResume,
         cover_letter: generated.coverLetter,
         generated_by: provider,

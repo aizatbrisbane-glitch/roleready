@@ -17,6 +17,8 @@ type KeywordState =
   | { phase: "success"; target: Target | null; snippet: string }
   | { phase: "error"; message: string };
 
+type Importance = "required" | "preferred" | "unspecified";
+
 type Props = {
   applicationId: string;
   missingKeywords: string[];
@@ -26,8 +28,11 @@ type Props = {
   hasCoverLetter: boolean;
   strengthenedKeywords: string[];
   strengthenedKeywordSnippets: Record<string, string>;
+  keywordImportance: Record<string, string>;
   onDocumentUpdate: (update: DocumentUpdate) => void;
 };
+
+const IMPORTANCE_ORDER: Record<string, number> = { required: 0, preferred: 1, unspecified: 2 };
 
 export function KeywordStrengthSection({
   applicationId,
@@ -38,6 +43,7 @@ export function KeywordStrengthSection({
   hasCoverLetter,
   strengthenedKeywords,
   strengthenedKeywordSnippets,
+  keywordImportance,
   onDocumentUpdate,
 }: Props) {
   const [isOpen, setIsOpen] = useState(missingKeywords.length > 0);
@@ -71,9 +77,24 @@ export function KeywordStrengthSection({
     : Math.min(100, Math.round(base + localStrengthenedCount * (100 - base) / totalKeywords));
   const scoreImproved = liveScore > initialScore;
 
+  const sortedKeywords = hasRealKeywords
+    ? [...missingKeywords].sort((a, b) => {
+        const aRank = IMPORTANCE_ORDER[keywordImportance[a] ?? "unspecified"] ?? 2;
+        const bRank = IMPORTANCE_ORDER[keywordImportance[b] ?? "unspecified"] ?? 2;
+        return aRank - bRank;
+      })
+    : missingKeywords;
+
   const displayItems = hasRealKeywords
-    ? missingKeywords
+    ? sortedKeywords
     : ["Review job requirements", "Check resume emphasis", "Personalise your opening"];
+
+  function importanceBadge(keyword: string) {
+    const level = (keywordImportance[keyword] ?? "unspecified") as Importance;
+    if (level === "required") return <span className="rounded-full bg-rose-100 px-1.5 py-0.5 text-[10px] font-semibold text-rose-600">Required</span>;
+    if (level === "preferred") return <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-600">Preferred</span>;
+    return null;
+  }
 
   function getState(keyword: string): KeywordState {
     return states[keyword] ?? { phase: "idle" };
@@ -263,6 +284,7 @@ export function KeywordStrengthSection({
                       <Lightbulb className="h-4 w-4 shrink-0 text-amber-500" />
                     )}
                     <p className="text-sm font-semibold text-slate-900">{item}</p>
+                    {hasRealKeywords && !isSuccess && importanceBadge(item)}
                   </div>
 
                   {isSuccess && state.phase === "success" ? (
