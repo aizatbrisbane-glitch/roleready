@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, CheckCircle2, ChevronDown, Lightbulb, Loader2, Lock, Sparkles } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronDown, Lightbulb, Loader2, Lock, RotateCcw, Sparkles } from "lucide-react";
 import type { EntitlementPlanType } from "@/types/database";
 import type { DocumentUpdate } from "@/components/ApplicationDetailClient";
 
@@ -12,9 +12,9 @@ type KeywordState =
   | { phase: "idle" }
   | { phase: "expanding" }
   | { phase: "loading" }
-  | { phase: "reviewing"; target: Target; tailoredResume: string | null; coverLetter: string | null; snippet: string }
+  | { phase: "reviewing"; target: Target; tailoredResume: string | null; coverLetter: string | null; snippet: string; originalSnippet: string }
   | { phase: "saving" }
-  | { phase: "success"; target: Target | null; snippet: string }
+  | { phase: "success"; target: Target | null; snippet: string; originalSnippet: string; reverting?: boolean }
   | { phase: "skipped" }
   | { phase: "error"; message: string };
 
@@ -27,8 +27,11 @@ type Props = {
   planType: EntitlementPlanType;
   hasTailoredResume: boolean;
   hasCoverLetter: boolean;
+  tailoredResume: string | null;
+  coverLetter: string | null;
   strengthenedKeywords: string[];
   strengthenedKeywordSnippets: Record<string, string>;
+  strengthenedKeywordOriginals: Record<string, string>;
   keywordImportance: Record<string, string>;
   skippedKeywords: string[];
   onDocumentUpdate: (update: DocumentUpdate) => void;
@@ -43,8 +46,11 @@ export function KeywordStrengthSection({
   planType,
   hasTailoredResume,
   hasCoverLetter,
+  tailoredResume,
+  coverLetter,
   strengthenedKeywords,
   strengthenedKeywordSnippets,
+  strengthenedKeywordOriginals,
   keywordImportance,
   skippedKeywords,
   onDocumentUpdate,
@@ -54,7 +60,7 @@ export function KeywordStrengthSection({
   const [states, setStates] = useState<Record<string, KeywordState>>(() => {
     const initial: Record<string, KeywordState> = {};
     for (const kw of strengthenedKeywords) {
-      initial[kw] = { phase: "success", target: null, snippet: strengthenedKeywordSnippets[kw] ?? "" };
+      initial[kw] = { phase: "success", target: null, snippet: strengthenedKeywordSnippets[kw] ?? "", originalSnippet: strengthenedKeywordOriginals[kw] ?? "" };
     }
     for (const kw of skippedKeywords) {
       if (!initial[kw]) initial[kw] = { phase: "skipped" };
@@ -172,6 +178,7 @@ export function KeywordStrengthSection({
         tailoredResume: data.tailoredResume ?? null,
         coverLetter: data.coverLetter ?? null,
         snippet,
+        originalSnippet: data.originalSnippet ?? "",
       });
     } catch {
       setState(keyword, { phase: "error", message: "Network error. Please try again." });
@@ -195,6 +202,7 @@ export function KeywordStrengthSection({
     const body: Record<string, unknown> = {
       strengthened_keywords: [...new Set([...strengthenedKeywords, keyword])],
       strengthened_keyword_snippets: { ...strengthenedKeywordSnippets, [keyword]: editedSnippet },
+      strengthened_keyword_originals: { ...strengthenedKeywordOriginals, [keyword]: state.originalSnippet },
     };
     if (finalResume) body.tailored_resume = finalResume;
     if (finalCover) body.cover_letter = finalCover;
@@ -211,9 +219,45 @@ export function KeywordStrengthSection({
         keyword,
         snippet: editedSnippet,
       });
-      setState(keyword, { phase: "success", target: state.target, snippet: editedSnippet });
+      setState(keyword, { phase: "success", target: state.target, snippet: editedSnippet, originalSnippet: state.originalSnippet });
     } catch {
       setState(keyword, { phase: "error", message: "Failed to save. Please try again." });
+    }
+  }
+
+  async function handleRevert(keyword: string) {
+    const state = getState(keyword);
+    if (state.phase !== "success") return;
+    setState(keyword, { ...state, reverting: true });
+
+    const swap = (doc: string | null) =>
+      doc && state.snippet ? doc.replace(state.snippet, state.originalSnippet) : doc;
+
+    const revertedResume = hasTailoredResume ? swap(tailoredResume) : null;
+    const revertedCover = hasCoverLetter ? swap(coverLetter) : null;
+
+    const newSnippets = { ...strengthenedKeywordSnippets };
+    delete newSnippets[keyword];
+    const newOriginals = { ...strengthenedKeywordOriginals };
+    delete newOriginals[keyword];
+    const newStrengthened = strengthenedKeywords.filter((k) => k !== keyword);
+
+    try {
+      await fetch(`/api/applications/${applicationId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          strengthened_keywords: newStrengthened,
+          strengthened_keyword_snippets: newSnippets,
+          strengthened_keyword_originals: newOriginals,
+          ...(revertedResume ? { tailored_resume: revertedResume } : {}),
+          ...(revertedCover ? { cover_letter: revertedCover } : {}),
+        }),
+      });
+      onDocumentUpdate({ resume: revertedResume ?? null, cover: revertedCover ?? null, keyword, snippet: "" });
+      setState(keyword, { phase: "idle" });
+    } catch {
+      setState(keyword, { ...state, reverting: false });
     }
   }
 
@@ -321,6 +365,17 @@ export function KeywordStrengthSection({
                         <p className="mt-2 rounded-xl bg-green-100 px-3 py-2 text-xs italic leading-5 text-green-800">
                           &ldquo;{state.snippet}&rdquo;
                         </p>
+                      ) : null}
+                      {state.originalSnippet ? (
+                        <button
+                          type="button"
+                          disabled={state.reverting}
+                          onClick={() => handleRevert(item)}
+                          className="mt-2 inline-flex items-center gap-1 text-xs text-slate-400 underline underline-offset-2 hover:text-slate-600 disabled:opacity-50"
+                        >
+                          {state.reverting ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
+                          {state.reverting ? "Reverting..." : "Revert"}
+                        </button>
                       ) : null}
                     </>
                   ) : isError && state.phase === "error" ? (

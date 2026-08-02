@@ -374,6 +374,7 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
               hasCoverLetter={!!application.cover_letter}
               strengthenedKeywords={application.strengthened_keywords ?? []}
               strengthenedKeywordSnippets={application.strengthened_keyword_snippets ?? {}}
+              strengthenedKeywordOriginals={application.strengthened_keyword_originals ?? {}}
               keywordImportance={application.keyword_importance ?? {}}
               skippedKeywords={application.skipped_keywords ?? []}
             />

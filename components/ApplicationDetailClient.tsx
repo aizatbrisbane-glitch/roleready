@@ -36,6 +36,7 @@ type Props = {
   hasCoverLetter: boolean;
   strengthenedKeywords: string[];
   strengthenedKeywordSnippets: Record<string, string>;
+  strengthenedKeywordOriginals: Record<string, string>;
   keywordImportance: Record<string, string>;
   skippedKeywords: string[];
 };
@@ -63,6 +64,7 @@ export function ApplicationDetailClient({
   hasCoverLetter,
   strengthenedKeywords,
   strengthenedKeywordSnippets,
+  strengthenedKeywordOriginals,
   keywordImportance,
   skippedKeywords,
 }: Props) {
@@ -127,8 +129,11 @@ export function ApplicationDetailClient({
         planType={planType}
         hasTailoredResume={hasTailoredResume}
         hasCoverLetter={hasCoverLetter}
+        tailoredResume={tailoredResume}
+        coverLetter={coverLetter}
         strengthenedKeywords={strengthenedKeywords}
         strengthenedKeywordSnippets={strengthenedKeywordSnippets}
+        strengthenedKeywordOriginals={strengthenedKeywordOriginals}
         keywordImportance={keywordImportance}
         skippedKeywords={skippedKeywords}
         onDocumentUpdate={handleDocumentUpdate}

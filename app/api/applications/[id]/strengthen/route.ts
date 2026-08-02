@@ -10,13 +10,17 @@ type Props = { params: Promise<{ id: string }> };
 const strengthenSchema = {
   type: "object",
   additionalProperties: false,
-  required: ["tailoredResume", "coverLetter", "changedSnippet"],
+  required: ["tailoredResume", "coverLetter", "changedSnippet", "originalSnippet"],
   properties: {
     tailoredResume: { type: ["string", "null"] },
     coverLetter: { type: ["string", "null"] },
     changedSnippet: {
       type: "string",
       description: "The single sentence or bullet point that was changed, as plain text with no markdown.",
+    },
+    originalSnippet: {
+      type: "string",
+      description: "The original sentence or bullet point before modification, as plain text with no markdown. Empty string if the keyword was added rather than modifying an existing line.",
     },
   },
 };
@@ -108,7 +112,7 @@ export async function POST(request: Request, { params }: Props) {
     jobCompany: application.jobs?.company ?? "",
   });
 
-  let result: { tailoredResume: string | null; coverLetter: string | null; changedSnippet: string };
+  let result: { tailoredResume: string | null; coverLetter: string | null; changedSnippet: string; originalSnippet: string };
   try {
     const response = await client.messages.create({
       model,
@@ -130,7 +134,7 @@ export async function POST(request: Request, { params }: Props) {
     if (!toolBlock || toolBlock.type !== "tool_use")
       return NextResponse.json({ error: "AI did not return a result" }, { status: 500 });
 
-    result = toolBlock.input as { tailoredResume: string | null; coverLetter: string | null; changedSnippet: string };
+    result = toolBlock.input as { tailoredResume: string | null; coverLetter: string | null; changedSnippet: string; originalSnippet: string };
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "AI failed" }, { status: 500 });
   }
@@ -141,11 +145,13 @@ export async function POST(request: Request, { params }: Props) {
   if (!preview) {
     const currentStrengthened = (application.strengthened_keywords as string[]) ?? [];
     const currentSnippets = (application.strengthened_keyword_snippets as Record<string, string>) ?? {};
+    const currentOriginals = (application.strengthened_keyword_originals as Record<string, string>) ?? {};
     await supabase.from("applications").update({
       ...(cleanedResume ? { tailored_resume: cleanedResume } : {}),
       ...(cleanedCover ? { cover_letter: cleanedCover } : {}),
       strengthened_keywords: [...new Set([...currentStrengthened, keyword])],
       strengthened_keyword_snippets: { ...currentSnippets, [keyword]: result.changedSnippet ?? "" },
+      strengthened_keyword_originals: { ...currentOriginals, [keyword]: result.originalSnippet ?? "" },
     }).eq("id", appId).eq("user_id", user.id);
   }
 
@@ -154,5 +160,6 @@ export async function POST(request: Request, { params }: Props) {
     tailoredResume: cleanedResume,
     coverLetter: cleanedCover,
     changedSnippet: result.changedSnippet ?? "",
+    originalSnippet: result.originalSnippet ?? "",
   });
 }

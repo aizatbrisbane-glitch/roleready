@@ -228,6 +228,7 @@ export type Application = {
   strengthen_count: number;
   strengthened_keywords: string[];
   strengthened_keyword_snippets: Record<string, string>;
+  strengthened_keyword_originals: Record<string, string>;
   keyword_importance: Record<string, string> | null;
   skipped_keywords: string[] | null;
   reference_ids: string[];
