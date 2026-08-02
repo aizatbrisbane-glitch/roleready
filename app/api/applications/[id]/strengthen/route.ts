@@ -92,6 +92,7 @@ export async function POST(request: Request, { params }: Props) {
     target,
     rules: [
       "Use ONLY the evidence the user has provided — do not invent, embellish, or add details not in userEvidence.",
+      "Prefer specific, concrete evidence (numbers, outcomes, scale, timeframes). If the evidence is vague or very brief, still weave it in but keep the language modest — do not inflate thin evidence into confident-sounding achievement claims the evidence doesn't support.",
       "Integrate the keyword naturally into existing bullet points or paragraphs — do not awkwardly append a disconnected sentence.",
       "Preserve all existing markdown formatting, structure, and document length.",
       "Never use em dashes or these words: dynamic, innovative, passionate, results-driven, detail-oriented, proven track record, leverage, utilize, spearhead, champion, delve, tapestry, transformative.",

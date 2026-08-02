@@ -372,7 +372,7 @@ export function KeywordStrengthSection({
                       <textarea
                         className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-[#d4ccff]"
                         rows={3}
-                        placeholder={`Describe your experience with "${item}"...`}
+                        placeholder={`Describe your experience with "${item}"... Include a scale, outcome, or timeframe if you can (e.g. "led a team of 5", "reduced load time by 30%", "managed $2M budget").`}
                         value={getEvidence(item)}
                         onChange={(e) => setEvidence(item, e.target.value)}
                         disabled={isLoading}
