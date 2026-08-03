@@ -67,6 +67,8 @@ export async function POST(request: Request) {
     const { data: profileRow } = await supabase.from("profiles").select("name").eq("id", user.id).maybeSingle();
     const firstName = (profileRow?.name ?? "").split(" ")[0] || null;
     void logEvent("RESUME_UPLOADED", user.id, { first_name: firstName });
+
+    await supabase.from("cached_grabbed_jobs").delete().eq("user_id", user.id);
   }
 
   let coverLetterText = String(formData.get("cover_letter_text") ?? "");

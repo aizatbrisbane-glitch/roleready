@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { trackSignupServerSide } from "@/lib/server-analytics";
+import { trackSignupServerSide, type AttributionData } from "@/lib/server-analytics";
 
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient();
@@ -18,8 +18,9 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => ({}));
   const method = (body?.method as string) ?? "email";
+  const attribution = (body?.attribution ?? {}) as AttributionData;
 
-  await trackSignupServerSide({ email: user.email, userId: user.id, method });
+  await trackSignupServerSide({ email: user.email, userId: user.id, method, attribution });
 
   return NextResponse.json({ ok: true });
 }

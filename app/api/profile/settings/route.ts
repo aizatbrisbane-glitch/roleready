@@ -67,6 +67,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
+  await supabase.from("cached_grabbed_jobs").delete().eq("user_id", user.id);
+
   return NextResponse.json({ ok: true });
 }
 
@@ -105,6 +107,11 @@ export async function PATCH(request: Request) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  const affectsMatching = "target_job_titles" in body || "salary_range" in patch;
+  if (affectsMatching) {
+    await supabase.from("cached_grabbed_jobs").delete().eq("user_id", user.id);
   }
 
   return NextResponse.json({ ok: true });
