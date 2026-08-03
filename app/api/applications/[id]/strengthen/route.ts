@@ -10,17 +10,21 @@ type Props = { params: Promise<{ id: string }> };
 const strengthenSchema = {
   type: "object",
   additionalProperties: false,
-  required: ["tailoredResume", "coverLetter", "changedSnippet", "originalSnippet"],
+  required: ["tailoredResume", "coverLetter", "changedSnippet", "originalSnippet", "hasRelevantExperience"],
   properties: {
     tailoredResume: { type: ["string", "null"] },
     coverLetter: { type: ["string", "null"] },
     changedSnippet: {
       type: "string",
-      description: "The single sentence or bullet point that was changed, as plain text with no markdown.",
+      description: "The single sentence or bullet point that was changed, as plain text with no markdown. Empty string if hasRelevantExperience is false.",
     },
     originalSnippet: {
       type: "string",
-      description: "The original sentence or bullet point before modification, as plain text with no markdown. Empty string if the keyword was added rather than modifying an existing line.",
+      description: "The original sentence or bullet point before modification, as plain text with no markdown. Empty string if hasRelevantExperience is false or if the keyword was added rather than modifying an existing line.",
+    },
+    hasRelevantExperience: {
+      type: "boolean",
+      description: "true if relevant experience was found and a draft was produced. false if no genuinely relevant experience exists — in that case set tailoredResume and coverLetter to null and snippets to empty strings.",
     },
   },
 };
@@ -37,6 +41,18 @@ function cleanDocument(text: string): string {
     .join("\n")
     .trim();
 }
+
+const STYLE_RULES = [
+  "Integrate the keyword naturally into existing bullet points or paragraphs — do not awkwardly append a disconnected sentence.",
+  "Preserve all existing markdown formatting, structure, and document length.",
+  "Never use em dashes or these words: dynamic, innovative, passionate, results-driven, detail-oriented, proven track record, leverage, utilize, spearhead, champion, delve, tapestry, transformative.",
+  "Return the full updated document, not just the changed section.",
+  "If target is 'resume', return tailoredResume and set coverLetter to null.",
+  "If target is 'cover_letter', return coverLetter and set tailoredResume to null.",
+  "If target is 'both', return both documents.",
+  "Always populate changedSnippet with the single sentence or bullet point you inserted or modified, as plain readable text with no markdown symbols (no **, no -, no #).",
+  "Always populate originalSnippet with the original sentence or bullet point you replaced, as plain readable text with no markdown symbols. Empty string if you added a new line rather than modifying an existing one.",
+];
 
 export async function POST(request: Request, { params }: Props) {
   const { id: appId } = await params;
@@ -65,7 +81,6 @@ export async function POST(request: Request, { params }: Props) {
   }
 
   if (!keyword) return NextResponse.json({ error: "keyword is required" }, { status: 400 });
-  if (!evidence) return NextResponse.json({ error: "evidence is required" }, { status: 400 });
   if (!["resume", "cover_letter", "both"].includes(target))
     return NextResponse.json({ error: "target must be resume, cover_letter, or both" }, { status: 400 });
 
@@ -83,46 +98,76 @@ export async function POST(request: Request, { params }: Props) {
   if (target !== "resume" && !application.cover_letter)
     return NextResponse.json({ error: "Generate your application first." }, { status: 400 });
 
+  // Auto mode: fetch master resume to use as evidence source
+  let masterResumeText: string | null = null;
+  if (!evidence) {
+    const { data: masterResume } = await supabase
+      .from("master_resumes")
+      .select("resume_text")
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    masterResumeText = masterResume?.resume_text?.trim() || null;
+    if (!masterResumeText) {
+      return NextResponse.json({ error: "no_master_resume" }, { status: 400 });
+    }
+  }
+
   if (!process.env.ANTHROPIC_API_KEY)
     return NextResponse.json({ error: "AI not configured" }, { status: 500 });
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 0 });
   const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6";
 
-  const prompt = JSON.stringify({
-    task: "Weave the keyword into the specified document(s) using only the evidence the user provided.",
+  const sharedContext = {
     keyword,
-    userEvidence: evidence,
     target,
-    rules: [
-      "Use ONLY the evidence the user has provided — do not invent, embellish, or add details not in userEvidence.",
-      "Prefer specific, concrete evidence (numbers, outcomes, scale, timeframes). If the evidence is vague or very brief, still weave it in but keep the language modest — do not inflate thin evidence into confident-sounding achievement claims the evidence doesn't support.",
-      "Integrate the keyword naturally into existing bullet points or paragraphs — do not awkwardly append a disconnected sentence.",
-      "Preserve all existing markdown formatting, structure, and document length.",
-      "Never use em dashes or these words: dynamic, innovative, passionate, results-driven, detail-oriented, proven track record, leverage, utilize, spearhead, champion, delve, tapestry, transformative.",
-      "Return the full updated document, not just the changed section.",
-      "If target is 'resume', return tailoredResume and set coverLetter to null.",
-      "If target is 'cover_letter', return coverLetter and set tailoredResume to null.",
-      "If target is 'both', return both documents.",
-      "Always populate changedSnippet with the single sentence or bullet point you inserted or modified, as plain readable text with no markdown symbols (no **, no -, no #).",
-    ],
     currentTailoredResume: target !== "cover_letter" ? application.tailored_resume : null,
     currentCoverLetter: target !== "resume" ? application.cover_letter : null,
     jobTitle: application.jobs?.title ?? "",
     jobCompany: application.jobs?.company ?? "",
-  });
+  };
 
-  let result: { tailoredResume: string | null; coverLetter: string | null; changedSnippet: string; originalSnippet: string };
+  const prompt = evidence
+    ? JSON.stringify({
+        task: "Weave the keyword into the specified document(s) using only the evidence the user provided.",
+        ...sharedContext,
+        userEvidence: evidence,
+        rules: [
+          "Use ONLY the evidence the user has provided — do not invent, embellish, or add details not in userEvidence.",
+          "Prefer specific, concrete evidence (numbers, outcomes, scale, timeframes). If the evidence is vague or very brief, still weave it in but keep the language modest — do not inflate thin evidence into confident-sounding achievement claims the evidence doesn't support.",
+          ...STYLE_RULES,
+          "Set hasRelevantExperience to true.",
+        ],
+      })
+    : JSON.stringify({
+        task: "Search the master resume for experience relevant to the keyword. If found, weave it naturally into the specified document(s). If no genuinely relevant experience exists, signal not found.",
+        ...sharedContext,
+        masterResumeText,
+        rules: [
+          "Search masterResumeText thoroughly for any experience, skill, project, or achievement genuinely related to the keyword.",
+          "If relevant experience is found: weave it naturally into the specified document(s). Set hasRelevantExperience to true. Populate changedSnippet and originalSnippet.",
+          "If no genuinely relevant experience exists in the master resume: set hasRelevantExperience to false, set tailoredResume and coverLetter to null, set changedSnippet and originalSnippet to empty strings. Do NOT invent or imply experience that is not there.",
+          "Prefer specific, concrete evidence from the master resume (numbers, outcomes, scale, timeframes). Do not inflate thin evidence into confident claims.",
+          ...STYLE_RULES,
+        ],
+      });
+
+  const system = evidence
+    ? "You are a senior job application writer. Weave keywords into documents using only the evidence the user provides. Never invent experience, employers, dates, credentials, metrics, tools, or achievements beyond what the user explicitly states."
+    : "You are a careful senior job application writer. Search the candidate's master resume for genuine experience related to the keyword. If you find it, weave it naturally into their tailored document. If you do not find genuinely relevant experience, signal that clearly — never fabricate or imply experience that is not in the master resume.";
+
+  let result: { tailoredResume: string | null; coverLetter: string | null; changedSnippet: string; originalSnippet: string; hasRelevantExperience: boolean };
   try {
     const response = await client.messages.create({
       model,
       max_tokens: 4000,
-      system:
-        "You are a senior job application writer. Weave keywords into documents using only the evidence the user provides. Never invent experience, employers, dates, credentials, metrics, tools, or achievements beyond what the user explicitly states.",
+      system,
       tools: [
         {
           name: "update_documents",
-          description: "Return the updated document(s) with the keyword naturally woven in.",
+          description: "Return the updated document(s) with the keyword naturally woven in, or signal no relevant experience found.",
           input_schema: strengthenSchema as Anthropic.Tool.InputSchema,
         },
       ],
@@ -134,15 +179,15 @@ export async function POST(request: Request, { params }: Props) {
     if (!toolBlock || toolBlock.type !== "tool_use")
       return NextResponse.json({ error: "AI did not return a result" }, { status: 500 });
 
-    result = toolBlock.input as { tailoredResume: string | null; coverLetter: string | null; changedSnippet: string; originalSnippet: string };
+    result = toolBlock.input as { tailoredResume: string | null; coverLetter: string | null; changedSnippet: string; originalSnippet: string; hasRelevantExperience: boolean };
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "AI failed" }, { status: 500 });
   }
 
-  const cleanedResume = result.tailoredResume && target !== "cover_letter" ? cleanDocument(result.tailoredResume) : null;
-  const cleanedCover = result.coverLetter && target !== "resume" ? cleanDocument(result.coverLetter) : null;
+  const cleanedResume = result.hasRelevantExperience && result.tailoredResume && target !== "cover_letter" ? cleanDocument(result.tailoredResume) : null;
+  const cleanedCover = result.hasRelevantExperience && result.coverLetter && target !== "resume" ? cleanDocument(result.coverLetter) : null;
 
-  if (!preview) {
+  if (!preview && result.hasRelevantExperience) {
     const currentStrengthened = (application.strengthened_keywords as string[]) ?? [];
     const currentSnippets = (application.strengthened_keyword_snippets as Record<string, string>) ?? {};
     const currentOriginals = (application.strengthened_keyword_originals as Record<string, string>) ?? {};
@@ -157,6 +202,7 @@ export async function POST(request: Request, { params }: Props) {
 
   return NextResponse.json({
     ok: true,
+    hasRelevantExperience: result.hasRelevantExperience,
     tailoredResume: cleanedResume,
     coverLetter: cleanedCover,
     changedSnippet: result.changedSnippet ?? "",

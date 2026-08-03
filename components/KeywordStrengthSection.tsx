@@ -10,12 +10,14 @@ type Target = "resume" | "cover_letter" | "both";
 
 type KeywordState =
   | { phase: "idle" }
-  | { phase: "expanding" }
   | { phase: "loading" }
   | { phase: "reviewing"; target: Target; tailoredResume: string | null; coverLetter: string | null; snippet: string; originalSnippet: string }
   | { phase: "saving" }
   | { phase: "success"; target: Target | null; snippet: string; originalSnippet: string; reverting?: boolean }
   | { phase: "skipped" }
+  | { phase: "not_found" }
+  | { phase: "fallback" }
+  | { phase: "no_master_resume" }
   | { phase: "error"; message: string };
 
 type Importance = "required" | "preferred" | "unspecified";
@@ -77,7 +79,6 @@ export function KeywordStrengthSection({
   const hasAnyDoc = hasTailoredResume || hasCoverLetter;
   const defaultTarget: Target = hasBothDocs ? "both" : hasTailoredResume ? "resume" : "cover_letter";
 
-  // Live keyword match score: starts at AI matchScore, rises as gaps are covered.
   const totalKeywords = missingKeywords.length;
   const base = matchScore ?? 0;
   const initialScore = totalKeywords === 0
@@ -153,7 +154,48 @@ export function KeywordStrengthSection({
     return "Add to documents";
   }
 
-  async function handleStrengthen(keyword: string) {
+  async function handleAutoStrengthen(keyword: string) {
+    const target = getTarget(keyword);
+    setState(keyword, { phase: "loading" });
+
+    try {
+      const res = await fetch(`/api/applications/${applicationId}/strengthen?preview=true`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keyword, target }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.error === "no_master_resume") {
+          setState(keyword, { phase: "no_master_resume" });
+          return;
+        }
+        setState(keyword, { phase: "error", message: data.error ?? "Something went wrong." });
+        return;
+      }
+
+      if (!data.hasRelevantExperience) {
+        setState(keyword, { phase: "not_found" });
+        return;
+      }
+
+      const snippet = data.changedSnippet ?? "";
+      setSnippetEdit(keyword, snippet);
+      setState(keyword, {
+        phase: "reviewing",
+        target,
+        tailoredResume: data.tailoredResume ?? null,
+        coverLetter: data.coverLetter ?? null,
+        snippet,
+        originalSnippet: data.originalSnippet ?? "",
+      });
+    } catch {
+      setState(keyword, { phase: "error", message: "Network error. Please try again." });
+    }
+  }
+
+  async function handleManualStrengthen(keyword: string) {
     const evidence = getEvidence(keyword).trim();
     if (!evidence) return;
     const target = getTarget(keyword);
@@ -314,7 +356,7 @@ export function KeywordStrengthSection({
           )}
           <p className="mb-4 text-sm text-slate-500">
             {hasRealKeywords
-              ? "Based on your master documents, these keywords are missing from your application. Review them and see if any are genuinely relevant to your experience — if so, add them to your master resume first, then regenerate."
+              ? "These keywords are missing from your application. Click to check if your master resume has relevant experience — we'll draft it for you to review."
               : "No major keyword gaps were identified yet."}
           </p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -322,17 +364,23 @@ export function KeywordStrengthSection({
               const state = getState(item);
               const isSuccess = state.phase === "success";
               const isSkipped = state.phase === "skipped";
-              const isExpanding = state.phase === "expanding";
               const isLoading = state.phase === "loading";
               const isReviewing = state.phase === "reviewing";
               const isSaving = state.phase === "saving";
+              const isNotFound = state.phase === "not_found";
+              const isFallback = state.phase === "fallback";
+              const isNoMasterResume = state.phase === "no_master_resume";
               const isError = state.phase === "error";
 
               return (
                 <div
                   key={item}
                   className={`rounded-2xl px-4 py-3 transition-colors ${
-                    isSuccess ? "bg-green-50" : isSkipped ? "bg-slate-50 opacity-60" : isError ? "bg-rose-50" : isReviewing || isSaving ? "bg-amber-50" : "bg-slate-50"
+                    isSuccess ? "bg-green-50"
+                    : isSkipped ? "bg-slate-50 opacity-60"
+                    : isError ? "bg-rose-50"
+                    : isReviewing || isSaving ? "bg-amber-50"
+                    : "bg-slate-50"
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -383,7 +431,7 @@ export function KeywordStrengthSection({
                       <p className="mt-1 text-xs leading-5 text-rose-600">{state.message}</p>
                       <button
                         type="button"
-                        onClick={() => setState(item, { phase: "expanding" })}
+                        onClick={() => handleAutoStrengthen(item)}
                         className="mt-2 text-xs font-semibold text-rose-500 hover:text-rose-700"
                       >
                         Retry
@@ -391,7 +439,10 @@ export function KeywordStrengthSection({
                     </>
                   ) : isReviewing || isSaving ? (
                     <div className="mt-3 space-y-3">
-                      <p className="text-xs font-semibold text-amber-700">Edit the change if needed, then save:</p>
+                      <div className="flex items-start gap-2 rounded-xl bg-amber-100 px-3 py-2">
+                        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
+                        <p className="text-xs leading-5 text-amber-800">Only save if this genuinely reflects your experience. Don&apos;t include skills you don&apos;t have.</p>
+                      </div>
                       {state.phase === "reviewing" && (
                         <textarea
                           className="w-full resize-none rounded-xl border border-amber-200 bg-white px-3 py-2 text-xs leading-5 text-slate-900 outline-none focus:ring-2 focus:ring-amber-300"
@@ -414,7 +465,7 @@ export function KeywordStrengthSection({
                         {!isSaving && (
                           <button
                             type="button"
-                            onClick={() => setState(item, { phase: "expanding" })}
+                            onClick={() => setState(item, { phase: "idle" })}
                             className="text-xs text-slate-400 hover:text-slate-600"
                           >
                             Try again
@@ -422,15 +473,39 @@ export function KeywordStrengthSection({
                         )}
                       </div>
                     </div>
-                  ) : isExpanding || isLoading ? (
+                  ) : isLoading ? (
+                    <div className="mt-3 flex items-center gap-2">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />
+                      <p className="text-xs text-slate-500">Checking your master resume...</p>
+                    </div>
+                  ) : isNotFound ? (
+                    <div className="mt-3 space-y-2">
+                      <p className="text-xs leading-5 text-slate-500">Nothing in your master resume matched this keyword.</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setState(item, { phase: "fallback" })}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-400"
+                        >
+                          Add my own note
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSkip(item)}
+                          className="text-xs text-slate-400 underline underline-offset-2 hover:text-slate-600"
+                        >
+                          Skip
+                        </button>
+                      </div>
+                    </div>
+                  ) : isFallback ? (
                     <div className="mt-3 space-y-2">
                       <textarea
                         className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-[#d4ccff]"
                         rows={3}
-                        placeholder={`Describe your experience with "${item}"... Include a scale, outcome, or timeframe if you can (e.g. "led a team of 5", "reduced load time by 30%", "managed $2M budget").`}
+                        placeholder={`Describe your experience with "${item}"... e.g. "led a team of 5", "reduced load time by 30%", "managed $2M budget"`}
                         value={getEvidence(item)}
                         onChange={(e) => setEvidence(item, e.target.value)}
-                        disabled={isLoading}
                         autoFocus
                       />
                       {hasBothDocs && (
@@ -439,7 +514,6 @@ export function KeywordStrengthSection({
                             <button
                               key={t}
                               type="button"
-                              disabled={isLoading}
                               onClick={() => setTarget(item, t)}
                               className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition ${
                                 getTarget(item) === t
@@ -455,23 +529,38 @@ export function KeywordStrengthSection({
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
-                          disabled={isLoading || !getEvidence(item).trim()}
-                          onClick={() => handleStrengthen(item)}
+                          disabled={!getEvidence(item).trim()}
+                          onClick={() => handleManualStrengthen(item)}
                           className="inline-flex items-center gap-1.5 rounded-full bg-[#2200ff] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
                         >
-                          {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                          {isLoading ? "Weaving in..." : "Weave it in"}
+                          <Sparkles className="h-3 w-3" />
+                          Weave it in
                         </button>
-                        {!isLoading && (
-                          <button
-                            type="button"
-                            onClick={() => setState(item, { phase: "idle" })}
-                            className="text-xs text-slate-400 hover:text-slate-600"
-                          >
-                            Cancel
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => setState(item, { phase: "not_found" })}
+                          className="text-xs text-slate-400 hover:text-slate-600"
+                        >
+                          Cancel
+                        </button>
                       </div>
+                    </div>
+                  ) : isNoMasterResume ? (
+                    <div className="mt-3 space-y-2">
+                      <p className="text-xs leading-5 text-slate-500">
+                        Add your master resume in{" "}
+                        <Link href="/resume" className="underline underline-offset-2 hover:text-slate-700">
+                          Resume settings
+                        </Link>{" "}
+                        to use this feature.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setState(item, { phase: "idle" })}
+                        className="text-xs text-slate-400 underline underline-offset-2 hover:text-slate-600"
+                      >
+                        Dismiss
+                      </button>
                     </div>
                   ) : (
                     <>
@@ -486,7 +575,7 @@ export function KeywordStrengthSection({
                             <div className="mt-2 flex flex-wrap items-center gap-2">
                               <button
                                 type="button"
-                                onClick={() => setState(item, { phase: "expanding" })}
+                                onClick={() => handleAutoStrengthen(item)}
                                 className="inline-flex items-center gap-1.5 rounded-full border border-[#2200ff]/20 bg-white px-3 py-1.5 text-xs font-semibold text-[#2200ff] transition hover:bg-[#ece8ff]"
                               >
                                 <Sparkles className="h-3 w-3" />
