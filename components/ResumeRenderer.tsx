@@ -34,31 +34,39 @@ function applySnippetHighlights(text: string, snippets: string[]): (string | Rea
 
 function InlineMd({ text, highlightKeyword, highlightSnippets }: { text: string; highlightKeyword?: string | null; highlightSnippets?: string[] }) {
   const boldParts = text.split(/(\*\*[^*]+\*\*)/g);
-  return (
-    <>
-      {boldParts.map((part, i) => {
-        if (part.startsWith("**") && part.endsWith("**")) {
-          const inner = part.slice(2, -2);
-          return (
-            <strong key={i} className="font-semibold text-[#14213d]">
-              {highlightKeyword ? splitHighlight(inner, highlightKeyword) : inner}
-            </strong>
-          );
-        }
-        if (!part) return null;
 
-        // Apply snippet highlights (green, persistent) then keyword highlight (yellow, temporary)
-        const withSnippets: (string | React.ReactElement)[] =
-          highlightSnippets?.length ? applySnippetHighlights(part, highlightSnippets) : [part];
+  // Snippets are plain text but the document may have **bold** markers splitting the string.
+  // Check against the full line with bold markers stripped so we don't miss cross-bold matches.
+  const plainText = text.replace(/\*\*([^*]+)\*\*/g, "$1");
+  const lineMatchesSnippet = highlightSnippets?.some(s => s && plainText.includes(s));
 
-        const final = highlightKeyword
-          ? withSnippets.flatMap(node => (typeof node === "string" ? splitHighlight(node, highlightKeyword) : [node]))
-          : withSnippets;
+  const renderedParts = boldParts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      const inner = part.slice(2, -2);
+      return (
+        <strong key={i} className="font-semibold text-[#14213d]">
+          {highlightKeyword ? splitHighlight(inner, highlightKeyword) : inner}
+        </strong>
+      );
+    }
+    if (!part) return null;
 
-        return <React.Fragment key={i}>{final.map((n, j) => typeof n === "string" ? <React.Fragment key={j}>{n}</React.Fragment> : n)}</React.Fragment>;
-      })}
-    </>
-  );
+    // No line-level match — try exact substring match within this plain segment
+    const withSnippets: (string | React.ReactElement)[] =
+      !lineMatchesSnippet && highlightSnippets?.length
+        ? applySnippetHighlights(part, highlightSnippets)
+        : [part];
+
+    const final = highlightKeyword
+      ? withSnippets.flatMap(node => (typeof node === "string" ? splitHighlight(node, highlightKeyword) : [node]))
+      : withSnippets;
+
+    return <React.Fragment key={i}>{final.map((n, j) => typeof n === "string" ? <React.Fragment key={j}>{n}</React.Fragment> : n)}</React.Fragment>;
+  });
+
+  return lineMatchesSnippet
+    ? <mark className="rounded bg-green-100 not-italic">{renderedParts}</mark>
+    : <>{renderedParts}</>;
 }
 
 type ParsedLine =
