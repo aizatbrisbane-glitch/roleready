@@ -375,11 +375,16 @@ export function KeywordStrengthSection({
               </div>
             </div>
           )}
-          <p className="mb-4 text-sm text-slate-500">
+          <p className="mb-1 text-sm text-slate-500">
             {hasRealKeywords
               ? "These keywords are missing from your application. Click to check if your master resume has relevant experience — we'll draft it for you to review."
               : "No major keyword gaps were identified yet."}
           </p>
+          {hasRealKeywords && strengthenedKeywords.length > 0 && (
+            <p className="mb-4 text-xs text-slate-400">
+              Keywords marked &ldquo;Added to documents&rdquo; were automatically woven in when your application was generated.
+            </p>
+          )}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {(showAll ? displayItems : displayItems.slice(0, 3)).map((item) => {
               const state = getState(item);
