@@ -537,7 +537,7 @@ export async function GET(request: Request) {
   await supabase.from("cached_grabbed_jobs").delete().eq("user_id", user.id);
 
   if (topResults.length > 0) {
-    const { error: insertError } = await supabase.from("cached_grabbed_jobs").insert(
+    const { error: insertError } = await supabase.from("cached_grabbed_jobs").upsert(
       topResults.map((job) => ({
         user_id: user.id,
         external_id: job.id,
@@ -555,7 +555,8 @@ export async function GET(request: Request) {
         search_query: actualSearchQuery,
         source: job.source ?? "Adzuna",
         fetched_at: fetchedAt,
-      }))
+      })),
+      { onConflict: "user_id,external_id" }
     );
 
     if (insertError) {
