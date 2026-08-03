@@ -14,6 +14,15 @@ const STATUSES: ApplicationStatus[] = ["New", "Ready", "Applied", "Interview", "
 const EMPTY = "-";
 const UNDO_DELAY_MS = 5000;
 
+function effectiveScore(app: ApplicationWithJob): number | null {
+  const base = app.match_score;
+  if (base === null) return null;
+  const total = app.missing_keywords?.length ?? 0;
+  const strengthened = app.strengthened_keywords?.length ?? 0;
+  if (total === 0) return base;
+  return Math.min(100, Math.round(base + strengthened * (100 - base) / total));
+}
+
 function scoreStyle(score: number | null) {
   if (score === null) return "bg-slate-100 text-slate-500";
   if (score >= 85) return "bg-[#d4ccff] text-[#1a00cc]";
@@ -193,8 +202,8 @@ function MobileCard({ application, index, expanded, summaryState, onToggleSummar
           <p className="truncate font-semibold text-slate-900">{job?.title ?? "Untitled role"}</p>
           <p className="mt-0.5 truncate text-sm text-slate-500">{job?.company}</p>
         </div>
-        <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${scoreStyle(application.match_score)}`}>
-          {application.match_score === null ? EMPTY : `${application.match_score}%`}
+        <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${scoreStyle(effectiveScore(application))}`}>
+          {effectiveScore(application) === null ? EMPTY : `${effectiveScore(application)}%`}
         </span>
       </div>
 
@@ -234,7 +243,7 @@ function DesktopRow({ application, index, expanded, summaryState, onToggleSummar
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
   const job = application.jobs;
-  const score = application.match_score;
+  const score = effectiveScore(application);
   const status = application.status ?? "New";
 
   const tdBase = `py-3.5 transition-colors ${selected ? "bg-[#ece8ff]/30" : "bg-white group-hover:bg-slate-50"}`;

@@ -27,6 +27,12 @@ type Props = {
   searchParams: Promise<{ generate?: string }>;
 };
 
+function adjustedScore(base: number | null, total: number, strengthened: number): number | null {
+  if (base === null) return null;
+  if (total === 0) return base;
+  return Math.min(100, Math.round(base + strengthened * (100 - base) / total));
+}
+
 function scoreTone(score: number | null) {
   if (score === null) return { label: "Match pending", className: "text-slate-500", pill: "bg-slate-100 text-slate-600" };
   if (score >= 85) return { label: "Strong match", className: "text-[#2200ff]", pill: "bg-[#d4ccff] text-[#1a00cc]" };
@@ -232,7 +238,12 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
   const missingKeywords = application.missing_keywords ?? [];
   const jobDescriptionLooksShort = job.description.trim().length < 800;
   const status = (application.status ?? "New") as ApplicationStatus;
-  const score = scoreTone(application.match_score);
+  const effectiveMatchScore = adjustedScore(
+    application.match_score,
+    application.missing_keywords?.length ?? 0,
+    application.strengthened_keywords?.length ?? 0,
+  );
+  const score = scoreTone(effectiveMatchScore);
   const guidance = statusGuidance(status, hasDocuments);
   const displayJob = jobDisplayCopy(job);
 
@@ -303,7 +314,7 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
                   </span>
                   <div className="flex items-baseline gap-2">
                     <span className={`text-5xl font-bold tabular-nums ${score.className}`}>
-                      {application.match_score === null ? "—" : `${application.match_score}%`}
+                      {effectiveMatchScore === null ? "—" : `${effectiveMatchScore}%`}
                     </span>
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${score.pill}`}>{score.label}</span>
                   </div>
@@ -354,7 +365,7 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
             <ApplicationDetailClient
               applicationId={application.id}
               missingKeywords={application.missing_keywords ?? []}
-              matchScore={application.match_score}
+              matchScore={effectiveMatchScore}
               tailoredResume={application.tailored_resume}
               coverLetter={application.cover_letter}
               jobDescription={job.description}

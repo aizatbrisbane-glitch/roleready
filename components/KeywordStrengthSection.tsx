@@ -74,6 +74,9 @@ export function KeywordStrengthSection({
   const [snippetEditMap, setSnippetEditMap] = useState<Record<string, string>>({});
 
   const hasRealKeywords = missingKeywords.length > 0;
+  const pendingCount = missingKeywords.filter(
+    (kw) => states[kw]?.phase !== "success" && states[kw]?.phase !== "skipped"
+  ).length;
   const isPremium = planType !== "free";
   const hasBothDocs = hasTailoredResume && hasCoverLetter;
   const hasAnyDoc = hasTailoredResume || hasCoverLetter;
@@ -321,9 +324,9 @@ export function KeywordStrengthSection({
       >
         <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
           <span className="text-base font-bold text-slate-900">Opportunities to strengthen</span>
-          {hasRealKeywords && (
+          {hasRealKeywords && pendingCount > 0 && (
             <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
-              {missingKeywords.length} keyword{missingKeywords.length !== 1 ? "s" : ""}
+              {pendingCount} to review
             </span>
           )}
           {matchScore !== null && totalKeywords > 0 && (
