@@ -5,6 +5,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { htmlToText } from "@/lib/job-ad";
 import type { CachedGrabbedJob } from "@/types/database";
 
+export const maxDuration = 60;
+export const preferredRegion = ["syd1"];
+
 type AdzunaJob = {
   id: string;
   title: string;
