@@ -29,6 +29,18 @@ const strengthenSchema = {
   },
 };
 
+function extractActualChange(original: string | null, updated: string | null): string {
+  if (!original || !updated) return "";
+  const stripMd = (line: string) =>
+    line.trim()
+      .replace(/^#+\s+/, "")
+      .replace(/^[-*]\s+/, "")
+      .replace(/\*\*([^*]+)\*\*/g, "$1");
+  const originalLines = new Set(original.split("\n").map(stripMd).filter(Boolean));
+  const changedLines = updated.split("\n").map(stripMd).filter(l => l && !originalLines.has(l));
+  return changedLines[0] ?? "";
+}
+
 function cleanDocument(text: string): string {
   return text
     .split("\n")
@@ -187,6 +199,11 @@ export async function POST(request: Request, { params }: Props) {
   const cleanedResume = result.hasRelevantExperience && result.tailoredResume && target !== "cover_letter" ? cleanDocument(result.tailoredResume) : null;
   const cleanedCover = result.hasRelevantExperience && result.coverLetter && target !== "resume" ? cleanDocument(result.coverLetter) : null;
 
+  const actualChangedSnippet =
+    (cleanedResume ? extractActualChange(application.tailored_resume, cleanedResume) : "") ||
+    (cleanedCover ? extractActualChange(application.cover_letter, cleanedCover) : "") ||
+    (result.changedSnippet ?? "");
+
   if (!preview && result.hasRelevantExperience) {
     const currentStrengthened = (application.strengthened_keywords as string[]) ?? [];
     const currentSnippets = (application.strengthened_keyword_snippets as Record<string, string>) ?? {};
@@ -195,7 +212,7 @@ export async function POST(request: Request, { params }: Props) {
       ...(cleanedResume ? { tailored_resume: cleanedResume } : {}),
       ...(cleanedCover ? { cover_letter: cleanedCover } : {}),
       strengthened_keywords: [...new Set([...currentStrengthened, keyword])],
-      strengthened_keyword_snippets: { ...currentSnippets, [keyword]: result.changedSnippet ?? "" },
+      strengthened_keyword_snippets: { ...currentSnippets, [keyword]: actualChangedSnippet },
       strengthened_keyword_originals: { ...currentOriginals, [keyword]: result.originalSnippet ?? "" },
     }).eq("id", appId).eq("user_id", user.id);
   }
@@ -205,7 +222,7 @@ export async function POST(request: Request, { params }: Props) {
     hasRelevantExperience: result.hasRelevantExperience,
     tailoredResume: cleanedResume,
     coverLetter: cleanedCover,
-    changedSnippet: result.changedSnippet ?? "",
+    changedSnippet: actualChangedSnippet,
     originalSnippet: result.originalSnippet ?? "",
   });
 }
