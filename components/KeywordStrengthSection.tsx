@@ -93,10 +93,10 @@ export function KeywordStrengthSection({
 
   const totalKeywords = missingKeywords.length;
   const base = matchScore ?? 0;
-  // base is effectiveMatchScore — already includes DB-strengthened keywords.
-  // Only count keywords newly added in this session to avoid double-counting.
-  const localStrengthenedCount = Object.values(states).filter((s) => s.phase === "success").length;
-  const sessionDelta = localStrengthenedCount - strengthenedKeywords.length;
+  // sessionDelta tracks keywords added/removed in this browser session only.
+  // base (effectiveMatchScore) already accounts for DB-strengthened keywords,
+  // so we must not re-count them here.
+  const [sessionDelta, setSessionDelta] = useState(0);
   const liveScore = totalKeywords === 0
     ? base
     : Math.min(100, Math.round(base + sessionDelta * (100 - base) / totalKeywords));
@@ -279,6 +279,7 @@ export function KeywordStrengthSection({
         snippet: editedSnippet,
       });
       setState(keyword, { phase: "success", target: state.target, snippet: editedSnippet, originalSnippet: state.originalSnippet });
+      setSessionDelta((d) => d + 1);
     } catch {
       setState(keyword, { phase: "error", message: "Failed to save. Please try again." });
     }
@@ -316,6 +317,7 @@ export function KeywordStrengthSection({
       });
       onDocumentUpdate({ resume: revertedResume ?? null, cover: revertedCover ?? null, keyword, snippet: "" });
       setState(keyword, { phase: "idle" });
+      setSessionDelta((d) => d - 1);
     } catch {
       setState(keyword, { ...state, reverting: false });
     }
