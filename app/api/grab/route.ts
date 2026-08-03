@@ -221,6 +221,7 @@ async function fetchAdzunaJobs({
     what: query,
     max_days_old: String(maxDaysOld),
     sort_by: "date",
+    full_description: "1",
   });
   if (where) params.set("where", where);
   if (workTypes) {

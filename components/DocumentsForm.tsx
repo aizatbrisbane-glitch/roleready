@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Download, Eye, FileText, Mail, Pencil } from "lucide-react";
 import { CoverLetterRenderer, ResumeRenderer } from "@/components/ResumeRenderer";
 import type { MasterCoverLetter, MasterResume } from "@/types/database";
@@ -103,6 +104,7 @@ type Props = {
 };
 
 export function DocumentsForm({ masterResume, masterCoverLetter }: Props) {
+  const router = useRouter();
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [resumeText, setResumeText] = useState(masterResume?.resume_text ?? "");
@@ -117,9 +119,21 @@ export function DocumentsForm({ masterResume, masterCoverLetter }: Props) {
 
     const formData = new FormData(event.currentTarget);
     const response = await fetch("/api/profile/documents", { method: "POST", body: formData });
-    const payload = await response.json();
+    const payload = await response.json() as {
+      ok?: boolean;
+      error?: string;
+      resumeText?: string | null;
+      coverLetterText?: string | null;
+    };
 
-    setMessage(response.ok ? "Documents saved." : payload.error ?? "Unable to save documents.");
+    if (response.ok) {
+      if (payload.resumeText != null) setResumeText(payload.resumeText);
+      if (payload.coverLetterText != null) setCoverText(payload.coverLetterText);
+      router.refresh();
+      setMessage("Documents saved.");
+    } else {
+      setMessage(payload.error ?? "Unable to save documents.");
+    }
     setLoading(false);
   }
 
