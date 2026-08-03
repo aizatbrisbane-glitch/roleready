@@ -470,13 +470,33 @@ export function KeywordStrengthSection({
                         <p className="text-xs leading-5 text-amber-800">Only save if this genuinely reflects your experience. Don&apos;t include skills you don&apos;t have.</p>
                       </div>
                       {state.phase === "reviewing" && (
-                        <textarea
-                          className="w-full resize-none rounded-xl border border-amber-200 bg-white px-3 py-2 text-xs leading-5 text-slate-900 outline-none focus:ring-2 focus:ring-amber-300"
-                          rows={3}
-                          value={getSnippetEdit(item)}
-                          onChange={(e) => setSnippetEdit(item, e.target.value)}
-                          disabled={isSaving}
-                        />
+                        <>
+                          <textarea
+                            className="w-full resize-none rounded-xl border border-amber-200 bg-white px-3 py-2 text-xs leading-5 text-slate-900 outline-none focus:ring-2 focus:ring-amber-300"
+                            rows={3}
+                            value={getSnippetEdit(item)}
+                            onChange={(e) => setSnippetEdit(item, e.target.value)}
+                            disabled={isSaving}
+                          />
+                          {hasBothDocs && (
+                            <div className="flex flex-wrap gap-1">
+                              {(["resume", "cover_letter", "both"] as Target[]).map((t) => (
+                                <button
+                                  key={t}
+                                  type="button"
+                                  onClick={() => setTarget(item, t)}
+                                  className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition ${
+                                    getTarget(item) === t
+                                      ? "bg-[#2200ff] text-white"
+                                      : "bg-slate-200 text-slate-600 hover:bg-slate-300"
+                                  }`}
+                                >
+                                  {t === "resume" ? "Resume only" : t === "cover_letter" ? "Cover letter only" : "Both"}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </>
                       )}
                       <div className="flex items-center gap-2">
                         <button
