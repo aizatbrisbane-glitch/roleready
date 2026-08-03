@@ -429,13 +429,31 @@ export async function GET(request: Request) {
   if (adzunaSettled.status === "rejected") console.error("[grab] Adzuna primary fetch failed:", adzunaSettled.reason);
   if (joobleSettled.status === "rejected") console.error("[grab] Jooble fetch failed:", joobleSettled.reason);
 
-  // Fallback: if both returned nothing, retry Adzuna with just job title and a wider window
+  // If Adzuna city-scoped search returned nothing, retry nationwide and rely on post-hoc filter
+  if (adzunaJobs.length === 0 && locationParam) {
+    try {
+      adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 30, resultsPerPage: 50 });
+    } catch (e) {
+      console.error("[grab] Adzuna nationwide primary fetch failed:", e);
+    }
+  }
+
+  // Fallback: if both returned nothing, retry with just the job title and a wider window.
+  // First try with location, then without (relying on post-hoc filtering) if still empty.
   if (adzunaJobs.length === 0 && joobleJobs.length === 0 && keywords.jobTitle.trim()) {
     actualSearchQuery = keywords.jobTitle.trim();
     try {
       adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, where: locationParam, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 60, resultsPerPage: 50 });
     } catch (e) {
       console.error("[grab] Adzuna fallback fetch failed:", e);
+    }
+    // If city-scoped search still empty, broaden to nationwide and rely on post-hoc filter
+    if (adzunaJobs.length === 0) {
+      try {
+        adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 60, resultsPerPage: 50 });
+      } catch (e) {
+        console.error("[grab] Adzuna nationwide fallback fetch failed:", e);
+      }
     }
     // Retry Jooble with title too
     if (joobleApiKey) {
@@ -447,15 +465,9 @@ export async function GET(request: Request) {
     }
   }
 
-  // Convert Adzuna results to GrabResult[], applying the same location filter as Jooble
+  // Adzuna already filters by country (/au/ endpoint) and city (where param), so we trust
+  // its results directly without re-applying our own location filter.
   const adzunaGrabResults: GrabResult[] = adzunaJobs
-    .filter((j) => {
-      const loc = j.location.display_name;
-      if (!loc) return true;
-      if (!isAustralianLocation(loc)) return false;
-      if (locationParam) return matchesRequestedLocation(loc, locationParam);
-      return true;
-    })
     .map((j) => ({
       id: j.id,
       title: j.title,
