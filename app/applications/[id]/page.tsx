@@ -365,7 +365,7 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
             <ApplicationDetailClient
               applicationId={application.id}
               missingKeywords={application.missing_keywords ?? []}
-              matchScore={application.match_score}
+              matchScore={effectiveMatchScore}
               tailoredResume={application.tailored_resume}
               coverLetter={application.cover_letter}
               jobDescription={job.description}

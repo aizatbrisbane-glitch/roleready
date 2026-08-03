@@ -93,14 +93,14 @@ export function KeywordStrengthSection({
 
   const totalKeywords = missingKeywords.length;
   const base = matchScore ?? 0;
-  const initialScore = totalKeywords === 0
-    ? base
-    : Math.min(100, Math.round(base + strengthenedKeywords.length * (100 - base) / totalKeywords));
+  // base is effectiveMatchScore — already includes DB-strengthened keywords.
+  // Only count keywords newly added in this session to avoid double-counting.
   const localStrengthenedCount = Object.values(states).filter((s) => s.phase === "success").length;
+  const sessionDelta = localStrengthenedCount - strengthenedKeywords.length;
   const liveScore = totalKeywords === 0
     ? base
-    : Math.min(100, Math.round(base + localStrengthenedCount * (100 - base) / totalKeywords));
-  const scoreImproved = liveScore > initialScore;
+    : Math.min(100, Math.round(base + sessionDelta * (100 - base) / totalKeywords));
+  const scoreImproved = liveScore > base;
 
   const sortedKeywords = hasRealKeywords
     ? [...missingKeywords].sort((a, b) => {
@@ -362,7 +362,7 @@ export function KeywordStrengthSection({
               <div className="mt-1.5 flex items-baseline gap-2">
                 <span className="text-2xl font-bold text-slate-900">{liveScore}%</span>
                 {scoreImproved && (
-                  <span className="text-xs text-slate-400">was {initialScore}%</span>
+                  <span className="text-xs text-slate-400">was {base}%</span>
                 )}
               </div>
               <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
