@@ -1,4 +1,5 @@
 ﻿import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { getStripeClient } from "@/lib/stripe";
 
 const PLAN_CONFIG: Record<string, { name: string; amountAud: number; desc: string }> = {
@@ -17,6 +18,7 @@ export async function POST(request: Request) {
   }
 
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  const gaClientId = (await cookies()).get("_ga")?.value ?? null;
 
   try {
     const stripe = getStripeClient();
@@ -36,7 +38,10 @@ export async function POST(request: Request) {
           },
         },
       ],
-      metadata: { planType: planKey },
+      metadata: {
+        planType: planKey,
+        ...(gaClientId ? { ga_client_id: gaClientId } : {}),
+      },
       success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}&guest=true&plan=${planKey}&value=${plan.amountAud}`,
       cancel_url: `${appUrl}/pricing`,
     });

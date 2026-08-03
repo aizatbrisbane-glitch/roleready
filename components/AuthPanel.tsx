@@ -174,6 +174,32 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
   async function signInWithGoogle() {
     const supabase = getSupabase();
     if (!supabase) return;
+
+    // Capture attribution data before leaving the domain — sessionStorage won't survive a
+    // cross-domain OAuth redirect, but a first-party cookie will.
+    const params = new URLSearchParams(window.location.search);
+    const getCookie = (name: string) => {
+      const match = document.cookie.split("; ").find((row) => row.startsWith(`${name}=`));
+      return match ? decodeURIComponent(match.split("=")[1]) : undefined;
+    };
+    // _ga cookie format: GA1.2.<client_id_part1>.<client_id_part2>
+    const gaCookie = getCookie("_ga");
+    const gaClientId = gaCookie ? gaCookie.split(".").slice(2).join(".") : undefined;
+    const fbclid = params.get("fbclid");
+    const attribution = {
+      utm_source: params.get("utm_source") ?? undefined,
+      utm_medium: params.get("utm_medium") ?? undefined,
+      utm_campaign: params.get("utm_campaign") ?? undefined,
+      utm_content: params.get("utm_content") ?? undefined,
+      utm_term: params.get("utm_term") ?? undefined,
+      referrer: document.referrer || undefined,
+      ga_client_id: gaClientId,
+      fbp: getCookie("_fbp"),
+      fbc: getCookie("_fbc") ?? (fbclid ? `fb.1.${Date.now()}.${fbclid}` : undefined),
+    };
+    const secure = window.location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `koalapply_attribution=${encodeURIComponent(JSON.stringify(attribution))}; path=/auth/callback; max-age=3600; SameSite=Lax${secure}`;
+
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}` },

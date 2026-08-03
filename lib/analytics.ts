@@ -61,6 +61,10 @@ export const analytics = {
    * Also fires Meta Pixel Purchase — event_id matches the server-side CAPI call so Meta deduplicates.
    */
   purchaseComplete(opts: { plan: string; value: number; currency: string; transactionId: string }) {
+    window.gtag?.("set", "user_properties", {
+      user_type: "paying",
+      plan: opts.plan,
+    });
     fireEvent("purchase", {
       transaction_id: opts.transactionId,
       value: opts.value,

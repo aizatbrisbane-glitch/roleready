@@ -1,4 +1,5 @@
 ﻿import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getStripeClient } from "@/lib/stripe";
 import type { EntitlementPlanType } from "@/types/database";
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
   }
 
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  const gaClientId = (await cookies()).get("_ga")?.value ?? null;
 
   try {
     const stripe = getStripeClient();
@@ -73,6 +75,7 @@ export async function POST(request: Request) {
       metadata: {
         userId: user.id,
         planType: plan.planType,
+        ...(gaClientId ? { ga_client_id: gaClientId } : {}),
       },
       customer_email: user.email,
       success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}&plan=${plan.planType}&value=${plan.amountAud}`,

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { trackSignupServerSide } from "@/lib/server-analytics";
+import { trackSignupServerSide, type AttributionData } from "@/lib/server-analytics";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -22,16 +22,35 @@ export async function GET(request: Request) {
       const isNewUser = Date.now() - createdAt < 60_000;
 
       if (isNewUser && user.email) {
+        // Read the attribution cookie written by the client immediately before the OAuth redirect.
+        // Cookies survive cross-domain redirects; sessionStorage does not.
+        const cookieHeader = request.headers.get("cookie") ?? "";
+        const attrMatch = cookieHeader.match(/(?:^|;\s*)koalapply_attribution=([^;]+)/);
+        let attribution: AttributionData = {};
+        if (attrMatch) {
+          try {
+            attribution = JSON.parse(decodeURIComponent(attrMatch[1])) as AttributionData;
+          } catch {
+            console.warn("[auth/callback] Failed to parse koalapply_attribution cookie — attribution will be absent from signup events");
+          }
+        } else {
+          console.warn("[auth/callback] koalapply_attribution cookie not present — Google OAuth signup will fire without traffic source attribution");
+        }
+
         // Fire server-side tracking — no client-side pixel needed for Google OAuth signups
         // (the Meta CAPI and LinkedIn CAPI calls are more reliable than a browser pixel)
         void trackSignupServerSide({
           email: user.email,
           userId: user.id,
           method: "google",
+          attribution,
         });
       }
     }
   }
 
-  return NextResponse.redirect(new URL(next, requestUrl.origin));
+  const response = NextResponse.redirect(new URL(next, requestUrl.origin));
+  // Attribution cookie is single-use — clear it so it doesn't linger
+  response.cookies.set("koalapply_attribution", "", { maxAge: 0, path: "/auth/callback", sameSite: "lax" });
+  return response;
 }

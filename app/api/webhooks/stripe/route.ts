@@ -165,6 +165,7 @@ export async function POST(request: Request) {
     valueCents: session.amount_total ?? 0,
     currency: session.currency ?? "aud",
     planType,
+    gaClientId: session.metadata?.ga_client_id ?? undefined,
   });
 
   return NextResponse.json({ received: true });

@@ -54,7 +54,17 @@ async function sendMetaEvent(events: object[]) {
 const GA4_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "G-R1ZFGNBD6D";
 const GA4_API_SECRET = process.env.GA4_API_SECRET;
 
-async function sendGA4Event(clientId: string, events: object[]) {
+// _ga cookie format: GA1.X.XXXXXXXXXX.XXXXXXXXXX → client_id is the last two segments
+function parseGa4ClientId(gaCookie: string): string {
+  const parts = gaCookie.split(".");
+  return parts.length >= 4 ? parts.slice(2).join(".") : gaCookie;
+}
+
+async function sendGA4Event(
+  clientId: string,
+  events: object[],
+  userProperties?: Record<string, { value: string }>
+) {
   if (!GA4_API_SECRET) {
     console.warn("[server-analytics] GA4 MP: GA4_API_SECRET not set — skipping");
     return;
@@ -72,7 +82,11 @@ async function sendGA4Event(clientId: string, events: object[]) {
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ client_id: clientId, events }),
+        body: JSON.stringify({
+          client_id: clientId,
+          ...(userProperties ? { user_properties: userProperties } : {}),
+          events,
+        }),
       }
     );
   } catch (err) {
@@ -167,13 +181,69 @@ function logSettledResults(label: string, results: PromiseSettledResult<unknown>
 // Public helpers
 // ---------------------------------------------------------------------------
 
+export type AttributionData = {
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_content?: string;
+  utm_term?: string;
+  referrer?: string;
+  /** Real GA4 client_id parsed from the _ga cookie — ties the MP event to the browser session */
+  ga_client_id?: string;
+  /** Meta _fbp cookie — needed for proper deduplication and attribution */
+  fbp?: string;
+  /** Meta _fbc cookie or constructed from fbclid param */
+  fbc?: string;
+};
+
 export async function trackSignupServerSide(opts: {
   email: string;
   userId: string;
   method: string;
+  attribution?: AttributionData;
 }) {
+  const attr = opts.attribution ?? {};
   console.log(`[server-analytics] trackSignupServerSide: method=${opts.method} userId=${opts.userId}`);
+
+  // Warn explicitly about each missing attribution field so silent gaps are caught in logs
+  if (!attr.utm_source) {
+    console.warn(`[server-analytics] trackSignupServerSide: utm_source missing — sign_up event will have no traffic source (method=${opts.method})`);
+  }
+  if (!attr.referrer) {
+    console.warn(`[server-analytics] trackSignupServerSide: referrer missing (method=${opts.method})`);
+  }
+  if (!attr.ga_client_id) {
+    console.warn(`[server-analytics] trackSignupServerSide: ga_client_id missing — GA4 MP event will use a synthetic client_id and won't link to the browser session (method=${opts.method})`);
+  }
+  if (!attr.fbp) {
+    console.warn(`[server-analytics] trackSignupServerSide: fbp missing — Meta CAPI deduplication and attribution will be degraded (method=${opts.method})`);
+  }
+
   const eventTime = Math.floor(Date.now() / 1000);
+
+  // Use the real browser client_id when available so the MP event links to the correct GA4 session
+  const gaClientId = attr.ga_client_id ?? `server_${opts.userId}`;
+
+  // Meta user data: include fbp/fbc for browser-side matching and attribution
+  const metaUserData: Record<string, unknown> = { em: [sha256(opts.email)] };
+  if (attr.fbp) metaUserData.fbp = attr.fbp;
+  if (attr.fbc) metaUserData.fbc = attr.fbc;
+
+  // Meta custom data: include UTM params so they appear in custom breakdowns
+  const metaCustomData: Record<string, string> = { method: opts.method };
+  if (attr.utm_source) metaCustomData.utm_source = attr.utm_source;
+  if (attr.utm_medium) metaCustomData.utm_medium = attr.utm_medium;
+  if (attr.utm_campaign) metaCustomData.utm_campaign = attr.utm_campaign;
+  if (attr.referrer) metaCustomData.referrer_url = attr.referrer;
+
+  // GA4 Measurement Protocol campaign params
+  const ga4Params: Record<string, string> = { method: opts.method };
+  if (attr.utm_source) ga4Params.campaign_source = attr.utm_source;
+  if (attr.utm_medium) ga4Params.campaign_medium = attr.utm_medium;
+  if (attr.utm_campaign) ga4Params.campaign_name = attr.utm_campaign;
+  if (attr.utm_content) ga4Params.campaign_content = attr.utm_content;
+  if (attr.utm_term) ga4Params.campaign_term = attr.utm_term;
+  if (attr.referrer) ga4Params.page_referrer = attr.referrer;
 
   const results = await Promise.allSettled([
     sendMetaEvent([
@@ -182,15 +252,15 @@ export async function trackSignupServerSide(opts: {
         event_time: eventTime,
         event_id: `signup_${opts.userId}`,
         action_source: "website",
-        user_data: { em: [sha256(opts.email)] },
-        custom_data: { method: opts.method },
+        user_data: metaUserData,
+        custom_data: metaCustomData,
       },
     ]),
 
-    sendGA4Event(`server_${opts.userId}`, [
+    sendGA4Event(gaClientId, [
       {
         name: "sign_up",
-        params: { method: opts.method },
+        params: ga4Params,
       },
     ]),
 
@@ -209,12 +279,23 @@ export async function trackPurchaseServerSide(opts: {
   valueCents: number;
   currency: string;
   planType: string;
+  gaClientId?: string;
 }) {
   console.log(`[server-analytics] trackPurchaseServerSide: txn=${opts.transactionId} userId=${opts.userId}`);
   const eventTime = Math.floor(Date.now() / 1000);
   const value = opts.valueCents / 100;
   const userData: Record<string, unknown> = {};
   if (opts.email) userData.em = [sha256(opts.email)];
+
+  // Use the real browser client_id so the purchase event links to the session that had the UTM params.
+  // Fall back to a synthetic id only when the _ga cookie wasn't available at checkout time.
+  const ga4ClientId = opts.gaClientId
+    ? parseGa4ClientId(opts.gaClientId)
+    : `server_${opts.userId}`;
+
+  if (!opts.gaClientId) {
+    console.warn("[server-analytics] trackPurchaseServerSide: ga_client_id missing — purchase event will use synthetic client_id and lose UTM attribution");
+  }
 
   const results = await Promise.allSettled([
     sendMetaEvent([
@@ -234,17 +315,24 @@ export async function trackPurchaseServerSide(opts: {
       },
     ]),
 
-    sendGA4Event(`server_${opts.userId}`, [
-      {
-        name: "purchase",
-        params: {
-          transaction_id: opts.transactionId,
-          value,
-          currency: opts.currency.toUpperCase(),
-          items: [{ item_name: opts.planType }],
+    sendGA4Event(
+      ga4ClientId,
+      [
+        {
+          name: "purchase",
+          params: {
+            transaction_id: opts.transactionId,
+            value,
+            currency: opts.currency.toUpperCase(),
+            items: [{ item_name: opts.planType }],
+          },
         },
-      },
-    ]),
+      ],
+      {
+        user_type: { value: "paying" },
+        plan: { value: opts.planType },
+      }
+    ),
 
     opts.email && LINKEDIN_PURCHASE_CONVERSION_ID
       ? sendLinkedInConversion(opts.email, LINKEDIN_PURCHASE_CONVERSION_ID, {

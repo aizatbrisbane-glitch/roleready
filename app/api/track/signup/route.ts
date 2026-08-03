@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const method = (body?.method as string) ?? "email";
 
-  void trackSignupServerSide({ email: user.email, userId: user.id, method });
+  await trackSignupServerSide({ email: user.email, userId: user.id, method });
 
   return NextResponse.json({ ok: true });
 }
