@@ -73,6 +73,7 @@ export function ApplicationDetailClient({
   const [tailoredResume, setTailoredResume] = useState(initialTailoredResume);
   const [coverLetter, setCoverLetter] = useState(initialCoverLetter);
   const [highlightKeyword, setHighlightKeyword] = useState<string | null>(null);
+  const [allSnippets, setAllSnippets] = useState<Record<string, string>>(strengthenedKeywordSnippets ?? {});
   const isMounted = useRef(false);
   const prevStatusRef = useRef(status);
 
@@ -105,6 +106,7 @@ export function ApplicationDetailClient({
     setHighlightKeyword(update.keyword);
     if (clearHighlightTimer.current) clearTimeout(clearHighlightTimer.current);
     clearHighlightTimer.current = setTimeout(() => setHighlightKeyword(null), 8000);
+    if (update.snippet) setAllSnippets(prev => ({ ...prev, [update.keyword]: update.snippet }));
 
     if (update.resume !== null) {
       setTailoredResume(update.resume);
@@ -160,6 +162,7 @@ export function ApplicationDetailClient({
         openAccordion={openAccordion}
         onAccordionChange={setOpenAccordion}
         highlightKeyword={highlightKeyword}
+        snippets={allSnippets}
         onDocumentSaved={(field, content) => {
           if (field === "tailored_resume") setTailoredResume(content);
           else setCoverLetter(content);

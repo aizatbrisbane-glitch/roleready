@@ -153,6 +153,7 @@ type Props = {
   openAccordion: Tab | null;
   onAccordionChange: (tab: Tab | null) => void;
   highlightKeyword?: string | null;
+  snippets?: Record<string, string>;
   onDocumentSaved: (field: "tailored_resume" | "cover_letter", content: string) => void;
 };
 
@@ -196,6 +197,7 @@ export function ApplicationDetailTabs({
   openAccordion,
   onAccordionChange,
   highlightKeyword,
+  snippets,
   onDocumentSaved,
 }: Props) {
 
@@ -228,6 +230,8 @@ export function ApplicationDetailTabs({
 
   const [editingResume, setEditingResume] = useState(false);
   const [editingCover, setEditingCover] = useState(false);
+  const [showResumeHighlights, setShowResumeHighlights] = useState(false);
+  const [showCoverHighlights, setShowCoverHighlights] = useState(false);
   const [resumeDraft, setResumeDraft] = useState("");
   const [coverDraft, setCoverDraft] = useState("");
   const [docSaving, setDocSaving] = useState(false);
@@ -592,7 +596,17 @@ export function ApplicationDetailTabs({
             <>
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-3">
                 <span className="text-sm text-slate-500">Tailored resume</span>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  {snippets && Object.keys(snippets).length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowResumeHighlights(v => !v)}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-semibold transition ${showResumeHighlights ? "border-green-200 bg-green-100 text-green-700" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      {showResumeHighlights ? "Showing additions" : "Show additions"}
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => { setResumeDraft(tailoredResume); setEditingResume(true); setDocSaveMessage(""); }}
@@ -609,7 +623,7 @@ export function ApplicationDetailTabs({
                 </div>
               </div>
               <div className="max-h-[680px] overflow-auto rounded-b-[1.6rem]">
-                <ResumeRenderer content={tailoredResume} highlightKeyword={highlightKeyword} />
+                <ResumeRenderer content={tailoredResume} highlightKeyword={highlightKeyword} highlightSnippets={showResumeHighlights ? Object.values(snippets ?? {}).filter(Boolean) : []} />
               </div>
             </>
           )
@@ -636,7 +650,17 @@ export function ApplicationDetailTabs({
             <>
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-3">
                 <span className="text-sm text-slate-500">Cover letter</span>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  {snippets && Object.keys(snippets).length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowCoverHighlights(v => !v)}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-semibold transition ${showCoverHighlights ? "border-green-200 bg-green-100 text-green-700" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      {showCoverHighlights ? "Showing additions" : "Show additions"}
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => { setCoverDraft(coverLetter); setEditingCover(true); setDocSaveMessage(""); }}
@@ -653,7 +677,7 @@ export function ApplicationDetailTabs({
                 </div>
               </div>
               <div className="max-h-[680px] overflow-auto rounded-b-[1.6rem]">
-                <CoverLetterRenderer content={coverLetter} highlightKeyword={highlightKeyword} />
+                <CoverLetterRenderer content={coverLetter} highlightKeyword={highlightKeyword} highlightSnippets={showCoverHighlights ? Object.values(snippets ?? {}).filter(Boolean) : []} />
               </div>
             </>
           )
