@@ -623,7 +623,7 @@ export function ApplicationDetailTabs({
                 </div>
               </div>
               <div className="max-h-[680px] overflow-auto rounded-b-[1.6rem]">
-                <ResumeRenderer content={tailoredResume} highlightKeyword={highlightKeyword} highlightSnippets={showResumeHighlights ? Object.values(snippets ?? {}).filter(Boolean) : []} />
+                <ResumeRenderer content={tailoredResume} highlightKeyword={highlightKeyword} highlightSnippets={showResumeHighlights ? [...Object.values(snippets ?? {}), ...Object.keys(snippets ?? {})].filter(Boolean) : []} />
               </div>
             </>
           )
@@ -677,7 +677,7 @@ export function ApplicationDetailTabs({
                 </div>
               </div>
               <div className="max-h-[680px] overflow-auto rounded-b-[1.6rem]">
-                <CoverLetterRenderer content={coverLetter} highlightKeyword={highlightKeyword} highlightSnippets={showCoverHighlights ? Object.values(snippets ?? {}).filter(Boolean) : []} />
+                <CoverLetterRenderer content={coverLetter} highlightKeyword={highlightKeyword} highlightSnippets={showCoverHighlights ? [...Object.values(snippets ?? {}), ...Object.keys(snippets ?? {})].filter(Boolean) : []} />
               </div>
             </>
           )
