@@ -221,7 +221,6 @@ async function fetchAdzunaJobs({
     what: query,
     max_days_old: String(maxDaysOld),
     sort_by: "date",
-    full_description: "1",
   });
   if (where) params.set("where", where);
   if (workTypes) {
@@ -419,7 +418,7 @@ export async function GET(request: Request) {
 
   // Run Adzuna + Jooble in parallel
   const [adzunaSettled, joobleSettled] = await Promise.allSettled([
-    fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 30, resultsPerPage: 50 }),
+    fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, where: locationParam, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 30, resultsPerPage: 50 }),
     joobleApiKey
       ? fetchJoobleJobs({ apiKey: joobleApiKey, query: actualSearchQuery, location: locationParam })
       : Promise.resolve([]),
@@ -434,7 +433,7 @@ export async function GET(request: Request) {
   if (adzunaJobs.length === 0 && joobleJobs.length === 0 && keywords.jobTitle.trim()) {
     actualSearchQuery = keywords.jobTitle.trim();
     try {
-      adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 60, resultsPerPage: 50 });
+      adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, where: locationParam, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 60, resultsPerPage: 50 });
     } catch (e) {
       console.error("[grab] Adzuna fallback fetch failed:", e);
     }
