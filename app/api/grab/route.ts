@@ -204,6 +204,7 @@ async function fetchAdzunaJobs({
   salaryMin,
   maxDaysOld,
   resultsPerPage,
+  orMode = false,
 }: {
   appId: string;
   appKey: string;
@@ -213,15 +214,21 @@ async function fetchAdzunaJobs({
   salaryMin?: number;
   maxDaysOld: number;
   resultsPerPage: number;
+  orMode?: boolean;
 }) {
   const params = new URLSearchParams({
     app_id: appId,
     app_key: appKey,
     results_per_page: String(resultsPerPage),
-    what: query,
     max_days_old: String(maxDaysOld),
     sort_by: "date",
   });
+  // orMode uses what_or so ANY word matches — broader but AI scoring filters relevance
+  if (orMode) {
+    params.set("what_or", query);
+  } else {
+    params.set("what", query);
+  }
   if (where) params.set("where", where);
   if (workTypes) {
     for (const t of workTypes.split(",")) {
@@ -462,6 +469,15 @@ export async function GET(request: Request) {
       } catch (e) {
         console.error("[grab] Jooble fallback fetch failed:", e);
       }
+    }
+  }
+
+  // Last resort: OR-mode search so ANY keyword word matches — AI scoring filters out irrelevant results
+  if (adzunaJobs.length === 0 && joobleJobs.length === 0) {
+    try {
+      adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, where: locationParam, maxDaysOld: 60, resultsPerPage: 50, orMode: true });
+    } catch (e) {
+      console.error("[grab] Adzuna OR-mode fallback failed:", e);
     }
   }
 
