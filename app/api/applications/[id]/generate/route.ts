@@ -16,6 +16,7 @@ type GeneratedApplication = {
   matchScore: number;
   matchExplanation: string;
   missingKeywords: string[];
+  keywordsAddressed: string[];
   keywordImportance: Record<string, "required" | "preferred" | "unspecified">;
   tailoredResume: string;
   coverLetter: string;
@@ -24,7 +25,7 @@ type GeneratedApplication = {
 const responseSchema = {
   type: "object",
   additionalProperties: false,
-  required: ["matchScore", "matchExplanation", "missingKeywords", "keywordImportance", "tailoredResume", "coverLetter"],
+  required: ["matchScore", "matchExplanation", "missingKeywords", "keywordsAddressed", "keywordImportance", "tailoredResume", "coverLetter"],
   properties: {
     matchScore: {
       type: "integer",
@@ -36,7 +37,12 @@ const responseSchema = {
     },
     missingKeywords: {
       type: "array",
-      description: "Short skill or keyword strings that appear in the job ad but are absent or weak in the resume.",
+      description: "Short skill or keyword strings that appear in the job ad but are absent or weak in the MASTER RESUME. Include a keyword here even if you managed to address it in the tailored output — this reflects the master resume gap.",
+      items: { type: "string" }
+    },
+    keywordsAddressed: {
+      type: "array",
+      description: "Subset of missingKeywords that you successfully incorporated into the tailored resume or cover letter during this generation. Only include keywords you genuinely wove in — not ones that were already adequately covered or that you left as gaps.",
       items: { type: "string" }
     },
     keywordImportance: {
@@ -335,7 +341,10 @@ export async function POST(request: Request, { params }: Props) {
         tailored_resume: generated.tailoredResume,
         cover_letter: generated.coverLetter,
         generated_by: provider,
-        generated_at: new Date().toISOString()
+        generated_at: new Date().toISOString(),
+        strengthened_keywords: generated.keywordsAddressed ?? [],
+        strengthened_keyword_snippets: {},
+        strengthened_keyword_originals: {}
       })
       .eq("id", app.id)
       .eq("user_id", user.id);
