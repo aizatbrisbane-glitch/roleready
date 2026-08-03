@@ -241,7 +241,7 @@ function toIsoDate(value: unknown): string | null {
   return match[1];
 }
 
-function htmlToText(html: string) {
+export function htmlToText(html: string) {
   return decodeHtml(
     html
       .replace(/<script[\s\S]*?<\/script>/gi, " ")

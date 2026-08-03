@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { htmlToText } from "@/lib/job-ad";
 import type { CachedGrabbedJob } from "@/types/database";
 
 type AdzunaJob = {
@@ -462,7 +463,7 @@ export async function GET(request: Request) {
       location: j.location.display_name,
       salaryMin: j.salary_min,
       salaryMax: j.salary_max,
-      description: j.description,
+      description: htmlToText(j.description),
       jobUrl: j.redirect_url,
       matchScore: 0,
       matchReason: "",
