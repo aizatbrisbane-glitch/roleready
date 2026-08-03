@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, CheckCircle2, ChevronDown, Lightbulb, Loader2, Lock, RotateCcw, Sparkles } from "lucide-react";
 import type { EntitlementPlanType } from "@/types/database";
@@ -72,6 +72,15 @@ export function KeywordStrengthSection({
   const [evidenceMap, setEvidenceMap] = useState<Record<string, string>>({});
   const [targetMap, setTargetMap] = useState<Record<string, Target>>({});
   const [snippetEditMap, setSnippetEditMap] = useState<Record<string, string>>({});
+
+  // Refs accumulate keyword/snippet/skipped state synchronously so concurrent
+  // saves don't overwrite each other (the props are frozen at page-load).
+  const accumulatedRef = useRef({
+    keywords: [...strengthenedKeywords],
+    snippets: { ...strengthenedKeywordSnippets },
+    originals: { ...strengthenedKeywordOriginals },
+  });
+  const skippedRef = useRef([...skippedKeywords]);
 
   const hasRealKeywords = missingKeywords.length > 0;
   const pendingCount = missingKeywords.filter(
@@ -244,10 +253,15 @@ export function KeywordStrengthSection({
     const finalResume = applyEdit(state.tailoredResume);
     const finalCover = applyEdit(state.coverLetter);
 
+    accumulatedRef.current = {
+      keywords: [...new Set([...accumulatedRef.current.keywords, keyword])],
+      snippets: { ...accumulatedRef.current.snippets, [keyword]: editedSnippet },
+      originals: { ...accumulatedRef.current.originals, [keyword]: state.originalSnippet },
+    };
     const body: Record<string, unknown> = {
-      strengthened_keywords: [...new Set([...strengthenedKeywords, keyword])],
-      strengthened_keyword_snippets: { ...strengthenedKeywordSnippets, [keyword]: editedSnippet },
-      strengthened_keyword_originals: { ...strengthenedKeywordOriginals, [keyword]: state.originalSnippet },
+      strengthened_keywords: accumulatedRef.current.keywords,
+      strengthened_keyword_snippets: accumulatedRef.current.snippets,
+      strengthened_keyword_originals: accumulatedRef.current.originals,
     };
     if (finalResume) body.tailored_resume = finalResume;
     if (finalCover) body.cover_letter = finalCover;
@@ -281,11 +295,12 @@ export function KeywordStrengthSection({
     const revertedResume = hasTailoredResume ? swap(tailoredResume) : null;
     const revertedCover = hasCoverLetter ? swap(coverLetter) : null;
 
-    const newSnippets = { ...strengthenedKeywordSnippets };
+    const newSnippets = { ...accumulatedRef.current.snippets };
     delete newSnippets[keyword];
-    const newOriginals = { ...strengthenedKeywordOriginals };
+    const newOriginals = { ...accumulatedRef.current.originals };
     delete newOriginals[keyword];
-    const newStrengthened = strengthenedKeywords.filter((k) => k !== keyword);
+    const newStrengthened = accumulatedRef.current.keywords.filter((k) => k !== keyword);
+    accumulatedRef.current = { keywords: newStrengthened, snippets: newSnippets, originals: newOriginals };
 
     try {
       await fetch(`/api/applications/${applicationId}`, {
@@ -307,11 +322,12 @@ export function KeywordStrengthSection({
   }
 
   async function handleSkip(keyword: string) {
+    skippedRef.current = [...new Set([...skippedRef.current, keyword])];
     setState(keyword, { phase: "skipped" });
     await fetch(`/api/applications/${applicationId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ skipped_keywords: [...new Set([...skippedKeywords, keyword])] }),
+      body: JSON.stringify({ skipped_keywords: skippedRef.current }),
     }).catch(() => {});
   }
 

@@ -5,7 +5,15 @@ import { ShieldCheck, Zap } from "lucide-react";
 import { HomepageOnboardingModal } from "@/components/landing/HomepageOnboardingModal";
 import { analytics } from "@/lib/analytics";
 
-export function BlogResumeCTA({ sourceSlug = "unknown" }: { sourceSlug?: string }) {
+export function BlogResumeCTA({
+  sourceSlug = "unknown",
+  heading = "Tailor your CV and cover letter to any job.",
+  subtext = "Drop your resume here now. See what it could look like.",
+}: {
+  sourceSlug?: string;
+  heading?: string;
+  subtext?: string;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -34,8 +42,8 @@ export function BlogResumeCTA({ sourceSlug = "unknown" }: { sourceSlug?: string 
               className="hidden"
               onChange={(e) => handleFile(e.target.files?.[0])}
             />
-            <p className="mt-4 text-2xl font-black tracking-tight text-slate-900 sm:mt-6 sm:text-4xl">Tailor your CV and cover letter to any job.</p>
-            <p className="mt-2 text-lg font-semibold tracking-tight text-slate-500 sm:text-2xl">Drop your resume here now. See what it could look like.</p>
+            <p className="mt-4 text-2xl font-black tracking-tight text-slate-900 sm:mt-6 sm:text-4xl">{heading}</p>
+            <p className="mt-2 text-lg font-semibold tracking-tight text-slate-500 sm:text-2xl">{subtext}</p>
             <p className="mt-3 text-base font-semibold text-slate-500">PDF or DOCX · Max 4 MB</p>
             <button
               type="button"

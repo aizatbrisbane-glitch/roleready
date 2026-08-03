@@ -31,6 +31,11 @@ export type BlogArticle = {
   featured?: boolean;
   relatedSlugs?: string[];
   sections: ArticleSection[];
+  midCta?: {
+    afterSectionId: string;
+    heading: string;
+    subtext: string;
+  };
 };
 
 export const blogCategories: BlogCategory[] = [
@@ -57,6 +62,11 @@ export const blogArticles: BlogArticle[] = [
     image: "/blog/not-getting-interviews.jpg",
     imageAlt: "Professional job seeker waiting for interview responses",
     relatedSlugs: ["hidden-cost-of-using-same-resume", "cv-or-resume-australia", "resume-for-nsw-government-jobs"],
+    midCta: {
+      afterSectionId: "why-applications-go-quiet",
+      heading: "Want to see exactly where your resume is falling short?",
+      subtext: "Drop it in and get a tailored version in minutes — free to try.",
+    },
     sections: [
       {
         id: "why-applications-go-quiet",
@@ -83,7 +93,7 @@ export const blogArticles: BlogArticle[] = [
         title: "The Biggest Mistakes Keeping You Out of the Interview Room",
         paragraphs: [
           "A generic resume, even a well-written one, performs poorly in a competitive market. When a recruiter or hiring manager opens your application, they're asking one question: does this person clearly match what we're looking for? If they have to hunt for the answer, you've already lost.",
-          "Applicant Tracking Systems are real, and they do matter. Most mid-to-large Australian employers now use some form of ATS to manage applications. If your resume uses different terminology to the job description, you may not surface in filtered results. You can check your keyword match against any job description for free with the [Koalapply ATS Checker](/ats-checker).",
+          "Applicant Tracking Systems are real, and they do matter. Most mid-to-large Australian employers now use some form of ATS to manage applications. If your resume uses different terminology to the job description, you may not surface in filtered results. You can [tailor your resume to any job description for free with Koalapply](/) — it matches your keywords automatically.",
           "Most resumes describe responsibilities. Few describe results. This is one of the biggest gaps between applications that get noticed and applications that don't.",
           "There's also a common belief that job hunting is a numbers game. This leads to a scattergun approach that hurts your results. Forty generic applications usually perform worse than eight well-researched, targeted ones.",
           "If you're not tracking what you've applied for, when, which resume version you used and what stage each application is at, you're operating blind. You can't spot patterns, follow up professionally or learn from what's working."
@@ -138,7 +148,7 @@ export const blogArticles: BlogArticle[] = [
         title: "Frequently Asked Questions",
         paragraphs: [
           "Why am I not getting interviews despite having relevant experience? The most common reasons are a generic resume that isn't tailored to the specific role, weak achievement statements that describe tasks rather than results, or applying without enough research into the company and role. In a competitive market, relevant experience alone isn't enough. You need to communicate that experience clearly and compellingly.",
-          "Do ATS systems automatically reject my resume? ATS systems can filter resumes based on keywords, but they're not the only reason applications fail. Ensure your resume uses language from the job description, avoid complex formatting like tables or text boxes, and focus equally on making your resume readable and persuasive for the human reviewer who sees it next. Use the [free ATS Checker](/ats-checker) to see your keyword match score before you apply.",
+          "Do ATS systems automatically reject my resume? ATS systems can filter resumes based on keywords, but they're not the only reason applications fail. Ensure your resume uses language from the job description, avoid complex formatting like tables or text boxes, and focus equally on making your resume readable and persuasive for the human reviewer who sees it next. Use [Koalapply's free resume tailoring tool](/) to match your keywords to the role before you apply.",
           "How important is it to tailor my resume for each job application in Australia? Very important. The Australian job market is currently highly competitive across white-collar sectors, and recruiters can tell immediately when a resume is generic. Even small adjustments can significantly improve your application's performance.",
           "How many jobs should I be applying for each week? More is not always better. A focused search of 8-15 well-matched, tailored applications typically outperforms 40-50 generic ones. Track your response rate and adjust accordingly.",
           "What should I track when managing my job applications? At minimum: the role title, company name, date applied, version of resume used and current status. Ideally, also note contact names, follow-up dates and any feedback received.",
