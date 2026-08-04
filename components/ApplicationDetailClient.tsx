@@ -70,8 +70,9 @@ export function ApplicationDetailClient({
   keywordImportance,
   skippedKeywords,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab>("notes");
-  const [openAccordion, setOpenAccordion] = useState<Tab | null>("notes");
+  const defaultTab: Tab = initialTailoredResume ? "resume" : "notes";
+  const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
+  const [openAccordion, setOpenAccordion] = useState<Tab | null>(defaultTab);
   const [tailoredResume, setTailoredResume] = useState(initialTailoredResume);
   const [coverLetter, setCoverLetter] = useState(initialCoverLetter);
   const [highlightKeyword, setHighlightKeyword] = useState<string | null>(null);
