@@ -54,17 +54,22 @@ function cleanDocument(text: string): string {
     .trim();
 }
 
-const STYLE_RULES = [
-  "Integrate the keyword naturally into existing bullet points or paragraphs — do not awkwardly append a disconnected sentence.",
-  "Preserve all existing markdown formatting, structure, and document length.",
-  "Never use em dashes or these words: dynamic, innovative, passionate, results-driven, detail-oriented, proven track record, leverage, utilize, spearhead, champion, delve, tapestry, transformative.",
-  "Return the full updated document, not just the changed section.",
-  "If target is 'resume', return tailoredResume and set coverLetter to null.",
-  "If target is 'cover_letter', return coverLetter and set tailoredResume to null.",
-  "If target is 'both', return both documents.",
-  "Always populate changedSnippet with the single sentence or bullet point you inserted or modified, as plain readable text with no markdown symbols (no **, no -, no #).",
-  "Always populate originalSnippet with the original sentence or bullet point you replaced, as plain readable text with no markdown symbols. Empty string if you added a new line rather than modifying an existing one.",
-];
+function buildStyleRules(protectedKeywords: string[]) {
+  return [
+    "Integrate the keyword naturally into existing bullet points or paragraphs — do not awkwardly append a disconnected sentence.",
+    "Preserve all existing markdown formatting, structure, and document length.",
+    "Never use em dashes or these words: dynamic, innovative, passionate, results-driven, detail-oriented, proven track record, leverage, utilize, spearhead, champion, delve, tapestry, transformative.",
+    "Return the full updated document, not just the changed section.",
+    "If target is 'resume', return tailoredResume and set coverLetter to null.",
+    "If target is 'cover_letter', return coverLetter and set tailoredResume to null.",
+    "If target is 'both', return both documents.",
+    "Always populate changedSnippet with the single sentence or bullet point you inserted or modified, as plain readable text with no markdown symbols (no **, no -, no #).",
+    "Always populate originalSnippet with the original sentence or bullet point you replaced, as plain readable text with no markdown symbols. Empty string if you added a new line rather than modifying an existing one.",
+    ...(protectedKeywords.length > 0
+      ? [`CRITICAL: The following keywords are already present in the document and must NOT be removed, replaced, or paraphrased away: ${protectedKeywords.map(k => `"${k}"`).join(", ")}. Find a different location or phrasing to add the new keyword without touching these.`]
+      : []),
+  ];
+}
 
 export async function POST(request: Request, { params }: Props) {
   const { id: appId } = await params;
@@ -150,6 +155,9 @@ export async function POST(request: Request, { params }: Props) {
     jobCompany: application.jobs?.company ?? "",
   };
 
+  const protectedKeywords = ((application.strengthened_keywords as string[]) ?? []).filter(k => k !== keyword);
+  const styleRules = buildStyleRules(protectedKeywords);
+
   const prompt = evidence
     ? JSON.stringify({
         task: "Weave the keyword into the specified document(s) using only the evidence the user provided.",
@@ -158,7 +166,7 @@ export async function POST(request: Request, { params }: Props) {
         rules: [
           "Use ONLY the evidence the user has provided — do not invent, embellish, or add details not in userEvidence.",
           "Prefer specific, concrete evidence (numbers, outcomes, scale, timeframes). If the evidence is vague or very brief, still weave it in but keep the language modest — do not inflate thin evidence into confident-sounding achievement claims the evidence doesn't support.",
-          ...STYLE_RULES,
+          ...styleRules,
           "Set hasRelevantExperience to true.",
         ],
       })
@@ -171,7 +179,7 @@ export async function POST(request: Request, { params }: Props) {
           "If relevant experience is found: weave it naturally into the specified document(s). Set hasRelevantExperience to true. Populate changedSnippet and originalSnippet.",
           "If no genuinely relevant experience exists in the master resume: set hasRelevantExperience to false, set tailoredResume and coverLetter to null, set changedSnippet and originalSnippet to empty strings. Do NOT invent or imply experience that is not there.",
           "Prefer specific, concrete evidence from the master resume (numbers, outcomes, scale, timeframes). Do not inflate thin evidence into confident claims.",
-          ...STYLE_RULES,
+          ...styleRules,
         ],
       });
 
