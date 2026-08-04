@@ -56,8 +56,11 @@ function cleanDocument(text: string): string {
 
 function buildStyleRules(protectedKeywords: string[]) {
   return [
-    "Integrate the keyword naturally into existing bullet points or paragraphs — do not awkwardly append a disconnected sentence.",
-    "Preserve all existing markdown formatting, structure, and document length.",
+    "Read the ENTIRE document first. Identify every existing sentence and paragraph before making any change.",
+    "CRITICAL — no duplication: Do NOT add any sentence, phrase, or idea that is already expressed anywhere else in the document, even if worded differently. The document must not repeat itself after your edit.",
+    "Integrate the keyword by modifying an existing sentence that is already close to the topic — prefer a one-word or short-phrase addition over inserting a whole new sentence.",
+    "Only add a brand-new sentence if the keyword concept is genuinely absent from the entire document. If you do add one, keep it to one sentence maximum and place it within an existing paragraph — never append a new standalone paragraph.",
+    "Preserve all existing markdown formatting, structure, and document length. Do not lengthen the document.",
     "Never use em dashes or these words: dynamic, innovative, passionate, results-driven, detail-oriented, proven track record, leverage, utilize, spearhead, champion, delve, tapestry, transformative.",
     "Return the full updated document, not just the changed section.",
     "If target is 'resume', return tailoredResume and set coverLetter to null.",
@@ -184,8 +187,8 @@ export async function POST(request: Request, { params }: Props) {
       });
 
   const system = evidence
-    ? "You are a senior job application writer. Weave keywords into documents using only the evidence the user provides. Never invent experience, employers, dates, credentials, metrics, tools, or achievements beyond what the user explicitly states."
-    : "You are a careful senior job application writer. Search the candidate's master resume for genuine experience related to the keyword. If you find it, weave it naturally into their tailored document. If you do not find genuinely relevant experience, signal that clearly — never fabricate or imply experience that is not in the master resume.";
+    ? "You are a senior job application writer. Weave keywords into documents using only the evidence the user provides. Never invent experience, employers, dates, credentials, metrics, tools, or achievements beyond what the user explicitly states. Never duplicate content — read the full document first and only modify or add text that does not already exist."
+    : "You are a careful senior job application writer. Search the candidate's master resume for genuine experience related to the keyword. If you find it, weave it naturally into their tailored document by modifying an existing sentence — never add content that duplicates or restates what is already in the document. If you do not find genuinely relevant experience, signal that clearly — never fabricate or imply experience that is not in the master resume.";
 
   let result: { tailoredResume: string | null; coverLetter: string | null; changedSnippet: string; originalSnippet: string; hasRelevantExperience: boolean };
   try {
