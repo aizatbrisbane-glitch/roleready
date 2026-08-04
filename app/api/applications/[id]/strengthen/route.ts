@@ -311,11 +311,13 @@ export async function POST(request: Request, { params }: Props) {
     ? applyPatch(effectiveCover, original, changed, anchor)
     : null;
 
-  // If the patch could not be applied, the AI quoted a snippet that doesn't exist in the doc
-  if (target !== "cover_letter" && effectiveResume && !patchedResume)
-    return NextResponse.json({ error: "Could not locate the change in the document. Please try again." }, { status: 500 });
-  if (target !== "resume" && effectiveCover && !patchedCover)
-    return NextResponse.json({ error: "Could not locate the change in the document. Please try again." }, { status: 500 });
+  // If the patch could not be applied, the AI hallucinated an originalSnippet.
+  // Treat this the same as "no relevant experience found" so the user sees the normal
+  // "not found" state (with the option to add their own evidence) rather than an error.
+  if ((target !== "cover_letter" && effectiveResume && !patchedResume) ||
+      (target !== "resume" && effectiveCover && !patchedCover)) {
+    return NextResponse.json({ ok: true, hasRelevantExperience: false, tailoredResume: null, coverLetter: null, changedSnippet: "", originalSnippet: "" });
+  }
 
   const cleanedResume = patchedResume ? cleanDocument(patchedResume) : null;
   const cleanedCover = patchedCover ? cleanDocument(patchedCover) : null;
