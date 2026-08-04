@@ -47,16 +47,24 @@ export function PostGenerationGuide({ applicationId, show }: { applicationId: st
         onClick={toggle}
         className="flex w-full items-start justify-between gap-4 text-left"
       >
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#2200ff]">What&apos;s next</p>
-          <h2 className="mt-1 text-lg font-bold text-slate-900">Finish your application</h2>
-        </div>
-        <span className="mt-1 shrink-0 text-[#2200ff]">
+        <p className="text-lg font-bold text-slate-900">What&apos;s next</p>
+        <span className="shrink-0 text-[#2200ff]">
           {collapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
         </span>
       </button>
 
-      {!collapsed && (
+      {collapsed ? (
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+          {STEPS.map((step, index) => (
+            <span key={step.heading} className="flex items-center gap-1.5 text-xs text-slate-500">
+              <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#2200ff] text-[9px] font-bold text-white">
+                {index + 1}
+              </span>
+              {step.heading}
+            </span>
+          ))}
+        </div>
+      ) : (
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((step, index) => (
             <div key={step.heading} className="rounded-2xl bg-white/70 px-4 py-4">

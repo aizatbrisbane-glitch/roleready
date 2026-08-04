@@ -6,8 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { NewsletterBonusToast } from "@/components/NewsletterBonusToast";
 
-type AiProvider = "openai" | "anthropic";
-
 type Props = {
   applicationId: string;
   hasDocuments: boolean;
@@ -46,7 +44,6 @@ function nextProgress(current: number) {
 export function GenerateButton({ applicationId, hasDocuments, canGenerate, newsletterSubscribed, autoGenerate, generateHint }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [provider, setProvider] = useState<AiProvider>("anthropic");
   const [message, setMessage] = useState("");
   const [progress, setProgress] = useState(0);
   const [showNewsletterOffer, setShowNewsletterOffer] = useState(false);
@@ -86,7 +83,7 @@ export function GenerateButton({ applicationId, hasDocuments, canGenerate, newsl
       const response = await fetch(`/api/applications/${applicationId}/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider }),
+        body: JSON.stringify({ provider: "anthropic" }),
         signal: controller.signal,
       });
       const payload = await response.text().then((t) => (t ? JSON.parse(t) : null));
@@ -167,20 +164,6 @@ export function GenerateButton({ applicationId, hasDocuments, canGenerate, newsl
       ) : (
         <div className="flex w-full flex-col gap-3 lg:w-auto">
           <div className="flex flex-wrap items-center gap-2">
-            {hasDocuments && (
-              <label className="flex items-center gap-1.5 rounded-full border border-white/60 bg-white/70 px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur">
-                <span className="text-xs text-slate-500">AI</span>
-                <select
-                  className="bg-transparent text-sm outline-none"
-                  value={provider}
-                  onChange={(e) => setProvider(e.target.value as AiProvider)}
-                  disabled={loading}
-                >
-                  <option value="anthropic">Claude</option>
-                  <option value="openai">ChatGPT</option>
-                </select>
-              </label>
-            )}
             <button
               onClick={generate}
               disabled={loading}

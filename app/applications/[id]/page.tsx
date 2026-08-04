@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
-  Check,
   CheckCircle2,
   Download,
   ExternalLink,
@@ -89,64 +88,6 @@ function statusGuidance(status: ApplicationStatus, hasDocuments: boolean) {
   };
 }
 
-const PIPELINE_STAGES: ApplicationStatus[] = ["New", "Ready", "Applied", "Interview"];
-const TERMINAL_STAGES: ApplicationStatus[] = ["Rejected", "Withdrawn", "Saved"];
-
-function ApplicationStatusBar({ status }: { status: ApplicationStatus }) {
-  const isTerminal = TERMINAL_STAGES.includes(status);
-  const currentIndex = PIPELINE_STAGES.indexOf(status);
-
-  const terminalBadge =
-    status === "Rejected" ? "bg-rose-50 text-rose-500 border-rose-100" :
-    status === "Withdrawn" ? "bg-slate-100 text-slate-400 border-slate-200" :
-    "bg-amber-50 text-amber-500 border-amber-100";
-
-  return (
-    <div className="mb-6 md:mb-8">
-      <div className="flex items-center">
-        {PIPELINE_STAGES.map((stage, i) => {
-          const isCompleted = !isTerminal && i < currentIndex;
-          const isCurrent = !isTerminal && i === currentIndex;
-
-          return (
-            <div key={stage} className="flex items-center">
-              {/* Node */}
-              <div className="flex items-center gap-2">
-                <div className={`flex h-6 w-6 items-center justify-center rounded-full border-2 transition-all ${
-                  isCompleted
-                    ? "border-[#2200ff] bg-[#2200ff]"
-                    : isCurrent
-                    ? "border-[#2200ff] bg-white"
-                    : "border-slate-200 bg-white"
-                }`}>
-                  {isCompleted
-                    ? <Check className="h-3 w-3 text-white" strokeWidth={3} />
-                    : <div className={`h-2 w-2 rounded-full ${isCurrent ? "bg-[#2200ff]" : "bg-slate-200"}`} />
-                  }
-                </div>
-                <span className={`text-xs font-medium ${
-                  isCurrent ? "text-slate-900" :
-                  isCompleted ? "text-slate-400" : "text-slate-300"
-                }`}>
-                  {stage}
-                </span>
-              </div>
-              {/* Connector */}
-              {i < PIPELINE_STAGES.length - 1 && (
-                <div className={`mx-3 h-px w-8 shrink-0 md:w-12 ${isCompleted ? "bg-[#2200ff]" : "bg-slate-200"}`} />
-              )}
-            </div>
-          );
-        })}
-        {isTerminal && (
-          <span className={`ml-4 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${terminalBadge}`}>
-            {status}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
 
 function jobDisplayCopy(job: NonNullable<ApplicationWithJob["jobs"]>) {
   const title = String(job.title ?? "").trim();
@@ -257,50 +198,39 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
             Back to applications
           </Link>
 
-          <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-8">
-            {/* Title + meta */}
-            <div className="min-w-0">
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
-                {displayJob.title}
-              </h1>
-              <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500">
-                <span>{displayJob.company}</span>
-                {job.location ? (
-                  <>
-                    <span className="text-slate-300">•</span>
-                    <span className="inline-flex items-center gap-1">
-                      <MapPin className="h-3.5 w-3.5 text-slate-400" />
-                      {job.location}
-                    </span>
-                  </>
-                ) : null}
-                <span className="text-slate-300">•</span>
-                <span>{job.source}</span>
-                {job.job_url ? (
-                  <>
-                    <span className="text-slate-300">•</span>
-                    <a href={/^https?:\/\//i.test(job.job_url) ? job.job_url : `https://${job.job_url}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-[#2200ff]">
-                      View job ad <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  </>
-                ) : null}
-                <span className="text-slate-300">•</span>
-                <JobExpiryEditor jobId={job.id} expiresAt={job.expires_at ?? null} />
-              </p>
-              {displayJob.note ? (
-                <p className="mt-2 max-w-xl text-sm font-medium text-[#2200ff]">{displayJob.note}</p>
+          <div className="mt-4">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
+              {displayJob.title}
+            </h1>
+            <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500">
+              <span>{displayJob.company}</span>
+              {job.location ? (
+                <>
+                  <span className="text-slate-300">•</span>
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5 text-slate-400" />
+                    {job.location}
+                  </span>
+                </>
               ) : null}
-            </div>
-
-            {/* Status — slotted next to title */}
-            <div className="w-full shrink-0 lg:w-52">
-              <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Application Status</p>
-              <StatusSelector applicationId={application.id} currentStatus={status} />
-            </div>
+              <span className="text-slate-300">•</span>
+              <span>{job.source}</span>
+              {job.job_url ? (
+                <>
+                  <span className="text-slate-300">•</span>
+                  <a href={/^https?:\/\//i.test(job.job_url) ? job.job_url : `https://${job.job_url}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-[#2200ff]">
+                    View job ad <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </>
+              ) : null}
+              <span className="text-slate-300">•</span>
+              <JobExpiryEditor jobId={job.id} expiresAt={job.expires_at ?? null} />
+            </p>
+            {displayJob.note ? (
+              <p className="mt-2 max-w-xl text-sm font-medium text-[#2200ff]">{displayJob.note}</p>
+            ) : null}
           </div>
         </div>
-
-        <ApplicationStatusBar status={status} />
 
         <div className="min-w-0 space-y-6">
 
@@ -312,11 +242,16 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
                   <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-[#2200ff] shadow-sm">
                     {hasDocuments ? <CheckCircle2 className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
                   </span>
-                  <div className="flex items-baseline gap-2">
-                    <span className={`text-5xl font-bold tabular-nums ${score.className}`}>
-                      {effectiveMatchScore === null ? "—" : `${effectiveMatchScore}%`}
-                    </span>
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${score.pill}`}>{score.label}</span>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-baseline gap-2">
+                      <span className={`text-5xl font-bold tabular-nums ${score.className}`}>
+                        {effectiveMatchScore === null ? "—" : `${effectiveMatchScore}%`}
+                      </span>
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${score.pill}`}>{score.label}</span>
+                    </div>
+                    <div className="w-52">
+                      <StatusSelector applicationId={application.id} currentStatus={status} showLabel={false} />
+                    </div>
                   </div>
                 </div>
                 <h2 className="text-base font-bold text-slate-900 sm:shrink-0 sm:text-lg">

@@ -20,9 +20,10 @@ const statusStyle: Record<ApplicationStatus, { select: string; dot: string; labe
 type Props = {
   applicationId: string;
   currentStatus: ApplicationStatus;
+  showLabel?: boolean;
 };
 
-export function StatusSelector({ applicationId, currentStatus }: Props) {
+export function StatusSelector({ applicationId, currentStatus, showLabel = true }: Props) {
   const router = useRouter();
   const [status, setStatus] = useState<ApplicationStatus>(currentStatus);
   const [saving, setSaving] = useState(false);
@@ -95,9 +96,9 @@ export function StatusSelector({ applicationId, currentStatus }: Props) {
           <PartyPopper className="h-4 w-4 shrink-0 text-orange-500" />
           <p className="text-xs font-semibold text-orange-700">You got an interview! Time to prepare.</p>
         </div>
-      ) : (
+      ) : showLabel ? (
         <p className="pl-1 text-xs text-slate-500">{style.label}</p>
-      )}
+      ) : null}
       {error && <p className="pl-1 text-xs text-red-600">{error}</p>}
     </div>
   );
