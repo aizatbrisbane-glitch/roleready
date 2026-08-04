@@ -91,6 +91,7 @@ export function KeywordSidePanel({
 
   const router = useRouter();
   const [sessionDelta, setSessionDelta] = useState(0);
+  const [initialStrengthened] = useState(() => strengthenedKeywords.length);
   const [refreshing, setRefreshing] = useState(false);
   const [expandedSnippets, setExpandedSnippets] = useState<Set<string>>(new Set());
   const [evidenceMap, setEvidenceMap] = useState<Record<string, string>>({});
@@ -120,8 +121,9 @@ export function KeywordSidePanel({
 
   const totalKeywords = sortedKeywords.length;
   const base = matchScore ?? 0;
-  const liveScore = totalKeywords === 0 ? base : Math.min(100, Math.round(base + sessionDelta * (100 - base) / totalKeywords));
-  const scoreImproved = liveScore > base;
+  const pageLoadScore = totalKeywords === 0 ? base : Math.min(100, Math.round(base + initialStrengthened * (100 - base) / totalKeywords));
+  const liveScore = totalKeywords === 0 ? base : Math.min(100, Math.round(base + (initialStrengthened + sessionDelta) * (100 - base) / totalKeywords));
+  const scoreImproved = liveScore > pageLoadScore;
 
   function getState(kw: string): KeywordState { return states[kw] ?? { phase: "idle" }; }
   function setState(kw: string, s: KeywordState) { setStates(p => ({ ...p, [kw]: s })); }
@@ -548,7 +550,7 @@ export function KeywordSidePanel({
             <div className="flex items-baseline gap-1.5">
               <span className={`text-base font-bold ${scoreImproved ? "text-green-600" : "text-slate-800"}`}>{liveScore}%</span>
               <span className="text-[10px] text-slate-400">keyword match</span>
-              {scoreImproved && <span className="text-[10px] text-slate-400">was {base}%</span>}
+              {scoreImproved && <span className="text-[10px] text-slate-400">was {pageLoadScore}%</span>}
             </div>
             {scoreImproved && (
               <button
