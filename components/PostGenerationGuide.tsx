@@ -5,24 +5,20 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 
 const STEPS = [
   {
-    heading: "Check your match score",
-    body: 'Click the "Match Analysis" tab to see how well you fit the role.',
-  },
-  {
-    heading: "Review missing keywords",
-    body: 'Scroll down to "Opportunities to strengthen" — add any keywords that genuinely apply to your experience.',
+    heading: "Fix missing keywords",
+    body: "Add keywords from the left panel that genuinely reflect your experience.",
   },
   {
     heading: "Review your documents",
     body: "Read through your tailored resume and cover letter in the tabs below.",
   },
   {
-    heading: "Download your files",
-    body: "Use the Download buttons above to get your DOCX files ready to submit.",
+    heading: "Download and apply",
+    body: "Use the Download buttons to get your DOCX files, then submit your application.",
   },
   {
-    heading: "Mark it Applied",
-    body: 'Once submitted, change the status selector (top right) to "Applied" to track progress.',
+    heading: "Mark as applied",
+    body: 'Change the status selector (top right) to "Applied" to track your progress.',
   },
 ];
 
@@ -53,7 +49,7 @@ export function PostGenerationGuide({ applicationId, show }: { applicationId: st
       >
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#2200ff]">What&apos;s next</p>
-          <h2 className="mt-1 text-lg font-bold text-slate-900">Your application is ready — here&apos;s what to do</h2>
+          <h2 className="mt-1 text-lg font-bold text-slate-900">Finish your application</h2>
         </div>
         <span className="mt-1 shrink-0 text-[#2200ff]">
           {collapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
