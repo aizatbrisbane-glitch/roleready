@@ -173,12 +173,12 @@ type Props = {
 const LOCATION_TYPES = ["Not specified", "Remote", "Hybrid", "On-site"];
 
 const BASE_TAB_LABELS: { id: Tab; label: string }[] = [
-  { id: "notes", label: "Key Notes" },
-  { id: "analysis", label: "Match Analysis" },
   { id: "resume", label: "Tailored Resume" },
-  { id: "cover", label: "Cover Letter" },
-  { id: "jd", label: "Job Description" },
+  { id: "cover", label: "Tailored Cover Letter" },
+  { id: "analysis", label: "Match Analysis" },
+  { id: "jd", label: "Job Details" },
   { id: "refs", label: "References" },
+  { id: "notes", label: "Key Notes" },
 ];
 
 const STAR_LABELS: { key: keyof InterviewQuestion["star"]; label: string; chip: string }[] = [
