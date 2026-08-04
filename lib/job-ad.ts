@@ -871,5 +871,19 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
     throw new Error(blockedJobBoardMessage(effectiveUrl));
   }
 
+  // Adzuna redirect URLs often don't forward server-side — the fetch stays on Adzuna's
+  // own page (not a blocked domain) but returns only the same snippet. If the description
+  // is still short, try Jina/Firecrawl which render JS and follow redirects properly.
+  const isAdzunaOrigin = jobUrl.includes("adzuna.");
+  if (isAdzunaOrigin && result.description.trim().length < 800) {
+    console.log(`[job-ad] Adzuna short description (${result.description.trim().length} chars), trying Jina/Firecrawl…`);
+    const jinaResult = await fetchJobWithJina(jobUrl);
+    if (jinaResult && jinaResult.description.trim().length > result.description.trim().length) return jinaResult;
+    const firecrawlResult = await fetchJobWithFirecrawl(jobUrl);
+    if (firecrawlResult && firecrawlResult.description.trim().length > result.description.trim().length) return firecrawlResult;
+    const browserResult = await fetchJobWithBrowser(jobUrl);
+    if (browserResult && browserResult.description.trim().length > result.description.trim().length) return browserResult;
+  }
+
   return result;
 }

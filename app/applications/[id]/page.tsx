@@ -361,7 +361,7 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
 
             <PostGenerationGuide applicationId={application.id} show={showWelcomeGuide} />
 
-            {/* Opportunities to strengthen + Tabs */}
+            {/* Fix missing keywords + Tabs */}
             <ApplicationDetailClient
               applicationId={application.id}
               missingKeywords={application.missing_keywords ?? []}

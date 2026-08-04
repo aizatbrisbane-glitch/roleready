@@ -565,7 +565,7 @@ export function KeywordSidePanel({
   const header = (
     <div className="px-3 py-2.5">
       <div className="flex items-start justify-between gap-2">
-        <span className="text-sm font-bold text-slate-800">Opportunities to strengthen</span>
+        <span className="text-sm font-bold text-slate-800">Fix missing keywords</span>
         {pendingCount > 0 && (
           <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 shrink-0">
             {pendingCount}

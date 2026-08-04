@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Props = {
   applicationId: string;
@@ -14,6 +14,15 @@ export function JobDescriptionEditor({ applicationId, initialDescription, hasDoc
   const [description, setDescription] = useState(initialDescription);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    function handler(e: Event) {
+      setHidden((e as CustomEvent<{ loading: boolean }>).detail.loading);
+    }
+    window.addEventListener("koalapply:generating", handler);
+    return () => window.removeEventListener("koalapply:generating", handler);
+  }, []);
 
   async function save() {
     setLoading(true);
@@ -38,6 +47,8 @@ export function JobDescriptionEditor({ applicationId, initialDescription, hasDoc
     setLoading(false);
     router.refresh();
   }
+
+  if (hidden) return null;
 
   return (
     <section className={`rounded-md border p-4 ${hasDocuments ? "border-slate-200 bg-slate-50" : "border-amber-300 bg-amber-50"}`}>

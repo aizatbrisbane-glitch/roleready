@@ -78,6 +78,7 @@ export function GenerateButton({ applicationId, hasDocuments, canGenerate, newsl
     if (generatingRef.current) return;
     generatingRef.current = true;
     setLoading(true);
+    window.dispatchEvent(new CustomEvent("koalapply:generating", { detail: { loading: true } }));
     setMessage("");
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 120000);
@@ -109,6 +110,7 @@ export function GenerateButton({ applicationId, hasDocuments, canGenerate, newsl
       window.clearTimeout(timeout);
       generatingRef.current = false;
       setLoading(false);
+      window.dispatchEvent(new CustomEvent("koalapply:generating", { detail: { loading: false } }));
     }
   }
 

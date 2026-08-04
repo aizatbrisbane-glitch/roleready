@@ -343,7 +343,7 @@ export function KeywordStrengthSection({
         className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left md:px-6"
       >
         <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-          <span className="text-base font-bold text-slate-900">Opportunities to strengthen</span>
+          <span className="text-base font-bold text-slate-900">Fix missing keywords</span>
           {hasRealKeywords && pendingCount > 0 && (
             <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
               {pendingCount} to review
