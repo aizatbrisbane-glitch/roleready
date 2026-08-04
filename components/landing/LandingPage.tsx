@@ -316,7 +316,7 @@ export function LandingPage() {
       <main>
 
         {/* â"€â"€ Hero (header lives inside so nav overlays the image) â"€â"€ */}
-        <section className="Koalapply-fade-up relative overflow-hidden lg:flex lg:flex-col lg:min-h-screen" style={{ background: "#f5f3f0" }}>
+        <section className="Koalapply-fade-up relative overflow-hidden lg:flex lg:flex-col lg:h-screen" style={{ background: "#f5f3f0" }}>
 
           {/* Nav overlay — sits on top of the photo background */}
           <header className="absolute inset-x-0 top-0 z-20">
@@ -367,20 +367,20 @@ export function LandingPage() {
           </header>
 
           {/* Full-width content — top padding clears the overlaid nav */}
-          <div className="relative z-10 px-8 pb-10 pt-32 sm:px-12 sm:pb-16 sm:pt-32 lg:flex-1 lg:flex lg:flex-col lg:px-16 lg:pt-36 lg:pb-24">
+          <div className="relative z-10 px-8 pb-10 pt-32 sm:px-12 sm:pb-16 sm:pt-32 lg:flex-1 lg:flex lg:flex-col lg:px-16 lg:pt-28 lg:pb-4">
 
             {/* Headline — spans full width */}
-            <h1 className="text-center text-[1.65rem] font-black leading-[1.1] tracking-tight text-slate-900 sm:text-[2.7rem] lg:text-[3.375rem] xl:text-[4rem]">
+            <h1 className="text-center text-[1.65rem] font-black leading-[1.1] tracking-tight text-slate-900 sm:text-[2.7rem] lg:text-[2rem] xl:text-[2.5rem]">
               You don't have to suffer. <span className="text-[#2200ff]">Tailor your CV and cover letter to any job.</span>
             </h1>
 
             {/* Subheading */}
-            <p className="mt-4 text-center text-lg font-semibold leading-snug text-slate-600 sm:text-3xl">
+            <p className="mt-4 text-center text-lg font-semibold leading-snug text-slate-600 sm:text-3xl lg:text-xl">
               Turn one CV into a tailored application for every job. Take seconds, not hours.
             </p>
 
             {/* Two-column: photo left, resume card right */}
-            <div className="mt-7 grid grid-cols-1 gap-6 pb-4 sm:mt-10 lg:grid-cols-2 lg:gap-10 lg:flex-1 lg:min-h-0">
+            <div className="mt-7 grid grid-cols-1 gap-6 pb-4 sm:mt-10 lg:mt-5 lg:grid-cols-2 lg:grid-rows-1 lg:gap-8 lg:flex-1 lg:min-h-0">
 
               {/* Left: slideshow — desktop only */}
               <div className="relative hidden overflow-hidden rounded-3xl shadow-lg lg:block lg:h-full" style={{ minHeight: "250px" }}>
@@ -418,7 +418,7 @@ export function LandingPage() {
                   event.preventDefault();
                   handleHeroFile(event.dataTransfer.files?.[0]);
                 }}
-                className="Koalapply-pop-in flex flex-col items-center justify-center rounded-[1.5rem] border-2 border-dashed border-[#b9adff] bg-white/95 p-6 text-center shadow-[0_28px_90px_rgba(34,0,255,0.16)] backdrop-blur transition hover:-translate-y-0.5 hover:border-[#2200ff] sm:rounded-[2.25rem] sm:p-12"
+                className="Koalapply-pop-in flex flex-col items-center justify-center rounded-[1.5rem] border-2 border-dashed border-[#b9adff] bg-white/95 p-6 text-center shadow-[0_28px_90px_rgba(34,0,255,0.16)] backdrop-blur transition hover:-translate-y-0.5 hover:border-[#2200ff] sm:rounded-[2.25rem] sm:p-12 lg:h-full lg:p-6"
               >
                 <input
                   ref={resumeInputRef}
@@ -427,12 +427,12 @@ export function LandingPage() {
                   className="hidden"
                   onChange={(event) => handleHeroFile(event.target.files?.[0])}
                 />
-                <span className="inline-flex h-16 w-16 items-center justify-center rounded-[1.2rem] bg-[#ece8ff] text-[#2200ff] shadow-sm sm:h-24 sm:w-24 sm:rounded-[1.7rem]">
-                  <UploadCloud className="h-9 w-9 sm:h-14 sm:w-14" />
+                <span className="inline-flex h-16 w-16 items-center justify-center rounded-[1.2rem] bg-[#ece8ff] text-[#2200ff] shadow-sm sm:h-24 sm:w-24 sm:rounded-[1.7rem] lg:h-16 lg:w-16 lg:rounded-[1.2rem]">
+                  <UploadCloud className="h-9 w-9 sm:h-14 sm:w-14 lg:h-9 lg:w-9" />
                 </span>
-                <p className="mt-4 text-2xl font-black tracking-tight text-slate-900 sm:mt-6 sm:text-4xl">Drop your resume here. See what it could look like.</p>
+                <p className="mt-4 text-2xl font-black tracking-tight text-slate-900 sm:mt-6 sm:text-4xl lg:mt-4 lg:text-2xl">Drop your resume here. See what it could look like.</p>
                 <p className="mt-3 text-base font-semibold text-slate-500">PDF or DOCX · Max 4 MB</p>
-                <div className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-[#ece8ff] px-3.5 py-1.5 text-xs font-semibold text-[#2200ff] sm:mt-8 sm:text-sm">
+                <div className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-[#ece8ff] px-3.5 py-1.5 text-xs font-semibold text-[#2200ff] sm:mt-8 lg:mt-4 sm:text-sm">
                   <Sparkles className="h-3.5 w-3.5 shrink-0" />
                   1 free tailored resume — get 2 free when you subscribe to career tips
                 </div>
@@ -442,7 +442,7 @@ export function LandingPage() {
                     event.stopPropagation();
                     resumeInputRef.current?.click();
                   }}
-                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-base font-bold text-white shadow-[0_16px_44px_rgba(34,0,255,0.34)] transition hover:bg-[#1a00cc] sm:px-7 sm:py-4 sm:text-lg"
+                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-base font-bold text-white shadow-[0_16px_44px_rgba(34,0,255,0.34)] transition hover:bg-[#1a00cc] sm:px-7 sm:py-4 sm:text-lg lg:py-3 lg:text-base"
                 >
                   Tailor My Resume for FREE
                 </button>
