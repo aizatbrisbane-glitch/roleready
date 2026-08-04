@@ -45,6 +45,16 @@ type Props = {
 
 const IMPORTANCE_ORDER: Record<string, number> = { required: 0, preferred: 1, unspecified: 2 };
 
+// Snippets are stored as plain text (markdown stripped by the AI), but the document retains
+// markdown formatting. Check both the raw doc and a markdown-stripped version of each line.
+function docContainsSnippet(doc: string, snippet: string): boolean {
+  if (!snippet || !doc) return false;
+  if (doc.includes(snippet)) return true;
+  const stripMd = (line: string) =>
+    line.replace(/\*\*([^*]+)\*\*/g, "$1").replace(/^[-*]\s+/, "").trim();
+  return doc.split("\n").some(line => stripMd(line).includes(snippet));
+}
+
 export function KeywordSidePanel({
   applicationId,
   matchScore,
@@ -73,7 +83,7 @@ export function KeywordSidePanel({
       const snippet = strengthenedKeywordSnippets[kw] ?? "";
       const savedTarget = strengthenedKeywordTargets[kw];
       // Only mark Added if this keyword was added to this specific document
-      if (snippet && doc && doc.includes(snippet) && (!savedTarget || savedTarget === target)) {
+      if (snippet && doc && docContainsSnippet(doc, snippet) && (!savedTarget || savedTarget === target)) {
         initial[kw] = { phase: "success", target, snippet, originalSnippet: strengthenedKeywordOriginals[kw] ?? "" };
       }
     }
@@ -140,11 +150,18 @@ export function KeywordSidePanel({
   }
 
   // Single strengthen API call for one target document.
+  // Pass the current in-memory document so the AI works from the latest version —
+  // it may include keywords accepted since the last DB save.
   async function callStrengthen(singleTarget: "resume" | "cover_letter", body: Record<string, string>) {
     const res = await fetch(`/api/applications/${applicationId}/strengthen?preview=true`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...body, target: singleTarget }),
+      body: JSON.stringify({
+        ...body,
+        target: singleTarget,
+        ...(singleTarget === "resume" && tailoredResume ? { currentTailoredResume: tailoredResume } : {}),
+        ...(singleTarget === "cover_letter" && coverLetter ? { currentCoverLetter: coverLetter } : {}),
+      }),
     });
     const data = await res.json();
     return { ok: res.ok, data };
@@ -210,11 +227,11 @@ export function KeywordSidePanel({
     function applyChange(currentDoc: string | null, aiDoc: string | null): string | null {
       if (!aiDoc) return null;
       // AI replaced an existing sentence — find it in the current doc and swap
-      if (state.originalSnippet && currentDoc?.includes(state.originalSnippet)) {
+      if (state.originalSnippet && currentDoc && docContainsSnippet(currentDoc, state.originalSnippet)) {
         return currentDoc.replace(state.originalSnippet, editedSnippet);
       }
       // AI added a new sentence and current doc already has it — apply any user textarea edit
-      if (!state.originalSnippet && state.snippet && currentDoc?.includes(state.snippet)) {
+      if (!state.originalSnippet && state.snippet && currentDoc && docContainsSnippet(currentDoc, state.snippet)) {
         return editedSnippet !== state.snippet ? currentDoc.replace(state.snippet, editedSnippet) : currentDoc;
       }
       // Fallback: apply user edit to AI doc (e.g. new sentence and current doc is unchanged)

@@ -83,11 +83,17 @@ export async function POST(request: Request, { params }: Props) {
   if (access.planType === "free") return NextResponse.json({ error: "Premium feature" }, { status: 402 });
 
   let keyword: string, evidence: string, target: "resume" | "cover_letter" | "both";
+  let clientResume: string | null = null;
+  let clientCover: string | null = null;
   try {
     const body = await request.json();
     keyword = String(body.keyword ?? "").trim();
     evidence = String(body.evidence ?? "").trim();
     target = body.target;
+    // Client sends the current in-memory document so the AI works from the latest version,
+    // which may include keywords accepted since the last DB save.
+    if (body.currentTailoredResume) clientResume = String(body.currentTailoredResume);
+    if (body.currentCoverLetter) clientCover = String(body.currentCoverLetter);
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
@@ -105,9 +111,12 @@ export async function POST(request: Request, { params }: Props) {
 
   if (!application) return NextResponse.json({ error: "Application not found" }, { status: 404 });
 
-  if (target !== "cover_letter" && !application.tailored_resume)
+  const effectiveResume = clientResume ?? application.tailored_resume;
+  const effectiveCover = clientCover ?? application.cover_letter;
+
+  if (target !== "cover_letter" && !effectiveResume)
     return NextResponse.json({ error: "Generate your application first." }, { status: 400 });
-  if (target !== "resume" && !application.cover_letter)
+  if (target !== "resume" && !effectiveCover)
     return NextResponse.json({ error: "Generate your application first." }, { status: 400 });
 
   // Auto mode: fetch master resume to use as evidence source
@@ -135,8 +144,8 @@ export async function POST(request: Request, { params }: Props) {
   const sharedContext = {
     keyword,
     target,
-    currentTailoredResume: target !== "cover_letter" ? application.tailored_resume : null,
-    currentCoverLetter: target !== "resume" ? application.cover_letter : null,
+    currentTailoredResume: target !== "cover_letter" ? effectiveResume : null,
+    currentCoverLetter: target !== "resume" ? effectiveCover : null,
     jobTitle: application.jobs?.title ?? "",
     jobCompany: application.jobs?.company ?? "",
   };
@@ -200,8 +209,8 @@ export async function POST(request: Request, { params }: Props) {
   const cleanedCover = result.hasRelevantExperience && result.coverLetter && target !== "resume" ? cleanDocument(result.coverLetter) : null;
 
   const actualChangedSnippet =
-    (cleanedResume ? extractActualChange(application.tailored_resume, cleanedResume) : "") ||
-    (cleanedCover ? extractActualChange(application.cover_letter, cleanedCover) : "") ||
+    (cleanedResume ? extractActualChange(effectiveResume, cleanedResume) : "") ||
+    (cleanedCover ? extractActualChange(effectiveCover, cleanedCover) : "") ||
     (result.changedSnippet ?? "");
 
   if (!preview && result.hasRelevantExperience) {
