@@ -751,7 +751,7 @@ export function ApplicationDetailTabs({
                   </div>
                 </div>
                 <div className="flex-1 overflow-y-auto">
-                  <CoverLetterRenderer content={coverLetter} highlightKeyword={highlightKeyword} highlightTerms={showCoverHighlights ? Object.keys(snippets ?? {}).filter(Boolean) : []} highlightPresentTerms={showCoverHighlights ? missingKeywords.filter(kw => !snippets?.[kw] && coverLetter.toLowerCase().includes(kw.toLowerCase())) : []} />
+                  <CoverLetterRenderer content={coverLetter} highlightKeyword={highlightKeyword} highlightSnippets={showCoverHighlights ? Object.values(snippets ?? {}).filter(Boolean) : []} highlightTerms={showCoverHighlights ? Object.keys(snippets ?? {}).filter(Boolean) : []} highlightPresentTerms={showCoverHighlights ? missingKeywords.filter(kw => !snippets?.[kw] && coverLetter.toLowerCase().includes(kw.toLowerCase())) : []} />
                 </div>
             </>
           )
