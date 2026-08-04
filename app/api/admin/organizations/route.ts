@@ -2,17 +2,17 @@ import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "")
-  .split(",")
-  .map((e) => e.trim().toLowerCase())
-  .filter(Boolean);
-
 async function requireAdmin() {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return null;
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user?.email) return null;
-  if (!ADMIN_EMAILS.includes(user.email.toLowerCase())) return null;
+  if (!user) return null;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!profile || !["admin", "founder"].includes(profile.role)) return null;
   return user;
 }
 

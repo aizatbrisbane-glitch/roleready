@@ -3,17 +3,20 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AdminOrganizationsPanel, type AdminOrg } from "@/components/AdminOrganizationsPanel";
 
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "")
-  .split(",")
-  .map((e) => e.trim().toLowerCase())
-  .filter(Boolean);
-
 export default async function AdminPage() {
   const supabase = await createSupabaseServerClient();
   if (!supabase) redirect("/");
 
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user?.email || !ADMIN_EMAILS.includes(user.email.toLowerCase())) redirect("/");
+  if (!user) redirect("/");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!profile || !["admin", "founder"].includes(profile.role)) redirect("/");
 
   const adminClient = createSupabaseAdminClient();
   if (!adminClient) {
