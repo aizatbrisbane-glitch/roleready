@@ -177,6 +177,7 @@ export function KeywordSidePanel({
   async function fetchStrengthen(kw: string, t: Target, evidence?: string): Promise<
     | { phase: "not_found" }
     | { phase: "no_master_resume" }
+    | { phase: "free_limit" }
     | { phase: "error"; message: string }
     | { tailoredResume: string | null; coverLetter: string | null; snippet: string; originalSnippet: string }
   > {
