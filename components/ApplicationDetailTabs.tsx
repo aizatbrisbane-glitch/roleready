@@ -167,6 +167,7 @@ type Props = {
   planType: EntitlementPlanType;
   hasTailoredResume: boolean;
   hasCoverLetter: boolean;
+  strengthenCount: number;
   onDocumentUpdate: (update: DocumentUpdate) => void;
 };
 
@@ -222,6 +223,7 @@ export function ApplicationDetailTabs({
   planType,
   hasTailoredResume,
   hasCoverLetter,
+  strengthenCount,
   onDocumentUpdate,
 }: Props) {
 
@@ -628,6 +630,7 @@ export function ApplicationDetailTabs({
             hasCoverLetter={hasCoverLetter}
             tailoredResume={tailoredResume}
             coverLetter={coverLetter}
+            strengthenCount={strengthenCount}
             onDocumentUpdate={onDocumentUpdate}
           />
         </div>
@@ -705,6 +708,7 @@ export function ApplicationDetailTabs({
             hasCoverLetter={hasCoverLetter}
             tailoredResume={tailoredResume}
             coverLetter={coverLetter}
+            strengthenCount={strengthenCount}
             onDocumentUpdate={onDocumentUpdate}
           />
         </div>

@@ -40,6 +40,7 @@ type Props = {
   strengthenedKeywordTargets: Record<string, "resume" | "cover_letter">;
   keywordImportance: Record<string, string>;
   skippedKeywords: string[];
+  strengthenCount: number;
 };
 
 export function ApplicationDetailClient({
@@ -69,6 +70,7 @@ export function ApplicationDetailClient({
   strengthenedKeywordTargets,
   keywordImportance,
   skippedKeywords,
+  strengthenCount,
 }: Props) {
   const defaultTab: Tab = initialTailoredResume ? "resume" : "notes";
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
@@ -174,6 +176,7 @@ export function ApplicationDetailClient({
       planType={planType}
       hasTailoredResume={hasTailoredResume}
       hasCoverLetter={hasCoverLetter}
+      strengthenCount={strengthenCount}
       onDocumentUpdate={handleDocumentUpdate}
     />
   );

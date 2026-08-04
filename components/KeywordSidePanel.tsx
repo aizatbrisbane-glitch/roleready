@@ -20,6 +20,7 @@ type KeywordState =
   | { phase: "not_found" }
   | { phase: "fallback" }
   | { phase: "no_master_resume" }
+  | { phase: "free_limit" }
   | { phase: "error"; message: string };
 
 type Importance = "required" | "preferred" | "unspecified";
@@ -40,6 +41,7 @@ type Props = {
   tailoredResume: string | null;
   coverLetter: string | null;
   target: "resume" | "cover_letter";
+  strengthenCount: number;
   onDocumentUpdate: (update: DocumentUpdate) => void;
 };
 
@@ -71,6 +73,7 @@ export function KeywordSidePanel({
   tailoredResume,
   coverLetter,
   target,
+  strengthenCount,
   onDocumentUpdate,
 }: Props) {
   // Initialise per-document state: mark success if snippet is in this document,
@@ -117,6 +120,8 @@ export function KeywordSidePanel({
 
   const isPremium = planType !== "free";
   const hasAnyDoc = hasTailoredResume || hasCoverLetter;
+  // Free users get 1 successful strengthen per application (tracked by strengthenCount + sessionDelta)
+  const freeLimitReached = !isPremium && (strengthenCount + sessionDelta >= 1);
 
   const sortedKeywords = [...missingKeywords].sort((a, b) => {
     const aRank = IMPORTANCE_ORDER[keywordImportance[a] ?? "unspecified"] ?? 2;
@@ -177,7 +182,11 @@ export function KeywordSidePanel({
   > {
     const body: Record<string, string> = { keyword: kw, ...(evidence ? { evidence } : {}) };
     const r = await callStrengthen(t, body);
-    if (!r.ok) return r.data.error === "no_master_resume" ? { phase: "no_master_resume" } : { phase: "error", message: r.data.error ?? "Something went wrong." };
+    if (!r.ok) {
+      if (r.data.error === "no_master_resume") return { phase: "no_master_resume" };
+      if (r.data.error === "free_limit_reached") return { phase: "free_limit" };
+      return { phase: "error", message: r.data.error ?? "Something went wrong." };
+    }
     if (!r.data.hasRelevantExperience) return { phase: "not_found" };
     return {
       tailoredResume: r.data.tailoredResume ?? null,
@@ -256,6 +265,7 @@ export function KeywordSidePanel({
       strengthened_keyword_snippets: accumulatedRef.current.snippets,
       strengthened_keyword_originals: accumulatedRef.current.originals,
       strengthened_keyword_targets: accumulatedRef.current.targets,
+      strengthen_count: strengthenCount + sessionDelta + 1,
     };
     if (finalResume) body.tailored_resume = finalResume;
     if (finalCover) body.cover_letter = finalCover;
@@ -416,7 +426,7 @@ export function KeywordSidePanel({
                       Retry
                     </button>
                   ) : !isExpanded && !isLoading ? (
-                    isPremium && hasAnyDoc ? (
+                    (isPremium || !freeLimitReached) && hasAnyDoc ? (
                       <button
                         type="button"
                         onClick={() => handleAutoStrengthen(kw)}
@@ -426,7 +436,7 @@ export function KeywordSidePanel({
                         <Sparkles className="h-2.5 w-2.5" />
                         Add
                       </button>
-                    ) : !isPremium ? (
+                    ) : (freeLimitReached || !isPremium) ? (
                       <Link href="/pricing" className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-2 py-0.5 text-[10px] text-slate-500 hover:text-[#2200ff]">
                         <Lock className="h-2.5 w-2.5" />
                         Upgrade
@@ -577,6 +587,13 @@ export function KeywordSidePanel({
           ? <>Click &ldquo;Add&rdquo; &mdash; we&rsquo;ll check your master resume and draft a suggestion for you to review.</>
           : <>No keyword gaps identified.</>}
       </p>
+      {!isPremium && (
+        <p className={`mt-1.5 text-[10px] font-semibold ${freeLimitReached ? "text-rose-500" : "text-[#2200ff]"}`}>
+          {freeLimitReached
+            ? <><Link href="/pricing" className="underline underline-offset-2">Upgrade</Link> to add more keywords.</>
+            : "1 free AI assist included — upgrade for unlimited."}
+        </p>
+      )}
       {target === "cover_letter" && matchScore !== null && (
         <p className="mt-2 text-[10px] leading-[1.4] text-slate-400">
           Adding keywords here improves your letter but won&rsquo;t change the keyword match score &mdash; that reflects your resume only.

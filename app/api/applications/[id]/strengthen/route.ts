@@ -169,7 +169,6 @@ export async function POST(request: Request, { params }: Props) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const access = await getAccessState(supabase, user.id);
-  if (access.planType === "free") return NextResponse.json({ error: "Premium feature" }, { status: 402 });
 
   let keyword: string, evidence: string, target: "resume" | "cover_letter" | "both";
   let clientResume: string | null = null;
@@ -197,6 +196,12 @@ export async function POST(request: Request, { params }: Props) {
     .maybeSingle();
 
   if (!application) return NextResponse.json({ error: "Application not found" }, { status: 404 });
+
+  // Free users get 1 successful strengthen per application
+  if (access.planType === "free") {
+    const count = (application.strengthen_count as number) ?? 0;
+    if (count >= 1) return NextResponse.json({ error: "free_limit_reached" }, { status: 402 });
+  }
 
   const effectiveResume = clientResume ?? application.tailored_resume;
   const effectiveCover = clientCover ?? application.cover_letter;
