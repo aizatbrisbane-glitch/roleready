@@ -7,79 +7,74 @@ export const maxDuration = 60;
 
 type Props = { params: Promise<{ id: string }> };
 
+// The AI now returns a PATCH (find → replace) instead of the full document.
+// We apply the patch ourselves, making duplication structurally impossible.
 const strengthenSchema = {
   type: "object",
   additionalProperties: false,
-  required: ["tailoredResume", "coverLetter", "changedSnippet", "originalSnippet", "hasRelevantExperience"],
+  required: ["hasRelevantExperience", "originalSnippet", "changedSnippet"],
   properties: {
-    tailoredResume: { type: ["string", "null"] },
-    coverLetter: { type: ["string", "null"] },
-    changedSnippet: {
-      type: "string",
-      description: "The single sentence or bullet point that was changed, as plain text with no markdown. Empty string if hasRelevantExperience is false.",
+    hasRelevantExperience: {
+      type: "boolean",
+      description: "true if relevant experience was found and a change was prepared. false if no genuinely relevant experience exists.",
     },
     originalSnippet: {
       type: "string",
-      description: "The original sentence or bullet point before modification, as plain text with no markdown. Empty string if hasRelevantExperience is false or if the keyword was added rather than modifying an existing line.",
+      description: "The EXACT sentence, phrase, or bullet point from the document to replace — copied character-for-character, preserving all markdown (e.g. **bold**, - bullet prefix). Empty string only if adding a completely new sentence or if hasRelevantExperience is false.",
     },
-    hasRelevantExperience: {
-      type: "boolean",
-      description: "true if relevant experience was found and a draft was produced. false if no genuinely relevant experience exists — in that case set tailoredResume and coverLetter to null and snippets to empty strings.",
+    changedSnippet: {
+      type: "string",
+      description: "The replacement text in the same markdown format as originalSnippet. This is what replaces originalSnippet in the document. If originalSnippet is empty, this is the new sentence to insert after anchorText. Empty string if hasRelevantExperience is false.",
+    },
+    anchorText: {
+      type: "string",
+      description: "Only when originalSnippet is empty: the EXACT sentence (verbatim, including markdown) immediately before where changedSnippet should be inserted. Empty string if originalSnippet is provided or hasRelevantExperience is false.",
     },
   },
 };
 
-function extractActualChange(original: string | null, updated: string | null): string {
-  if (!original || !updated) return "";
-  const stripMd = (line: string) =>
-    line.trim()
-      .replace(/^#+\s+/, "")
-      .replace(/^[-*]\s+/, "")
-      .replace(/\*\*([^*]+)\*\*/g, "$1");
-  const originalLines = new Set(original.split("\n").map(stripMd).filter(Boolean));
-  const changedLines = updated.split("\n").map(stripMd).filter(l => l && !originalLines.has(l));
-  return changedLines[0] ?? "";
-}
+// Apply a find→replace patch to a document. Returns null if the original text cannot be located.
+function applyPatch(doc: string, original: string, changed: string, anchor: string): string | null {
+  const stripMd = (s: string) =>
+    s.replace(/\*\*([^*]+)\*\*/g, "$1")
+     .replace(/^#{1,6}\s+/, "")
+     .replace(/^[-*•]\s+/, "")
+     .trim();
 
-// Remove duplicate sentences that the AI sometimes re-emits.
-// Tracks every prose sentence seen (≥30 chars); skips exact repeats on subsequent encounters.
-function deduplicateSentences(text: string): string {
-  const seen = new Set<string>();
-  return text.split("\n").map(line => {
-    const trimmed = line.trim();
-    // Preserve structural lines (headers, bullets, blank) unchanged
-    if (!trimmed || /^#{1,6}\s/.test(trimmed) || /^[-*•]\s/.test(trimmed)) return line;
+  if (original) {
+    // 1. Exact match (verbatim with markdown)
+    if (doc.includes(original)) return doc.replace(original, changed);
 
-    // Split prose line into sentences at ". X" / "! X" / "? X" (X = uppercase)
-    const parts: string[] = [];
-    let buf = "";
-    for (let i = 0; i < trimmed.length; i++) {
-      buf += trimmed[i];
-      const c = trimmed[i];
-      const n1 = trimmed[i + 1];
-      const n2 = trimmed[i + 2];
-      if ((c === "." || c === "!" || c === "?") && n1 === " " && n2 && /[A-Z]/.test(n2)) {
-        parts.push(buf.trim());
-        buf = "";
-        i++; // skip the space separator
+    // 2. Case-insensitive match
+    const lowerDoc = doc.toLowerCase();
+    const idx = lowerDoc.indexOf(original.toLowerCase());
+    if (idx !== -1) return doc.slice(0, idx) + changed + doc.slice(idx + original.length);
+
+    // 3. Line-level markdown-stripped match
+    const lines = doc.split("\n");
+    const strippedTarget = stripMd(original).toLowerCase();
+    for (let i = 0; i < lines.length; i++) {
+      if (stripMd(lines[i]).toLowerCase() === strippedTarget) {
+        lines[i] = changed;
+        return lines.join("\n");
       }
     }
-    if (buf.trim()) parts.push(buf.trim());
 
-    const unique = parts.filter(s => {
-      const key = s.toLowerCase().replace(/\s+/g, " ").trim();
-      if (key.length < 30) return true; // never dedup short fragments
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+    return null; // could not locate
+  }
 
-    return unique.join(" ");
-  }).join("\n");
+  if (anchor) {
+    if (doc.includes(anchor)) return doc.replace(anchor, anchor + " " + changed);
+    const lowerDoc = doc.toLowerCase();
+    const idx = lowerDoc.indexOf(anchor.toLowerCase());
+    if (idx !== -1) return doc.slice(0, idx + anchor.length) + " " + changed + doc.slice(idx + anchor.length);
+  }
+
+  return null;
 }
 
 function cleanDocument(text: string): string {
-  return deduplicateSentences(text)
+  return text
     .split("\n")
     .map((line) => line.trimEnd())
     .filter((line, i, arr) => {
@@ -93,21 +88,15 @@ function cleanDocument(text: string): string {
 
 function buildStyleRules(protectedKeywords: string[]) {
   return [
-    "Read the ENTIRE document first. Identify every existing sentence and paragraph before making any change.",
-    "CRITICAL — no duplication: Do NOT repeat any sentence, phrase, or paragraph that already exists anywhere in the document. Every sentence in your output must appear exactly once. Count your output sentences against the input — if your output has more sentences than the input (plus at most one new sentence), you have made an error.",
-    "Integrate the keyword by modifying an existing sentence that is already close to the topic — prefer a one-word or short-phrase addition over inserting a whole new sentence.",
-    "Only add a brand-new sentence if the keyword concept is genuinely absent from the entire document. If you do add one, keep it to one sentence maximum and place it within an existing paragraph — never append a new standalone paragraph.",
-    "Preserve all existing markdown formatting, structure, and document length. Your output must contain the same number of paragraphs as the input. Do not add paragraphs.",
-    "SELF-CHECK before returning: scan your output for any sentence that appears more than once. If you find one, delete the duplicate.",
+    "Read the ENTIRE document first before deciding where to make the change.",
+    "Identify the single best existing sentence to modify — prefer adding a word or short phrase to an existing sentence over inserting a whole new sentence.",
+    "Only add a brand-new sentence if the keyword concept is genuinely absent from the entire document. If you do add one, keep it to one sentence maximum.",
     "Never use em dashes or these words: dynamic, innovative, passionate, results-driven, detail-oriented, proven track record, leverage, utilize, spearhead, champion, delve, tapestry, transformative.",
-    "Return the full updated document, not just the changed section.",
-    "If target is 'resume', return tailoredResume and set coverLetter to null.",
-    "If target is 'cover_letter', return coverLetter and set tailoredResume to null.",
-    "If target is 'both', return both documents.",
-    "Always populate changedSnippet with the single sentence or bullet point you inserted or modified, as plain readable text with no markdown symbols (no **, no -, no #).",
-    "Always populate originalSnippet with the original sentence or bullet point you replaced, as plain readable text with no markdown symbols. Empty string if you added a new line rather than modifying an existing one.",
+    "Do NOT return the full document. Return only: originalSnippet (the exact verbatim sentence/bullet from the document to replace), changedSnippet (the replacement with the same markdown format), and anchorText (only if adding a new sentence).",
+    "originalSnippet must be copied EXACTLY from the document — same characters, same markdown formatting.",
+    "changedSnippet must use the same markdown format as originalSnippet (keep any **bold**, - prefix, etc.).",
     ...(protectedKeywords.length > 0
-      ? [`CRITICAL: The following keywords are already present in the document and must NOT be removed, replaced, or paraphrased away: ${protectedKeywords.map(k => `"${k}"`).join(", ")}. Find a different location or phrasing to add the new keyword without touching these.`]
+      ? [`CRITICAL: The following keywords are already present in the document and must NOT be removed or paraphrased away: ${protectedKeywords.map(k => `"${k}"`).join(", ")}. Work around them.`]
       : []),
   ];
 }
@@ -136,8 +125,6 @@ export async function POST(request: Request, { params }: Props) {
     keyword = String(body.keyword ?? "").trim();
     evidence = String(body.evidence ?? "").trim();
     target = body.target;
-    // Client sends the current in-memory document so the AI works from the latest version,
-    // which may include keywords accepted since the last DB save.
     if (body.currentTailoredResume) clientResume = String(body.currentTailoredResume);
     if (body.currentCoverLetter) clientCover = String(body.currentCoverLetter);
   } catch {
@@ -201,47 +188,47 @@ export async function POST(request: Request, { params }: Props) {
 
   const prompt = evidence
     ? JSON.stringify({
-        task: "Weave the keyword into the specified document(s) using only the evidence the user provided.",
+        task: "Find the best sentence in the document to modify, then return only the patch (originalSnippet → changedSnippet) that adds the keyword using the user's evidence.",
         ...sharedContext,
         userEvidence: evidence,
         rules: [
           "Use ONLY the evidence the user has provided — do not invent, embellish, or add details not in userEvidence.",
-          "Prefer specific, concrete evidence (numbers, outcomes, scale, timeframes). If the evidence is vague or very brief, still weave it in but keep the language modest — do not inflate thin evidence into confident-sounding achievement claims the evidence doesn't support.",
+          "Prefer specific, concrete evidence (numbers, outcomes, scale, timeframes). If the evidence is vague, weave it in modestly.",
           ...styleRules,
           "Set hasRelevantExperience to true.",
         ],
       })
     : JSON.stringify({
-        task: "Search the master resume for experience relevant to the keyword. If found, weave it naturally into the specified document(s). If no genuinely relevant experience exists, signal not found.",
+        task: "Search the master resume for experience relevant to the keyword. If found, return only the patch (originalSnippet → changedSnippet) that weaves it into the document. If no genuinely relevant experience exists, signal not found.",
         ...sharedContext,
         masterResumeText,
         rules: [
           "Search masterResumeText thoroughly for any experience, skill, project, or achievement genuinely related to the keyword.",
-          "If relevant experience is found: weave it naturally into the specified document(s). Set hasRelevantExperience to true. Populate changedSnippet and originalSnippet.",
-          "If no genuinely relevant experience exists in the master resume: set hasRelevantExperience to false, set tailoredResume and coverLetter to null, set changedSnippet and originalSnippet to empty strings. Do NOT invent or imply experience that is not there.",
-          "Prefer specific, concrete evidence from the master resume (numbers, outcomes, scale, timeframes). Do not inflate thin evidence into confident claims.",
+          "If relevant experience is found: return the patch. Set hasRelevantExperience to true.",
+          "If no genuinely relevant experience exists: set hasRelevantExperience to false, set all snippet fields to empty strings. Do NOT invent experience.",
+          "Prefer specific, concrete evidence from the master resume (numbers, outcomes, scale, timeframes).",
           ...styleRules,
         ],
       });
 
   const system = evidence
-    ? "You are a senior job application writer. Weave keywords into documents using only the evidence the user provides. Never invent experience, employers, dates, credentials, metrics, tools, or achievements beyond what the user explicitly states. Output the document exactly as given, with only one sentence changed or added — no paragraph may appear twice, no sentence may appear twice. If you catch yourself repeating text from the input, delete the repetition before returning."
-    : "You are a careful senior job application writer. Search the candidate's master resume for genuine experience related to the keyword. If you find it, weave it into one existing sentence — do not add whole paragraphs or repeat any sentence that already exists in the document. Your output must have the same paragraph count as the input, plus at most one new sentence. If you do not find genuinely relevant experience, signal that clearly — never fabricate or imply experience that is not in the master resume.";
+    ? "You are a senior job application writer. Your job is to identify the single best sentence in the document to modify, and return a precise find→replace patch. Never write out the full document — return only originalSnippet and changedSnippet. Never invent experience beyond what the user provides."
+    : "You are a careful senior job application writer. Search the master resume for genuine experience related to the keyword, identify the best sentence in the document to modify, and return a precise find→replace patch. Never write out the full document — return only originalSnippet and changedSnippet. Never fabricate experience.";
 
-  let result: { tailoredResume: string | null; coverLetter: string | null; changedSnippet: string; originalSnippet: string; hasRelevantExperience: boolean };
+  let result: { hasRelevantExperience: boolean; originalSnippet: string; changedSnippet: string; anchorText?: string };
   try {
     const response = await client.messages.create({
       model,
-      max_tokens: 4000,
+      max_tokens: 1000,
       system,
       tools: [
         {
-          name: "update_documents",
-          description: "Return the updated document(s) with the keyword naturally woven in, or signal no relevant experience found.",
+          name: "return_patch",
+          description: "Return the find→replace patch that adds the keyword to the document, or signal no relevant experience found.",
           input_schema: strengthenSchema as Anthropic.Tool.InputSchema,
         },
       ],
-      tool_choice: { type: "tool", name: "update_documents" },
+      tool_choice: { type: "tool", name: "return_patch" },
       messages: [{ role: "user", content: prompt }],
     });
 
@@ -249,20 +236,37 @@ export async function POST(request: Request, { params }: Props) {
     if (!toolBlock || toolBlock.type !== "tool_use")
       return NextResponse.json({ error: "AI did not return a result" }, { status: 500 });
 
-    result = toolBlock.input as { tailoredResume: string | null; coverLetter: string | null; changedSnippet: string; originalSnippet: string; hasRelevantExperience: boolean };
+    result = toolBlock.input as { hasRelevantExperience: boolean; originalSnippet: string; changedSnippet: string; anchorText?: string };
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "AI failed" }, { status: 500 });
   }
 
-  const cleanedResume = result.hasRelevantExperience && result.tailoredResume && target !== "cover_letter" ? cleanDocument(result.tailoredResume) : null;
-  const cleanedCover = result.hasRelevantExperience && result.coverLetter && target !== "resume" ? cleanDocument(result.coverLetter) : null;
+  if (!result.hasRelevantExperience) {
+    return NextResponse.json({ ok: true, hasRelevantExperience: false, tailoredResume: null, coverLetter: null, changedSnippet: "", originalSnippet: "" });
+  }
 
-  const actualChangedSnippet =
-    (cleanedResume ? extractActualChange(effectiveResume, cleanedResume) : "") ||
-    (cleanedCover ? extractActualChange(effectiveCover, cleanedCover) : "") ||
-    (result.changedSnippet ?? "");
+  const original = result.originalSnippet ?? "";
+  const changed = result.changedSnippet ?? "";
+  const anchor = result.anchorText ?? "";
 
-  if (!preview && result.hasRelevantExperience) {
+  // Apply the patch to produce the updated document(s)
+  const patchedResume = target !== "cover_letter" && effectiveResume
+    ? applyPatch(effectiveResume, original, changed, anchor)
+    : null;
+  const patchedCover = target !== "resume" && effectiveCover
+    ? applyPatch(effectiveCover, original, changed, anchor)
+    : null;
+
+  // If the patch could not be applied, the AI quoted a snippet that doesn't exist in the doc
+  if (target !== "cover_letter" && effectiveResume && !patchedResume)
+    return NextResponse.json({ error: "Could not locate the change in the document. Please try again." }, { status: 500 });
+  if (target !== "resume" && effectiveCover && !patchedCover)
+    return NextResponse.json({ error: "Could not locate the change in the document. Please try again." }, { status: 500 });
+
+  const cleanedResume = patchedResume ? cleanDocument(patchedResume) : null;
+  const cleanedCover = patchedCover ? cleanDocument(patchedCover) : null;
+
+  if (!preview) {
     const currentStrengthened = (application.strengthened_keywords as string[]) ?? [];
     const currentSnippets = (application.strengthened_keyword_snippets as Record<string, string>) ?? {};
     const currentOriginals = (application.strengthened_keyword_originals as Record<string, string>) ?? {};
@@ -270,17 +274,17 @@ export async function POST(request: Request, { params }: Props) {
       ...(cleanedResume ? { tailored_resume: cleanedResume } : {}),
       ...(cleanedCover ? { cover_letter: cleanedCover } : {}),
       strengthened_keywords: [...new Set([...currentStrengthened, keyword])],
-      strengthened_keyword_snippets: { ...currentSnippets, [keyword]: actualChangedSnippet },
-      strengthened_keyword_originals: { ...currentOriginals, [keyword]: result.originalSnippet ?? "" },
+      strengthened_keyword_snippets: { ...currentSnippets, [keyword]: changed },
+      strengthened_keyword_originals: { ...currentOriginals, [keyword]: original },
     }).eq("id", appId).eq("user_id", user.id);
   }
 
   return NextResponse.json({
     ok: true,
-    hasRelevantExperience: result.hasRelevantExperience,
+    hasRelevantExperience: true,
     tailoredResume: cleanedResume,
     coverLetter: cleanedCover,
-    changedSnippet: actualChangedSnippet,
-    originalSnippet: result.originalSnippet ?? "",
+    changedSnippet: changed,
+    originalSnippet: original,
   });
 }
