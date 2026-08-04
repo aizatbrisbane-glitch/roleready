@@ -383,7 +383,7 @@ export function LandingPage() {
             <div className="mt-7 grid grid-cols-1 gap-6 pb-4 sm:mt-10 lg:mt-4 lg:grid-cols-2 lg:gap-8">
 
               {/* Left: slideshow — desktop only */}
-              <div className="relative hidden overflow-hidden rounded-3xl shadow-lg lg:block lg:h-[55vh] lg:max-h-[600px] lg:min-h-[360px]">
+              <div className="relative hidden overflow-hidden rounded-3xl shadow-lg lg:block lg:h-[420px] xl:h-[500px]">
                 {heroImages.map((src, i) => (
                   <img
                     key={src}
