@@ -1,7 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 const STEPS = [
   {
@@ -27,49 +27,52 @@ const STEPS = [
 ];
 
 export function PostGenerationGuide({ applicationId, show }: { applicationId: string; show: boolean }) {
-  const storageKey = `Koalapply_welcomed_${applicationId}`;
-  const [visible, setVisible] = useState(false);
+  const storageKey = `Koalapply_guide_collapsed_${applicationId}`;
+  const [collapsed, setCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!show) return;
-    if (localStorage.getItem(storageKey)) return;
-    setVisible(true);
-  }, [show, storageKey]);
+    setCollapsed(localStorage.getItem(storageKey) === "1");
+    setMounted(true);
+  }, [storageKey]);
 
-  function dismiss() {
-    localStorage.setItem(storageKey, "1");
-    setVisible(false);
+  function toggle() {
+    const next = !collapsed;
+    setCollapsed(next);
+    localStorage.setItem(storageKey, next ? "1" : "0");
   }
 
-  if (!visible) return null;
+  if (!show || !mounted) return null;
 
   return (
     <section className="rounded-[1.8rem] border border-[#d4ccff] bg-[#ece8ff]/40 p-5 md:p-6">
-      <div className="flex items-start justify-between gap-4">
+      <button
+        type="button"
+        onClick={toggle}
+        className="flex w-full items-start justify-between gap-4 text-left"
+      >
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#2200ff]">What&apos;s next</p>
           <h2 className="mt-1 text-lg font-bold text-slate-900">Your application is ready — here&apos;s what to do</h2>
         </div>
-        <button
-          type="button"
-          onClick={dismiss}
-          className="shrink-0 inline-flex items-center gap-1 text-sm font-semibold text-[#2200ff] transition hover:text-[#1a00cc]"
-        >
-          Got it <ArrowRight className="h-3.5 w-3.5" />
-        </button>
-      </div>
+        <span className="mt-1 shrink-0 text-[#2200ff]">
+          {collapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
+        </span>
+      </button>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {STEPS.map((step, index) => (
-          <div key={step.heading} className="rounded-2xl bg-white/70 px-4 py-4">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2200ff] text-xs font-bold text-white">
-              {index + 1}
-            </span>
-            <p className="mt-2 text-sm font-semibold text-slate-900">{step.heading}</p>
-            <p className="mt-1 text-xs leading-5 text-slate-500">{step.body}</p>
-          </div>
-        ))}
-      </div>
+      {!collapsed && (
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {STEPS.map((step, index) => (
+            <div key={step.heading} className="rounded-2xl bg-white/70 px-4 py-4">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2200ff] text-xs font-bold text-white">
+                {index + 1}
+              </span>
+              <p className="mt-2 text-sm font-semibold text-slate-900">{step.heading}</p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">{step.body}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

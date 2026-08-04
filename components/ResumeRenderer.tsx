@@ -20,46 +20,63 @@ function splitHighlight(text: string, keyword: string): (string | React.ReactEle
   });
 }
 
-function applySnippetHighlights(text: string, snippets: string[]): (string | React.ReactElement)[] {
-  const sorted = [...snippets].sort((a, b) => b.length - a.length).filter(Boolean);
+function applyInlineHighlights(text: string, terms: string[], className: string): (string | React.ReactElement)[] {
+  const sorted = [...terms].sort((a, b) => b.length - a.length).filter(Boolean);
   if (!sorted.length) return [text];
   const pattern = sorted.map(s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
-  const regex = new RegExp(`(${pattern})`, "g");
-  return text.split(regex).map((part, i) =>
-    sorted.includes(part)
-      ? <mark key={i} className="rounded bg-green-100 px-0.5 not-italic">{part}</mark>
+  const splitRegex = new RegExp(`(${pattern})`, "gi");
+  const matchRegex = new RegExp(`^(?:${pattern})$`, "i");
+  return text.split(splitRegex).map((part, i) =>
+    matchRegex.test(part)
+      ? <mark key={i} className={className}>{part}</mark>
       : part
   );
 }
 
-function InlineMd({ text, highlightKeyword, highlightSnippets }: { text: string; highlightKeyword?: string | null; highlightSnippets?: string[] }) {
+function applySnippetHighlights(text: string, snippets: string[]): (string | React.ReactElement)[] {
+  return applyInlineHighlights(text, snippets, "rounded bg-green-100 px-0.5 not-italic");
+}
+
+function applyPresentHighlights(text: string, terms: string[]): (string | React.ReactElement)[] {
+  return applyInlineHighlights(text, terms, "rounded bg-blue-100 px-0.5 not-italic");
+}
+
+function InlineMd({ text, highlightKeyword, highlightSnippets, highlightTerms, highlightPresentTerms }: { text: string; highlightKeyword?: string | null; highlightSnippets?: string[]; highlightTerms?: string[]; highlightPresentTerms?: string[] }) {
   const boldParts = text.split(/(\*\*[^*]+\*\*)/g);
 
   // Snippets are plain text but the document may have **bold** markers splitting the string.
   // Check against the full line with bold markers stripped so we don't miss cross-bold matches.
   const plainText = text.replace(/\*\*([^*]+)\*\*/g, "$1");
-  const lineMatchesSnippet = highlightSnippets?.some(s => s && plainText.includes(s));
+  // highlightSnippets uses whole-line detection; highlightTerms is always inline-only
+  const lineMatchesSnippet = !highlightTerms?.length && highlightSnippets?.some(s => s && plainText.includes(s));
 
   const renderedParts = boldParts.map((part, i) => {
     if (part.startsWith("**") && part.endsWith("**")) {
       const inner = part.slice(2, -2);
-      return (
-        <strong key={i} className="font-semibold text-[#14213d]">
-          {highlightKeyword ? splitHighlight(inner, highlightKeyword) : inner}
-        </strong>
-      );
+      let boldContent: (string | React.ReactElement)[] = highlightTerms?.length
+        ? applySnippetHighlights(inner, highlightTerms)
+        : [inner];
+      if (highlightPresentTerms?.length)
+        boldContent = boldContent.flatMap(n => typeof n === "string" ? applyPresentHighlights(n, highlightPresentTerms) : [n]);
+      if (highlightKeyword) boldContent = boldContent.flatMap(n => typeof n === "string" ? splitHighlight(n, highlightKeyword) : [n]);
+      return <strong key={i} className="font-semibold text-[#14213d]">{boldContent}</strong>;
     }
     if (!part) return null;
 
-    // No line-level match — try exact substring match within this plain segment
-    const withSnippets: (string | React.ReactElement)[] =
-      !lineMatchesSnippet && highlightSnippets?.length
-        ? applySnippetHighlights(part, highlightSnippets)
-        : [part];
+    // Apply inline highlights: terms (keyword names, always inline) or snippets (only when no line-level match)
+    const inlineHighlights = highlightTerms?.length
+      ? highlightTerms
+      : (!lineMatchesSnippet && highlightSnippets?.length ? highlightSnippets : null);
+
+    let withHighlights: (string | React.ReactElement)[] =
+      inlineHighlights ? applySnippetHighlights(part, inlineHighlights) : [part];
+
+    if (highlightPresentTerms?.length)
+      withHighlights = withHighlights.flatMap(n => typeof n === "string" ? applyPresentHighlights(n, highlightPresentTerms) : [n]);
 
     const final = highlightKeyword
-      ? withSnippets.flatMap(node => (typeof node === "string" ? splitHighlight(node, highlightKeyword) : [node]))
-      : withSnippets;
+      ? withHighlights.flatMap(node => (typeof node === "string" ? splitHighlight(node, highlightKeyword) : [node]))
+      : withHighlights;
 
     return <React.Fragment key={i}>{final.map((n, j) => typeof n === "string" ? <React.Fragment key={j}>{n}</React.Fragment> : n)}</React.Fragment>;
   });
@@ -92,7 +109,7 @@ function parseLines(content: string): ParsedLine[] {
     });
 }
 
-export function ResumeRenderer({ content, highlightKeyword, highlightSnippets }: { content: string; highlightKeyword?: string | null; highlightSnippets?: string[] }) {
+export function ResumeRenderer({ content, highlightKeyword, highlightSnippets, highlightTerms, highlightPresentTerms }: { content: string; highlightKeyword?: string | null; highlightSnippets?: string[]; highlightTerms?: string[]; highlightPresentTerms?: string[] }) {
   const lines = parseLines(content);
   const nodes: React.ReactNode[] = [];
   let bullets: string[] = [];
@@ -105,7 +122,7 @@ export function ResumeRenderer({ content, highlightKeyword, highlightSnippets }:
         {bullets.map((b, i) => (
           <li key={i} className="flex items-start gap-2.5 text-sm leading-6 text-slate-600">
             <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-slate-400" />
-            <span><InlineMd text={b} highlightKeyword={highlightKeyword} highlightSnippets={highlightSnippets} /></span>
+            <span><InlineMd text={b} highlightKeyword={highlightKeyword} highlightSnippets={highlightSnippets} highlightTerms={highlightTerms} highlightPresentTerms={highlightPresentTerms} /></span>
           </li>
         ))}
       </ul>
@@ -123,7 +140,7 @@ export function ResumeRenderer({ content, highlightKeyword, highlightSnippets }:
     if (line.type === "h1") {
       nodes.push(
         <h1 key={k++} className="font-serif text-2xl font-bold tracking-tight text-[#1B3A6B]">
-          <InlineMd text={line.text} highlightKeyword={highlightKeyword} highlightSnippets={highlightSnippets} />
+          <InlineMd text={line.text} highlightKeyword={highlightKeyword} highlightSnippets={highlightSnippets} highlightTerms={highlightTerms} highlightPresentTerms={highlightPresentTerms} />
         </h1>
       );
     } else if (line.type === "h2") {
@@ -135,13 +152,13 @@ export function ResumeRenderer({ content, highlightKeyword, highlightSnippets }:
     } else if (line.type === "h3") {
       nodes.push(
         <h3 key={k++} className="mt-3 text-sm font-semibold text-[#14213d]">
-          <InlineMd text={line.text} highlightKeyword={highlightKeyword} highlightSnippets={highlightSnippets} />
+          <InlineMd text={line.text} highlightKeyword={highlightKeyword} highlightSnippets={highlightSnippets} highlightTerms={highlightTerms} highlightPresentTerms={highlightPresentTerms} />
         </h3>
       );
     } else if (line.type === "text") {
       nodes.push(
         <p key={k++} className="text-xs leading-5 text-slate-500">
-          <InlineMd text={line.text} highlightKeyword={highlightKeyword} highlightSnippets={highlightSnippets} />
+          <InlineMd text={line.text} highlightKeyword={highlightKeyword} highlightSnippets={highlightSnippets} highlightTerms={highlightTerms} highlightPresentTerms={highlightPresentTerms} />
         </p>
       );
     }
@@ -151,14 +168,14 @@ export function ResumeRenderer({ content, highlightKeyword, highlightSnippets }:
 
   return (
     <div className="bg-slate-100 px-4 py-6 md:px-8 md:py-8">
-      <div className="mx-auto w-full max-w-[794px] bg-white px-10 py-10 shadow-[0_2px_16px_rgba(0,0,0,0.10)] md:px-16 md:py-14">
+      <div className="mx-auto w-full max-w-[794px] min-h-[1123px] bg-white px-10 py-10 shadow-[0_2px_16px_rgba(0,0,0,0.10)] md:px-16 md:py-14">
         {nodes}
       </div>
     </div>
   );
 }
 
-export function CoverLetterRenderer({ content, highlightKeyword, highlightSnippets }: { content: string; highlightKeyword?: string | null; highlightSnippets?: string[] }) {
+export function CoverLetterRenderer({ content, highlightKeyword, highlightSnippets, highlightTerms, highlightPresentTerms }: { content: string; highlightKeyword?: string | null; highlightSnippets?: string[]; highlightTerms?: string[]; highlightPresentTerms?: string[] }) {
   const lines = parseLines(content);
   const nodes: React.ReactNode[] = [];
   let k = 0;
@@ -181,7 +198,7 @@ export function CoverLetterRenderer({ content, highlightKeyword, highlightSnippe
       headerDone = false;
       nodes.push(
         <h1 key={k++} className="font-serif text-2xl font-bold tracking-tight text-[#1B3A6B]">
-          <InlineMd text={line.text} highlightKeyword={highlightKeyword} highlightSnippets={highlightSnippets} />
+          <InlineMd text={line.text} highlightKeyword={highlightKeyword} highlightSnippets={highlightSnippets} highlightTerms={highlightTerms} highlightPresentTerms={highlightPresentTerms} />
         </h1>
       );
     } else if (line.type === "h2") {
@@ -196,14 +213,14 @@ export function CoverLetterRenderer({ content, highlightKeyword, highlightSnippe
       if (inHeader && !headerDone) {
         nodes.push(
           <p key={k++} className="mt-0.5 text-xs leading-5 text-slate-500">
-            <InlineMd text={line.text} highlightKeyword={highlightKeyword} highlightSnippets={highlightSnippets} />
+            <InlineMd text={line.text} highlightKeyword={highlightKeyword} highlightSnippets={highlightSnippets} highlightTerms={highlightTerms} highlightPresentTerms={highlightPresentTerms} />
           </p>
         );
       } else {
         const mt = pendingBlanks > 0 ? "mt-4" : "mt-1";
         nodes.push(
           <p key={k++} className={`${mt} text-sm leading-7 text-slate-700`}>
-            <InlineMd text={line.text} highlightKeyword={highlightKeyword} highlightSnippets={highlightSnippets} />
+            <InlineMd text={line.text} highlightKeyword={highlightKeyword} highlightSnippets={highlightSnippets} highlightTerms={highlightTerms} highlightPresentTerms={highlightPresentTerms} />
           </p>
         );
       }
@@ -213,7 +230,7 @@ export function CoverLetterRenderer({ content, highlightKeyword, highlightSnippe
 
   return (
     <div className="bg-slate-100 px-4 py-6 md:px-8 md:py-8">
-      <div className="mx-auto w-full max-w-[794px] bg-white px-10 py-10 shadow-[0_2px_16px_rgba(0,0,0,0.10)] md:px-16 md:py-14">
+      <div className="mx-auto w-full max-w-[794px] min-h-[1123px] bg-white px-10 py-10 shadow-[0_2px_16px_rgba(0,0,0,0.10)] md:px-16 md:py-14">
         {nodes}
       </div>
     </div>

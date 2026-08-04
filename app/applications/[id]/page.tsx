@@ -225,7 +225,7 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
     !!masterResume &&
     job.description.trim().length > 0 &&
     access.canGenerate;
-  const showWelcomeGuide = generate === "true" && hasDocuments;
+  const showWelcomeGuide = hasDocuments;
 
   const generateHint =
     generate === "true" && !hasDocuments && !autoGenerate
@@ -386,6 +386,7 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
               strengthenedKeywords={application.strengthened_keywords ?? []}
               strengthenedKeywordSnippets={application.strengthened_keyword_snippets ?? {}}
               strengthenedKeywordOriginals={application.strengthened_keyword_originals ?? {}}
+              strengthenedKeywordTargets={application.strengthened_keyword_targets ?? {}}
               keywordImportance={application.keyword_importance ?? {}}
               skippedKeywords={application.skipped_keywords ?? []}
             />

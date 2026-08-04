@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { KeywordStrengthSection } from "@/components/KeywordStrengthSection";
 import { ApplicationDetailTabs } from "@/components/ApplicationDetailTabs";
 import type { Tab } from "@/components/ApplicationDetailTabs";
 import type { ApplicationStatus, EntitlementPlanType, InterviewQuestion } from "@/types/database";
@@ -11,6 +10,7 @@ export type DocumentUpdate = {
   cover: string | null;
   keyword: string;
   snippet: string;
+  isRevert?: boolean;
 };
 
 type Props = {
@@ -37,6 +37,7 @@ type Props = {
   strengthenedKeywords: string[];
   strengthenedKeywordSnippets: Record<string, string>;
   strengthenedKeywordOriginals: Record<string, string>;
+  strengthenedKeywordTargets: Record<string, "resume" | "cover_letter">;
   keywordImportance: Record<string, string>;
   skippedKeywords: string[];
 };
@@ -65,6 +66,7 @@ export function ApplicationDetailClient({
   strengthenedKeywords,
   strengthenedKeywordSnippets,
   strengthenedKeywordOriginals,
+  strengthenedKeywordTargets,
   keywordImportance,
   skippedKeywords,
 }: Props) {
@@ -98,6 +100,7 @@ export function ApplicationDetailClient({
     if (!isMounted.current) return;
     setCoverLetter(initialCoverLetter);
   }, [initialCoverLetter]);
+
   const clearHighlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => { if (clearHighlightTimer.current) clearTimeout(clearHighlightTimer.current); }, []);
@@ -106,68 +109,71 @@ export function ApplicationDetailClient({
     setHighlightKeyword(update.keyword);
     if (clearHighlightTimer.current) clearTimeout(clearHighlightTimer.current);
     clearHighlightTimer.current = setTimeout(() => setHighlightKeyword(null), 8000);
-    if (update.snippet) setAllSnippets(prev => ({ ...prev, [update.keyword]: update.snippet }));
 
-    if (update.resume !== null) {
-      setTailoredResume(update.resume);
-      setActiveTab("resume");
-      setOpenAccordion("resume");
+    if (update.isRevert) {
+      setAllSnippets(prev => { const next = { ...prev }; delete next[update.keyword]; return next; });
+    } else if (update.snippet) {
+      setAllSnippets(prev => ({ ...prev, [update.keyword]: update.snippet }));
     }
-    if (update.cover !== null) {
-      setCoverLetter(update.cover);
-      if (update.resume === null) {
-        setActiveTab("cover");
-        setOpenAccordion("cover");
+
+    if (!update.isRevert) {
+      if (update.resume !== null) {
+        setTailoredResume(update.resume);
+        setActiveTab("resume");
+        setOpenAccordion("resume");
       }
+      if (update.cover !== null) {
+        setCoverLetter(update.cover);
+        if (update.resume === null) {
+          setActiveTab("cover");
+          setOpenAccordion("cover");
+        }
+      }
+    } else {
+      if (update.resume !== null) setTailoredResume(update.resume);
+      if (update.cover !== null) setCoverLetter(update.cover);
     }
   }, []);
 
   return (
-    <>
-      <KeywordStrengthSection
-        applicationId={applicationId}
-        missingKeywords={missingKeywords}
-        matchScore={matchScore}
-        planType={planType}
-        hasTailoredResume={hasTailoredResume}
-        hasCoverLetter={hasCoverLetter}
-        tailoredResume={tailoredResume}
-        coverLetter={coverLetter}
-        strengthenedKeywords={strengthenedKeywords}
-        strengthenedKeywordSnippets={strengthenedKeywordSnippets}
-        strengthenedKeywordOriginals={strengthenedKeywordOriginals}
-        keywordImportance={keywordImportance}
-        skippedKeywords={skippedKeywords}
-        onDocumentUpdate={handleDocumentUpdate}
-      />
-      <ApplicationDetailTabs
-        applicationId={applicationId}
-        missingKeywords={missingKeywords}
-        jobDescription={jobDescription}
-        initialSalary={initialSalary}
-        matchExplanation={matchExplanation}
-        tailoredResume={tailoredResume}
-        coverLetter={coverLetter}
-        initialRoleSummary={initialRoleSummary}
-        initialHiringManager={initialHiringManager}
-        initialLocationType={initialLocationType}
-        initialOtherNotes={initialOtherNotes}
-        initialNotes={initialNotes}
-        initialReferenceIds={initialReferenceIds}
-        initialIncludeReferencesInCv={initialIncludeReferencesInCv}
-        status={status}
-        initialInterviewQuestions={initialInterviewQuestions}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        openAccordion={openAccordion}
-        onAccordionChange={setOpenAccordion}
-        highlightKeyword={highlightKeyword}
-        snippets={allSnippets}
-        onDocumentSaved={(field, content) => {
-          if (field === "tailored_resume") setTailoredResume(content);
-          else setCoverLetter(content);
-        }}
-      />
-    </>
+    <ApplicationDetailTabs
+      applicationId={applicationId}
+      missingKeywords={missingKeywords}
+      matchScore={matchScore}
+      jobDescription={jobDescription}
+      initialSalary={initialSalary}
+      matchExplanation={matchExplanation}
+      tailoredResume={tailoredResume}
+      coverLetter={coverLetter}
+      initialRoleSummary={initialRoleSummary}
+      initialHiringManager={initialHiringManager}
+      initialLocationType={initialLocationType}
+      initialOtherNotes={initialOtherNotes}
+      initialNotes={initialNotes}
+      initialReferenceIds={initialReferenceIds}
+      initialIncludeReferencesInCv={initialIncludeReferencesInCv}
+      status={status}
+      initialInterviewQuestions={initialInterviewQuestions}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      openAccordion={openAccordion}
+      onAccordionChange={setOpenAccordion}
+      highlightKeyword={highlightKeyword}
+      snippets={allSnippets}
+      onDocumentSaved={(field, content) => {
+        if (field === "tailored_resume") setTailoredResume(content);
+        else setCoverLetter(content);
+      }}
+      strengthenedKeywords={strengthenedKeywords}
+      strengthenedKeywordSnippets={strengthenedKeywordSnippets}
+      strengthenedKeywordOriginals={strengthenedKeywordOriginals}
+      strengthenedKeywordTargets={strengthenedKeywordTargets}
+      keywordImportance={keywordImportance}
+      skippedKeywords={skippedKeywords}
+      planType={planType}
+      hasTailoredResume={hasTailoredResume}
+      hasCoverLetter={hasCoverLetter}
+      onDocumentUpdate={handleDocumentUpdate}
+    />
   );
 }

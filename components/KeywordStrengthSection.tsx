@@ -37,6 +37,7 @@ type Props = {
   keywordImportance: Record<string, string>;
   skippedKeywords: string[];
   onDocumentUpdate: (update: DocumentUpdate) => void;
+  compact?: boolean;
 };
 
 const IMPORTANCE_ORDER: Record<string, number> = { required: 0, preferred: 1, unspecified: 2 };
@@ -56,6 +57,7 @@ export function KeywordStrengthSection({
   keywordImportance,
   skippedKeywords,
   onDocumentUpdate,
+  compact = false,
 }: Props) {
   const [isOpen, setIsOpen] = useState(missingKeywords.length > 0);
   const [showAll, setShowAll] = useState(false);
@@ -385,7 +387,7 @@ export function KeywordStrengthSection({
               Keywords marked &ldquo;Added to documents&rdquo; were automatically woven in when your application was generated.
             </p>
           )}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className={`grid gap-3 ${compact ? "grid-cols-1" : "sm:grid-cols-2 lg:grid-cols-3"}`}>
             {(showAll ? displayItems : displayItems.slice(0, 3)).map((item) => {
               const state = getState(item);
               const isSuccess = state.phase === "success";

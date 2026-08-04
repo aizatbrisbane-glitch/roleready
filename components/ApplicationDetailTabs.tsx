@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, Banknote, BookOpen, CheckCircle2, ChevronDown, Download, Lightbulb, MapPin, Pencil, Sparkles, Star, TrendingUp, User, UserCheck } from "lucide-react";
 import { CoverLetterRenderer, ResumeRenderer } from "@/components/ResumeRenderer";
 import { DocumentEditor } from "@/components/DocumentEditor";
-import type { ApplicationStatus, InterviewQuestion, Reference } from "@/types/database";
+import { KeywordSidePanel } from "@/components/KeywordSidePanel";
+import type { ApplicationStatus, EntitlementPlanType, InterviewQuestion, Reference } from "@/types/database";
+import type { DocumentUpdate } from "@/components/ApplicationDetailClient";
 
 type AnalysisSection = { heading: string; bullets: string[]; body: string };
 
@@ -137,6 +139,7 @@ type Props = {
   initialSalary: string;
   matchExplanation: string | null;
   missingKeywords: string[];
+  matchScore: number | null;
   tailoredResume: string | null;
   coverLetter: string | null;
   initialRoleSummary: string | null;
@@ -155,6 +158,16 @@ type Props = {
   highlightKeyword?: string | null;
   snippets?: Record<string, string>;
   onDocumentSaved: (field: "tailored_resume" | "cover_letter", content: string) => void;
+  strengthenedKeywords: string[];
+  strengthenedKeywordSnippets: Record<string, string>;
+  strengthenedKeywordOriginals: Record<string, string>;
+  strengthenedKeywordTargets: Record<string, "resume" | "cover_letter">;
+  keywordImportance: Record<string, string>;
+  skippedKeywords: string[];
+  planType: EntitlementPlanType;
+  hasTailoredResume: boolean;
+  hasCoverLetter: boolean;
+  onDocumentUpdate: (update: DocumentUpdate) => void;
 };
 
 const LOCATION_TYPES = ["Not specified", "Remote", "Hybrid", "On-site"];
@@ -181,6 +194,7 @@ export function ApplicationDetailTabs({
   initialSalary,
   matchExplanation,
   missingKeywords,
+  matchScore,
   tailoredResume,
   coverLetter,
   initialRoleSummary,
@@ -199,6 +213,16 @@ export function ApplicationDetailTabs({
   highlightKeyword,
   snippets,
   onDocumentSaved,
+  strengthenedKeywords,
+  strengthenedKeywordSnippets,
+  strengthenedKeywordOriginals,
+  strengthenedKeywordTargets,
+  keywordImportance,
+  skippedKeywords,
+  planType,
+  hasTailoredResume,
+  hasCoverLetter,
+  onDocumentUpdate,
 }: Props) {
 
   const [roleSummary, setRoleSummary] = useState(initialRoleSummary ?? "");
@@ -580,110 +604,156 @@ export function ApplicationDetailTabs({
     );
 
     if (tab === "resume") return (
-      <div>
-        {tailoredResume ? (
-          editingResume ? (
-            <DocumentEditor
-              content={resumeDraft}
-              onChange={setResumeDraft}
-              onSave={(content) => saveDocument("tailored_resume", content)}
-              onCancel={() => { setEditingResume(false); setDocSaveMessage(""); }}
-              saving={docSaving}
-              saveMessage={docSaveMessage}
-              PreviewComponent={ResumeRenderer}
-            />
-          ) : (
-            <>
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-3">
-                <span className="text-sm text-slate-500">Tailored resume</span>
-                <div className="flex flex-wrap gap-2">
-                  {snippets && Object.keys(snippets).length > 0 && (
+      <div className="flex flex-col md:flex-row md:h-[calc(100vh-12rem)]">
+        <div className="shrink-0 border-b border-slate-100 md:w-[280px] md:border-b-0 md:border-r md:h-full">
+          <KeywordSidePanel
+            key="resume"
+            target="resume"
+            applicationId={applicationId}
+            matchScore={matchScore}
+            missingKeywords={missingKeywords}
+            strengthenedKeywords={strengthenedKeywords}
+            strengthenedKeywordSnippets={strengthenedKeywordSnippets}
+            strengthenedKeywordOriginals={strengthenedKeywordOriginals}
+            strengthenedKeywordTargets={strengthenedKeywordTargets}
+            keywordImportance={keywordImportance}
+            skippedKeywords={skippedKeywords}
+            planType={planType}
+            hasTailoredResume={hasTailoredResume}
+            hasCoverLetter={hasCoverLetter}
+            tailoredResume={tailoredResume}
+            coverLetter={coverLetter}
+            onDocumentUpdate={onDocumentUpdate}
+          />
+        </div>
+        <div className="min-w-0 flex-1 md:flex md:flex-col md:overflow-hidden">
+          {tailoredResume ? (
+            editingResume ? (
+              <DocumentEditor
+                content={resumeDraft}
+                onChange={setResumeDraft}
+                onSave={(content) => saveDocument("tailored_resume", content)}
+                onCancel={() => { setEditingResume(false); setDocSaveMessage(""); }}
+                saving={docSaving}
+                saveMessage={docSaveMessage}
+                PreviewComponent={ResumeRenderer}
+              />
+            ) : (
+              <>
+                <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-3">
+                  <span className="text-sm text-slate-500">Tailored resume</span>
+                  <div className="flex flex-wrap gap-2">
+                    {snippets && Object.keys(snippets).length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowResumeHighlights(v => !v)}
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-semibold transition ${showResumeHighlights ? "border-green-200 bg-green-100 text-green-700" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        {showResumeHighlights ? "Showing keywords" : "Show keywords"}
+                      </button>
+                    )}
                     <button
                       type="button"
-                      onClick={() => setShowResumeHighlights(v => !v)}
-                      className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-semibold transition ${showResumeHighlights ? "border-green-200 bg-green-100 text-green-700" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
+                      onClick={() => { setResumeDraft(tailoredResume); setEditingResume(true); setDocSaveMessage(""); }}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
                     >
-                      <Sparkles className="h-3.5 w-3.5" />
-                      {showResumeHighlights ? "Showing additions" : "Show additions"}
+                      <Pencil className="h-3.5 w-3.5" /> Edit
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => { setResumeDraft(tailoredResume); setEditingResume(true); setDocSaveMessage(""); }}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
-                  >
-                    <Pencil className="h-3.5 w-3.5" /> Edit
-                  </button>
-                  <a href={`/api/applications/${applicationId}/export?type=resume&format=docx`} className="inline-flex items-center gap-1.5 rounded-full bg-[#2200ff] px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[#1a00cc]">
-                    <Download className="h-3.5 w-3.5" /> DOCX
-                  </a>
-                  <a href={`/api/applications/${applicationId}/export?type=resume&format=pdf`} className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50">
-                    <Download className="h-3.5 w-3.5" /> PDF
-                  </a>
+                    <a href={`/api/applications/${applicationId}/export?type=resume&format=docx`} className="inline-flex items-center gap-1.5 rounded-full bg-[#2200ff] px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[#1a00cc]">
+                      <Download className="h-3.5 w-3.5" /> DOCX
+                    </a>
+                    <a href={`/api/applications/${applicationId}/export?type=resume&format=pdf`} className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50">
+                      <Download className="h-3.5 w-3.5" /> PDF
+                    </a>
+                  </div>
                 </div>
-              </div>
-              <div className="max-h-[680px] overflow-auto rounded-b-[1.6rem]">
-                <ResumeRenderer content={tailoredResume} highlightKeyword={highlightKeyword} highlightSnippets={showResumeHighlights ? Object.values(snippets ?? {}).filter(Boolean) : []} />
-              </div>
-            </>
-          )
-        ) : (
-          <p className="px-5 py-8 text-sm italic text-slate-400">Generate the application to see your tailored resume here.</p>
-        )}
+                <div className="flex-1 overflow-y-auto">
+                  <ResumeRenderer content={tailoredResume} highlightKeyword={highlightKeyword} highlightTerms={showResumeHighlights ? Object.keys(snippets ?? {}).filter(Boolean) : []} highlightPresentTerms={showResumeHighlights ? missingKeywords.filter(kw => !snippets?.[kw] && tailoredResume.toLowerCase().includes(kw.toLowerCase())) : []} />
+                </div>
+              </>
+            )
+          ) : (
+            <p className="px-5 py-8 text-sm italic text-slate-400">Generate the application to see your tailored resume here.</p>
+          )}
+        </div>
       </div>
     );
 
     if (tab === "cover") return (
-      <div>
-        {coverLetter ? (
-          editingCover ? (
-            <DocumentEditor
-              content={coverDraft}
-              onChange={setCoverDraft}
-              onSave={(content) => saveDocument("cover_letter", content)}
-              onCancel={() => { setEditingCover(false); setDocSaveMessage(""); }}
-              saving={docSaving}
-              saveMessage={docSaveMessage}
-              PreviewComponent={CoverLetterRenderer}
-            />
-          ) : (
-            <>
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-3">
-                <span className="text-sm text-slate-500">Cover letter</span>
-                <div className="flex flex-wrap gap-2">
-                  {snippets && Object.keys(snippets).length > 0 && (
+      <div className="flex flex-col md:flex-row md:h-[calc(100vh-12rem)]">
+        <div className="shrink-0 border-b border-slate-100 md:w-[280px] md:border-b-0 md:border-r md:h-full">
+          <KeywordSidePanel
+            key="cover_letter"
+            target="cover_letter"
+            applicationId={applicationId}
+            matchScore={matchScore}
+            missingKeywords={missingKeywords}
+            strengthenedKeywords={strengthenedKeywords}
+            strengthenedKeywordSnippets={strengthenedKeywordSnippets}
+            strengthenedKeywordOriginals={strengthenedKeywordOriginals}
+            strengthenedKeywordTargets={strengthenedKeywordTargets}
+            keywordImportance={keywordImportance}
+            skippedKeywords={skippedKeywords}
+            planType={planType}
+            hasTailoredResume={hasTailoredResume}
+            hasCoverLetter={hasCoverLetter}
+            tailoredResume={tailoredResume}
+            coverLetter={coverLetter}
+            onDocumentUpdate={onDocumentUpdate}
+          />
+        </div>
+        <div className="min-w-0 flex-1 md:flex md:flex-col md:overflow-hidden">
+          {coverLetter ? (
+            editingCover ? (
+              <DocumentEditor
+                content={coverDraft}
+                onChange={setCoverDraft}
+                onSave={(content) => saveDocument("cover_letter", content)}
+                onCancel={() => { setEditingCover(false); setDocSaveMessage(""); }}
+                saving={docSaving}
+                saveMessage={docSaveMessage}
+                PreviewComponent={CoverLetterRenderer}
+              />
+            ) : (
+              <>
+                <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-3">
+                  <span className="text-sm text-slate-500">Cover letter</span>
+                  <div className="flex flex-wrap gap-2">
+                    {snippets && Object.keys(snippets).length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowCoverHighlights(v => !v)}
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-semibold transition ${showCoverHighlights ? "border-green-200 bg-green-100 text-green-700" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        {showCoverHighlights ? "Showing keywords" : "Show keywords"}
+                      </button>
+                    )}
                     <button
                       type="button"
-                      onClick={() => setShowCoverHighlights(v => !v)}
-                      className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-semibold transition ${showCoverHighlights ? "border-green-200 bg-green-100 text-green-700" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
+                      onClick={() => { setCoverDraft(coverLetter); setEditingCover(true); setDocSaveMessage(""); }}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
                     >
-                      <Sparkles className="h-3.5 w-3.5" />
-                      {showCoverHighlights ? "Showing additions" : "Show additions"}
+                      <Pencil className="h-3.5 w-3.5" /> Edit
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => { setCoverDraft(coverLetter); setEditingCover(true); setDocSaveMessage(""); }}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
-                  >
-                    <Pencil className="h-3.5 w-3.5" /> Edit
-                  </button>
-                  <a href={`/api/applications/${applicationId}/export?type=cover&format=docx`} className="inline-flex items-center gap-1.5 rounded-full bg-[#2200ff] px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[#1a00cc]">
-                    <Download className="h-3.5 w-3.5" /> DOCX
-                  </a>
-                  <a href={`/api/applications/${applicationId}/export?type=cover&format=pdf`} className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50">
-                    <Download className="h-3.5 w-3.5" /> PDF
-                  </a>
+                    <a href={`/api/applications/${applicationId}/export?type=cover&format=docx`} className="inline-flex items-center gap-1.5 rounded-full bg-[#2200ff] px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[#1a00cc]">
+                      <Download className="h-3.5 w-3.5" /> DOCX
+                    </a>
+                    <a href={`/api/applications/${applicationId}/export?type=cover&format=pdf`} className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50">
+                      <Download className="h-3.5 w-3.5" /> PDF
+                    </a>
+                  </div>
                 </div>
-              </div>
-              <div className="max-h-[680px] overflow-auto rounded-b-[1.6rem]">
-                <CoverLetterRenderer content={coverLetter} highlightKeyword={highlightKeyword} highlightSnippets={showCoverHighlights ? Object.values(snippets ?? {}).filter(Boolean) : []} />
-              </div>
+                <div className="flex-1 overflow-y-auto">
+                  <CoverLetterRenderer content={coverLetter} highlightKeyword={highlightKeyword} highlightTerms={showCoverHighlights ? Object.keys(snippets ?? {}).filter(Boolean) : []} highlightPresentTerms={showCoverHighlights ? missingKeywords.filter(kw => !snippets?.[kw] && coverLetter.toLowerCase().includes(kw.toLowerCase())) : []} />
+                </div>
             </>
           )
         ) : (
           <p className="px-5 py-8 text-sm italic text-slate-400">Generate the application to see your cover letter here.</p>
         )}
+      </div>
       </div>
     );
 
@@ -920,7 +990,9 @@ export function ApplicationDetailTabs({
             );
           })}
         </div>
-        {renderContent(activeTab)}
+        <div className={(activeTab === "resume" || activeTab === "cover") ? "" : "max-h-[calc(100vh-12rem)] overflow-y-auto"}>
+          {renderContent(activeTab)}
+        </div>
       </div>
 
     </div>
