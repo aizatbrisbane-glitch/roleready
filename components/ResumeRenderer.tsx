@@ -47,8 +47,8 @@ function InlineMd({ text, highlightKeyword, highlightSnippets, highlightTerms, h
   // Snippets are plain text but the document may have **bold** markers splitting the string.
   // Check against the full line with bold markers stripped so we don't miss cross-bold matches.
   const plainText = text.replace(/\*\*([^*]+)\*\*/g, "$1");
-  // highlightSnippets triggers whole-line detection; highlightTerms does inline matching — both can be active
-  const lineMatchesSnippet = highlightSnippets?.some(s => s && plainText.includes(s));
+  // highlightSnippets uses whole-line detection; highlightTerms is always inline-only
+  const lineMatchesSnippet = !highlightTerms?.length && highlightSnippets?.some(s => s && plainText.includes(s));
 
   const renderedParts = boldParts.map((part, i) => {
     if (part.startsWith("**") && part.endsWith("**")) {
