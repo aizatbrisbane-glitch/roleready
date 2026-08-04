@@ -220,7 +220,9 @@ export function KeywordSidePanel({
     if (state.phase !== "reviewing") return;
     setState(kw, { phase: "saving" });
 
-    const editedSnippet = getSnippetEdit(kw).trim() || state.snippet;
+    // Destructure to preserve TypeScript narrowing inside the nested applyChange function.
+    const { snippet: aiSnippet, originalSnippet, tailoredResume: aiResume, coverLetter: aiCover } = state;
+    const editedSnippet = getSnippetEdit(kw).trim() || aiSnippet;
 
     // Apply the keyword change to the current document (which includes any other keywords
     // accepted since this AI snapshot was fetched), not the AI's full snapshot document.
@@ -229,24 +231,24 @@ export function KeywordSidePanel({
     function applyChange(currentDoc: string | null, aiDoc: string | null): string | null {
       if (!aiDoc) return null;
       // AI replaced an existing sentence — find it in the current doc and swap
-      if (state.originalSnippet && currentDoc && docContainsSnippet(currentDoc, state.originalSnippet)) {
-        return currentDoc.replace(state.originalSnippet, editedSnippet);
+      if (originalSnippet && currentDoc && docContainsSnippet(currentDoc, originalSnippet)) {
+        return currentDoc.replace(originalSnippet, editedSnippet);
       }
       // AI added a new sentence and current doc already has it — apply any user textarea edit
-      if (!state.originalSnippet && state.snippet && currentDoc && docContainsSnippet(currentDoc, state.snippet)) {
-        return editedSnippet !== state.snippet ? currentDoc.replace(state.snippet, editedSnippet) : currentDoc;
+      if (!originalSnippet && aiSnippet && currentDoc && docContainsSnippet(currentDoc, aiSnippet)) {
+        return editedSnippet !== aiSnippet ? currentDoc.replace(aiSnippet, editedSnippet) : currentDoc;
       }
       // Fallback: apply user edit to AI doc (e.g. new sentence and current doc is unchanged)
-      return state.snippet && editedSnippet !== state.snippet ? aiDoc.replace(state.snippet, editedSnippet) : aiDoc;
+      return aiSnippet && editedSnippet !== aiSnippet ? aiDoc.replace(aiSnippet, editedSnippet) : aiDoc;
     }
 
-    const finalResume = state.tailoredResume ? applyChange(tailoredResume, state.tailoredResume) : null;
-    const finalCover = state.coverLetter ? applyChange(coverLetter, state.coverLetter) : null;
+    const finalResume = aiResume ? applyChange(tailoredResume, aiResume) : null;
+    const finalCover = aiCover ? applyChange(coverLetter, aiCover) : null;
 
     accumulatedRef.current = {
       keywords: [...new Set([...accumulatedRef.current.keywords, kw])],
       snippets: { ...accumulatedRef.current.snippets, [kw]: editedSnippet },
-      originals: { ...accumulatedRef.current.originals, [kw]: state.originalSnippet },
+      originals: { ...accumulatedRef.current.originals, [kw]: originalSnippet },
       targets: { ...accumulatedRef.current.targets, [kw]: target },
     };
     const body: Record<string, unknown> = {
@@ -265,7 +267,7 @@ export function KeywordSidePanel({
         body: JSON.stringify(body),
       });
       onDocumentUpdate({ resume: finalResume ?? null, cover: finalCover ?? null, keyword: kw, snippet: editedSnippet });
-      setState(kw, { phase: "success", target: state.target, snippet: editedSnippet, originalSnippet: state.originalSnippet });
+      setState(kw, { phase: "success", target: state.target, snippet: editedSnippet, originalSnippet });
       setSessionDelta(d => d + 1);
     } catch {
       setState(kw, { phase: "error", message: "Failed to save. Please try again." });
