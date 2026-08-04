@@ -13,8 +13,8 @@ const STEPS = [
     body: "Read through your tailored resume and cover letter in the tabs below.",
   },
   {
-    heading: "Download and apply",
-    body: "Use the Download buttons to get your DOCX files, then submit your application.",
+    heading: "Download your documents",
+    body: "Use the Download buttons to get your DOCX files, then submit directly on the employer's site.",
   },
   {
     heading: "Mark as applied",
@@ -57,7 +57,7 @@ export function PostGenerationGuide({ applicationId, show }: { applicationId: st
       </button>
 
       {!collapsed && (
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((step, index) => (
             <div key={step.heading} className="rounded-2xl bg-white/70 px-4 py-4">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2200ff] text-xs font-bold text-white">
