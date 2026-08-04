@@ -301,6 +301,11 @@ export function ApplicationDetailTabs({
   }, [highlightKeyword, activeTab]);
 
   useEffect(() => {
+    if (activeTab === "refs" || openAccordion === "refs") loadRefs();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, openAccordion]);
+
+  useEffect(() => {
     const el = roleSummaryRef.current;
     if (!el) return;
     el.style.height = "auto";
@@ -876,13 +881,7 @@ export function ApplicationDetailTabs({
         </div>
 
         {!refsLoaded && (
-          <button
-            type="button"
-            onClick={loadRefs}
-            className="text-sm text-[#2200ff] underline"
-          >
-            Load my saved referees
-          </button>
+          <p className="text-sm text-slate-400 italic">Loading…</p>
         )}
 
         {refsLoaded && allRefs.length === 0 && (
