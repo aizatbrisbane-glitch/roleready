@@ -46,7 +46,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ? await supabase.auth.getUser()
     : { data: { user: null } };
   const { data: profile } = user && supabase
-    ? await supabase.from("profiles").select("name,email,avatar_url").eq("id", user.id).maybeSingle()
+    ? await supabase.from("profiles").select("name,email,avatar_url,role").eq("id", user.id).maybeSingle()
     : { data: null };
   if (user && supabase) {
     await supabase.rpc("accept_enterprise_invitations");
@@ -66,14 +66,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const isPublicShellPage =
     pathname === "/login" ||
     pathname === "/enterprise/request" ||
-    pathname.startsWith("/auth/") ||
-    pathname.startsWith("/admin/live");
+    pathname.startsWith("/auth/");
   const authed = Boolean(user) && !isPublicShellPage;
   const displayName = profile?.name || null;
   const displayEmail = profile?.email || user?.email || null;
   const avatarUrl = profile?.avatar_url || null;
   const initials = initialsFrom(displayName, displayEmail);
   const showEnterpriseAdmin = Boolean(enterpriseAdminMembership);
+  const isAdmin = profile?.role === "admin" || profile?.role === "founder";
   const access = user && supabase ? await getAccessState(supabase, user.id) : null;
   const planType = access?.planType ?? null;
 
@@ -128,6 +128,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             userEmail={displayEmail}
             avatarUrl={avatarUrl}
             showEnterpriseAdmin={showEnterpriseAdmin}
+            isAdmin={isAdmin}
             planType={planType}
             planLabel={access?.planLabel ?? null}
             applicationsUsed={access?.applicationsUsed ?? 0}
@@ -177,7 +178,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
           {children}
 
-          {authed && <MobileNav showEnterpriseAdmin={showEnterpriseAdmin} />}
+          {authed && <MobileNav showEnterpriseAdmin={showEnterpriseAdmin} isAdmin={isAdmin} />}
           <Analytics />
         </div>
       </body>

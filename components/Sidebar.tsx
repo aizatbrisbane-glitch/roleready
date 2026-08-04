@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowRight, BarChart2, BookOpen, Bookmark, Building2, FileText, Home, LayoutDashboard, LogOut, Plus, Settings, Users, Zap } from "lucide-react";
+import { Activity, ArrowRight, BarChart2, BookOpen, Bookmark, Building2, FileText, Home, LayoutDashboard, LogOut, Plus, Settings, Shield, Users, Zap } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 const navItems = [
@@ -19,6 +19,7 @@ type SidebarProps = {
   userEmail?: string | null;
   avatarUrl?: string | null;
   showEnterpriseAdmin?: boolean;
+  isAdmin?: boolean;
   planType?: string | null;
   planLabel?: string | null;
   applicationsUsed?: number;
@@ -43,7 +44,7 @@ const enterpriseNavItems = [
   { href: "/profile",               label: "Settings",    icon: Settings },
 ];
 
-export function Sidebar({ userName, userEmail, avatarUrl, showEnterpriseAdmin, planType, planLabel, applicationsUsed = 0, applicationsRemaining = 0, applicationLimit = 1 }: SidebarProps) {
+export function Sidebar({ userName, userEmail, avatarUrl, showEnterpriseAdmin, isAdmin, planType, planLabel, applicationsUsed = 0, applicationsRemaining = 0, applicationLimit = 1 }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const initials = initialsFrom(userName, userEmail);
@@ -91,6 +92,33 @@ export function Sidebar({ userName, userEmail, avatarUrl, showEnterpriseAdmin, p
             >
               <Plus className="h-4.5 w-4.5 shrink-0" />
               Add Job
+            </Link>
+          </div>
+        )}
+
+        {isAdmin && (
+          <div className="pt-2 mt-2 border-t border-slate-100 space-y-1">
+            <Link
+              href="/admin"
+              className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition duration-200 ${
+                pathname === "/admin"
+                  ? "bg-[#ece8ff] text-[#2200ff] shadow-[0_4px_16px_rgba(34,0,255,0.1)]"
+                  : "text-slate-500 hover:bg-slate-50 hover:text-[#2200ff]"
+              }`}
+            >
+              <Shield className="h-4.5 w-4.5 shrink-0" />
+              Admin
+            </Link>
+            <Link
+              href="/admin/live"
+              className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition duration-200 ${
+                pathname.startsWith("/admin/live")
+                  ? "bg-[#ece8ff] text-[#2200ff] shadow-[0_4px_16px_rgba(34,0,255,0.1)]"
+                  : "text-slate-500 hover:bg-slate-50 hover:text-[#2200ff]"
+              }`}
+            >
+              <Activity className="h-4.5 w-4.5 shrink-0" />
+              Mission Control
             </Link>
           </div>
         )}
