@@ -370,17 +370,17 @@ export function LandingPage() {
           <div className="relative z-10 px-8 pb-10 pt-32 sm:px-12 sm:pb-16 sm:pt-32 lg:flex-1 lg:flex lg:flex-col lg:px-16 lg:pt-28 lg:pb-4">
 
             {/* Headline — spans full width */}
-            <h1 className="text-center text-[1.65rem] font-black leading-[1.1] tracking-tight text-slate-900 sm:text-[2.7rem] lg:text-[2rem] xl:text-[2.5rem]">
+            <h1 className="text-center text-[1.65rem] font-black leading-[1.1] tracking-tight text-slate-900 sm:text-[2.7rem] lg:text-[1.5rem] xl:text-[2rem]">
               You don't have to suffer. <span className="text-[#2200ff]">Tailor your CV and cover letter to any job.</span>
             </h1>
 
             {/* Subheading */}
-            <p className="mt-4 text-center text-lg font-semibold leading-snug text-slate-600 sm:text-3xl lg:text-xl">
+            <p className="mt-4 text-center text-lg font-semibold leading-snug text-slate-600 sm:text-3xl lg:mt-3 lg:text-lg">
               Turn one CV into a tailored application for every job. Take seconds, not hours.
             </p>
 
             {/* Two-column: photo left, resume card right */}
-            <div className="mt-7 grid grid-cols-1 gap-6 pb-4 sm:mt-10 lg:mt-5 lg:grid-cols-2 lg:grid-rows-1 lg:gap-8 lg:flex-1 lg:min-h-0">
+            <div className="mt-7 grid grid-cols-1 gap-6 pb-4 sm:mt-10 lg:mt-4 lg:grid-cols-2 lg:grid-rows-1 lg:gap-8 lg:flex-1 lg:min-h-0 lg:overflow-hidden">
 
               {/* Left: slideshow — desktop only */}
               <div className="relative hidden overflow-hidden rounded-3xl shadow-lg lg:block lg:h-full" style={{ minHeight: "250px" }}>
@@ -418,7 +418,7 @@ export function LandingPage() {
                   event.preventDefault();
                   handleHeroFile(event.dataTransfer.files?.[0]);
                 }}
-                className="Koalapply-pop-in flex flex-col items-center justify-center rounded-[1.5rem] border-2 border-dashed border-[#b9adff] bg-white/95 p-6 text-center shadow-[0_28px_90px_rgba(34,0,255,0.16)] backdrop-blur transition hover:-translate-y-0.5 hover:border-[#2200ff] sm:rounded-[2.25rem] sm:p-12 lg:h-full lg:p-6"
+                className="Koalapply-pop-in flex flex-col items-center justify-center rounded-[1.5rem] border-2 border-dashed border-[#b9adff] bg-white/95 p-6 text-center shadow-[0_28px_90px_rgba(34,0,255,0.16)] backdrop-blur transition hover:-translate-y-0.5 hover:border-[#2200ff] sm:rounded-[2.25rem] sm:p-12 lg:h-full lg:overflow-hidden lg:p-5"
               >
                 <input
                   ref={resumeInputRef}
@@ -427,12 +427,12 @@ export function LandingPage() {
                   className="hidden"
                   onChange={(event) => handleHeroFile(event.target.files?.[0])}
                 />
-                <span className="inline-flex h-16 w-16 items-center justify-center rounded-[1.2rem] bg-[#ece8ff] text-[#2200ff] shadow-sm sm:h-24 sm:w-24 sm:rounded-[1.7rem] lg:h-16 lg:w-16 lg:rounded-[1.2rem]">
-                  <UploadCloud className="h-9 w-9 sm:h-14 sm:w-14 lg:h-9 lg:w-9" />
+                <span className="inline-flex h-16 w-16 items-center justify-center rounded-[1.2rem] bg-[#ece8ff] text-[#2200ff] shadow-sm sm:h-24 sm:w-24 sm:rounded-[1.7rem] lg:h-12 lg:w-12 lg:rounded-[1rem]">
+                  <UploadCloud className="h-9 w-9 sm:h-14 sm:w-14 lg:h-7 lg:w-7" />
                 </span>
-                <p className="mt-4 text-2xl font-black tracking-tight text-slate-900 sm:mt-6 sm:text-4xl lg:mt-4 lg:text-2xl">Drop your resume here. See what it could look like.</p>
-                <p className="mt-3 text-base font-semibold text-slate-500">PDF or DOCX · Max 4 MB</p>
-                <div className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-[#ece8ff] px-3.5 py-1.5 text-xs font-semibold text-[#2200ff] sm:mt-8 lg:mt-4 sm:text-sm">
+                <p className="mt-4 text-2xl font-black tracking-tight text-slate-900 sm:mt-6 sm:text-4xl lg:mt-3 lg:text-xl">Drop your resume here. See what it could look like.</p>
+                <p className="mt-3 text-base font-semibold text-slate-500 lg:mt-2">PDF or DOCX · Max 4 MB</p>
+                <div className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-[#ece8ff] px-3.5 py-1.5 text-xs font-semibold text-[#2200ff] sm:mt-8 lg:mt-3 sm:text-sm">
                   <Sparkles className="h-3.5 w-3.5 shrink-0" />
                   1 free tailored resume — get 2 free when you subscribe to career tips
                 </div>
@@ -442,11 +442,11 @@ export function LandingPage() {
                     event.stopPropagation();
                     resumeInputRef.current?.click();
                   }}
-                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-base font-bold text-white shadow-[0_16px_44px_rgba(34,0,255,0.34)] transition hover:bg-[#1a00cc] sm:px-7 sm:py-4 sm:text-lg lg:py-3 lg:text-base"
+                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-base font-bold text-white shadow-[0_16px_44px_rgba(34,0,255,0.34)] transition hover:bg-[#1a00cc] sm:px-7 sm:py-4 sm:text-lg lg:mt-2 lg:py-2.5 lg:text-base"
                 >
                   Tailor My Resume for FREE
                 </button>
-                <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 sm:mt-3">
+                <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 sm:mt-3 lg:mt-1">
                   <p className="inline-flex items-center gap-1.5 text-xs text-slate-400 sm:text-sm">
                     <ShieldCheck className="h-4 w-4" />
                     No credit card required
@@ -462,7 +462,7 @@ export function LandingPage() {
                 </div>
                 <a
                   href="#walkthrough"
-                  className="mt-2 text-xs text-slate-400 underline underline-offset-2 transition hover:text-[#2200ff]"
+                  className="mt-2 text-xs text-slate-400 underline underline-offset-2 transition hover:text-[#2200ff] lg:hidden"
                 >
                   Watch how it works →
                 </a>
