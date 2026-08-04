@@ -129,6 +129,8 @@ export function KeywordSidePanel({
     return !s || (s.phase !== "success" && s.phase !== "skipped" && s.phase !== "present");
   }).length;
 
+  const anyBusy = Object.values(states).some(s => s.phase === "loading" || s.phase === "reviewing" || s.phase === "saving");
+
   const totalKeywords = sortedKeywords.length;
   const base = matchScore ?? 0;
   const pageLoadScore = totalKeywords === 0 ? base : Math.min(100, Math.round(base + initialStrengthened * (100 - base) / totalKeywords));
@@ -408,7 +410,7 @@ export function KeywordSidePanel({
                       Undo
                     </button>
                   ) : isError ? (
-                    <button type="button" onClick={() => handleAutoStrengthen(kw)} className="text-[10px] font-semibold text-rose-500 hover:text-rose-700">
+                    <button type="button" onClick={() => handleAutoStrengthen(kw)} disabled={anyBusy} className="text-[10px] font-semibold text-rose-500 hover:text-rose-700 disabled:opacity-40 disabled:cursor-not-allowed">
                       Retry
                     </button>
                   ) : !isExpanded && !isLoading ? (
@@ -416,7 +418,8 @@ export function KeywordSidePanel({
                       <button
                         type="button"
                         onClick={() => handleAutoStrengthen(kw)}
-                        className="inline-flex items-center gap-1 rounded-full border border-[#2200ff]/20 bg-white px-2 py-0.5 text-[10px] font-semibold text-[#2200ff] transition hover:bg-[#ece8ff]"
+                        disabled={anyBusy}
+                        className="inline-flex items-center gap-1 rounded-full border border-[#2200ff]/20 bg-white px-2 py-0.5 text-[10px] font-semibold text-[#2200ff] transition hover:bg-[#ece8ff] disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <Sparkles className="h-2.5 w-2.5" />
                         Add
@@ -523,7 +526,7 @@ export function KeywordSidePanel({
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      disabled={!getEvidence(kw).trim()}
+                      disabled={!getEvidence(kw).trim() || anyBusy}
                       onClick={() => handleManualStrengthen(kw)}
                       className="inline-flex items-center gap-1 rounded-full bg-[#2200ff] px-2.5 py-1 text-[10px] font-bold text-white disabled:opacity-50"
                     >
