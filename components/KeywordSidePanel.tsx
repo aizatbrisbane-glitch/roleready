@@ -202,11 +202,27 @@ export function KeywordSidePanel({
     setState(kw, { phase: "saving" });
 
     const editedSnippet = getSnippetEdit(kw).trim() || state.snippet;
-    const applyEdit = (doc: string | null) =>
-      doc && state.snippet && editedSnippet !== state.snippet ? doc.replace(state.snippet, editedSnippet) : doc;
 
-    const finalResume = applyEdit(state.tailoredResume);
-    const finalCover = applyEdit(state.coverLetter);
+    // Apply the keyword change to the current document (which includes any other keywords
+    // accepted since this AI snapshot was fetched), not the AI's full snapshot document.
+    // This prevents a keyword accepted from an older DB snapshot from overwriting a keyword
+    // that was accepted in the meantime.
+    function applyChange(currentDoc: string | null, aiDoc: string | null): string | null {
+      if (!aiDoc) return null;
+      // AI replaced an existing sentence — find it in the current doc and swap
+      if (state.originalSnippet && currentDoc?.includes(state.originalSnippet)) {
+        return currentDoc.replace(state.originalSnippet, editedSnippet);
+      }
+      // AI added a new sentence and current doc already has it — apply any user textarea edit
+      if (!state.originalSnippet && state.snippet && currentDoc?.includes(state.snippet)) {
+        return editedSnippet !== state.snippet ? currentDoc.replace(state.snippet, editedSnippet) : currentDoc;
+      }
+      // Fallback: apply user edit to AI doc (e.g. new sentence and current doc is unchanged)
+      return state.snippet && editedSnippet !== state.snippet ? aiDoc.replace(state.snippet, editedSnippet) : aiDoc;
+    }
+
+    const finalResume = state.tailoredResume ? applyChange(tailoredResume, state.tailoredResume) : null;
+    const finalCover = state.coverLetter ? applyChange(coverLetter, state.coverLetter) : null;
 
     accumulatedRef.current = {
       keywords: [...new Set([...accumulatedRef.current.keywords, kw])],
