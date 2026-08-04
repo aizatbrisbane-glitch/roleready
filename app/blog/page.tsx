@@ -18,7 +18,7 @@ export default async function BlogPage() {
   const { data: { user } } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
 
   const featured = getFeaturedArticle();
-  const latest = blogArticles.filter((article) => article.slug !== featured.slug);
+  const latest = blogArticles.filter((article) => article.slug !== featured.slug).reverse();
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900">

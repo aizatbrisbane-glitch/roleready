@@ -1982,7 +1982,6 @@ export const blogArticles: BlogArticle[] = [
     title: "Ghosting: When a Job Comes Back from the Dead",
     excerpt: "You applied, heard nothing, moved on. Now the job is back. Here is why zombie job listings reappear and whether you should apply again.",
     category: "Job Search",
-    featured: true,
     author: "Koalapply",
     publishDate: "30 July 2026",
     readingTime: "8 min read",
@@ -2137,6 +2136,100 @@ export const blogArticles: BlogArticle[] = [
           "Reapply when there is a genuine reason to believe the outcome could be different. Make your application stronger, tailor it properly and show what has changed since the first time.",
           "But keep track of where you have already applied, watch for patterns and do not let one zombie job consume your entire search.",
           "Some roles deserve a second chance. Others should be returned to the graveyard.",
+        ]
+      },
+    ]
+  },
+  {
+    slug: "candidates-deserve-better-5-things-companies-should-change",
+    title: "Candidates Deserve Better: 5 Things Companies Should Change",
+    excerpt: "Job hunting shouldn't involve this much emotional admin. Here are five things companies could change right now to fix the candidate experience.",
+    category: "Job Market",
+    featured: true,
+    author: "Koalapply",
+    publishDate: "4 Aug 2026",
+    readingTime: "7 min read",
+    image: "/blog/candidates-deserve-better.jpg",
+    imageAlt: "Job candidate sitting in a waiting room holding a folder, surrounded by illustrated icons representing life decisions",
+    relatedSlugs: [
+      "ghosting-when-a-job-comes-back-from-the-dead",
+      "job-search-system-that-keeps-you-organised",
+      "how-to-tailor-your-resume-for-each-job",
+    ],
+    midCta: {
+      afterSectionId: "put-salary-in-job-ad",
+      heading: "Stay on top of every application without the spreadsheet chaos",
+      subtext: "Koalapply tracks your applications, tailors your resume, and keeps your job search organised — free to try.",
+    },
+    sections: [
+      {
+        id: "intro",
+        title: "The Candidate Experience Problem",
+        paragraphs: [
+          "Job hunting currently involves a surprising amount of emotional admin. You find a role. You research the company. You update your resume. You write a cover letter explaining why this particular organisation has always spoken to your soul, despite discovering it 14 minutes ago.",
+          "Then you apply. Wait. And wait. Eventually, one of three things happens: you receive an automated rejection at 2.13 am, you hear absolutely nothing, or the job is reposted three weeks later [like a ghost](/blog/ghosting-when-a-job-comes-back-from-the-dead) returning to finish some unresolved business.",
+          "And let's not forget about the job search admin — [keeping track of all the applications and all the details discussed](/blog/job-search-system-that-keeps-you-organised) with various recruiters. Companies often talk about improving the candidate experience. Sometimes on their website featuring stock photos of smiling people pointing at Post-it notes. But candidates do not need another candidate experience strategy. What they really need is for companies to stop doing a few deeply annoying things. Here are five good places to start.",
+        ]
+      },
+      {
+        id: "put-salary-in-job-ad",
+        title: "1. Put the Salary in the Job Ad",
+        paragraphs: [
+          "\"Competitive salary\" is not a number. Competitive with what? The market? Your last employee? A packet of Tim Tams?",
+          "Candidates should not have to complete an application, speak to a recruiter, and attend two interviews before discovering the salary is $30,000 below what they currently earn.",
+          "Publishing the range saves everyone time, even the recruiter. Candidates can make an informed decision and the result is recruiters receive more relevant applications. Hiring managers avoid spending three weeks interviewing someone they were never going to be able to afford.",
+          "It also helps address pay inequality. When salaries are hidden, candidates are forced to negotiate based on what they think the company might pay, what they earned previously and how confidently they can say \"I'm flexible\" while internally calculating their mortgage.",
+          "Include the actual salary range and state whether it includes superannuation. Explain any bonus or commission structure. This is employment, not a mystery box.",
+        ]
+      },
+      {
+        id: "reject-people-promptly",
+        title: "2. Reject People When You Know They Are Unsuccessful",
+        paragraphs: [
+          "Companies sometimes behave as though rejection emails need to be aged in oak barrels before they can be released. They do not.",
+          "When you know someone is no longer being considered, tell them. Candidates understand that rejection is part of job hunting but what they struggle with is uncertainty. They may be deciding whether to pursue another opportunity, accept a different offer, delay a move or continue surviving on instant noodles until something works out. A simple update lets them move on.",
+          "Do not keep candidates \"under review\" while your preferred applicant is negotiating their start date, ordering a laptop, and choosing a profile photo for the company website. Even an automated email is better than silence. It takes seconds to send and saves someone weeks of checking their inbox every time their phone buzzes.",
+          "Close the loop. It is basic manners with a subject line.",
+        ]
+      },
+      {
+        id: "honest-about-internal-candidate",
+        title: "3. Be Honest When There Is a Preferred Internal Candidate",
+        paragraphs: [
+          "Internal promotions are good. Companies should develop their people and give them opportunities to grow. What is less good is inviting 74 external candidates into a process that was effectively decided before the job ad went live.",
+          "Sometimes companies are required to advertise roles externally for governance or fair opportunity. Sometimes they want to test the market or the internal candidate may actually genuinely be a good fit. Fine, just be honest about it.",
+          "Candidates deserve to know when there is a strong internal applicant or when the role is being advertised as part of a formal process. They can then decide whether the opportunity is still worth pursuing. Because applying for roles today requires cover letters and resumes to be tailored, and that is time and effort.",
+          "They should not be asked to complete three interviews, a personality test and a 12-slide strategy presentation so the company can demonstrate that it conducted a \"competitive process.\"",
+        ]
+      },
+      {
+        id: "stop-reality-tv-hiring",
+        title: "4. Stop Turning Every Hire Into a Reality Television Competition",
+        paragraphs: [
+          "Some recruitment processes now have more rounds than Wimbledon. First comes the recruiter screening, then the hiring manager interview, then the panel, then the task. If you are lucky you would be asked to prepare a presentation which sometimes pops up in the market as a campaign.",
+          "For certain senior or highly technical roles, a detailed process makes sense. But a four-stage recruitment marathon should not be the default for every job unless we are talking about national security and high level information clearance.",
+          "Each stage should have a clear purpose. If three interviews have not given you enough information, ask whether the candidate is really the problem. Tell applicants about the full process upfront, keep assessments relevant, and stop asking people to create entire strategies your company could conveniently use later.",
+          "Candidates are applying for a job, not volunteering their time.",
+        ]
+      },
+      {
+        id: "give-proper-feedback",
+        title: "5. Give Proper Feedback to People Who Interview",
+        paragraphs: [
+          "No one expects personalised career coaching after clicking \"Easy Apply.\" But once someone has attended multiple interviews, completed an assessment or presented to a panel, they deserve more than: \"We have decided to proceed with another candidate whose experience more closely aligns with the role.\"",
+          "That sentence has been sent so many times it should qualify as corporate heritage. Meaningful feedback does not need to be lengthy or legally terrifying.",
+          "You could say another candidate had more direct industry experience. Their examples were stronger in a particular area. The panel needed deeper technical knowledge. The position changed during the recruitment process. Give them something they can use.",
+          "Candidates invest time, energy and often genuine hope into interviews. They prepare examples, take leave from work, arrange childcare, travel across town, and spend the previous night wondering whether \"Tell us about yourself\" means two minutes or their complete origin story. A few honest sentences are not too much to ask.",
+        ]
+      },
+      {
+        id: "rejected-candidates-still-matter",
+        title: "Your Rejected Candidates Still Matter",
+        paragraphs: [
+          "Companies sometimes forget that unsuccessful candidates do not disappear after receiving a rejection email. They remain customers, industry peers, potential referrers and possible future employees.",
+          "They also talk. They tell friends when a company ghosted them or when the salary was revealed at the last minute. They notice when the job they applied for keeps reappearing every six weeks like a suspicious marketplace listing. And suddenly a well-loved brand does not seem so well-loved anymore.",
+          "Candidate experience is customer experience. It is difficult to feel loyal to a company that asked for hours of your time, promised an update and then vanished. A poor recruitment process can change how someone sees the entire brand, including whether they want to buy from it, recommend it or engage with it again.",
+          "But candidates also remember the good experiences. Organisations that communicated clearly, gave thoughtful feedback, and treated them respectfully even though they did not get the job. You do not need to hire someone to leave them with a positive impression. You just need to treat them with respect. Because on the other side of that application is a human with hope.",
         ]
       },
     ]
