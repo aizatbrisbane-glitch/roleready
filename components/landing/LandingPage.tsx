@@ -316,7 +316,7 @@ export function LandingPage() {
       <main>
 
         {/* â"€â"€ Hero (header lives inside so nav overlays the image) â"€â"€ */}
-        <section className="Koalapply-fade-up relative overflow-hidden" style={{ background: "#f5f3f0" }}>
+        <section className="Koalapply-fade-up relative overflow-hidden lg:flex lg:flex-col lg:min-h-screen" style={{ background: "#f5f3f0" }}>
 
           {/* Nav overlay — sits on top of the photo background */}
           <header className="absolute inset-x-0 top-0 z-20">
@@ -367,7 +367,7 @@ export function LandingPage() {
           </header>
 
           {/* Full-width content — top padding clears the overlaid nav */}
-          <div className="relative z-10 px-8 pb-10 pt-32 sm:px-12 sm:pb-16 sm:pt-32 lg:px-16 lg:pt-36 lg:pb-24">
+          <div className="relative z-10 px-8 pb-10 pt-32 sm:px-12 sm:pb-16 sm:pt-32 lg:flex-1 lg:flex lg:flex-col lg:px-16 lg:pt-36 lg:pb-24">
 
             {/* Headline — spans full width */}
             <h1 className="text-center text-[1.65rem] font-black leading-[1.1] tracking-tight text-slate-900 sm:text-[2.7rem] lg:text-[3.375rem] xl:text-[4rem]">
@@ -380,10 +380,10 @@ export function LandingPage() {
             </p>
 
             {/* Two-column: photo left, resume card right */}
-            <div className="mt-7 grid grid-cols-1 gap-6 pb-4 sm:mt-10 lg:grid-cols-2 lg:gap-10">
+            <div className="mt-7 grid grid-cols-1 gap-6 pb-4 sm:mt-10 lg:grid-cols-2 lg:gap-10 lg:flex-1 lg:min-h-0">
 
               {/* Left: slideshow — desktop only */}
-              <div className="relative hidden overflow-hidden rounded-3xl shadow-lg lg:block" style={{ minHeight: "420px" }}>
+              <div className="relative hidden overflow-hidden rounded-3xl shadow-lg lg:block lg:h-full" style={{ minHeight: "250px" }}>
                 {heroImages.map((src, i) => (
                   <img
                     key={src}
