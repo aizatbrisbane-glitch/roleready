@@ -316,7 +316,7 @@ export function LandingPage() {
       <main>
 
         {/* â"€â"€ Hero (header lives inside so nav overlays the image) â"€â"€ */}
-        <section className="Koalapply-fade-up relative overflow-hidden lg:flex lg:flex-col lg:h-screen" style={{ background: "#f5f3f0" }}>
+        <section className="Koalapply-fade-up relative overflow-hidden" style={{ background: "#f5f3f0" }}>
 
           {/* Nav overlay — sits on top of the photo background */}
           <header className="absolute inset-x-0 top-0 z-20">
@@ -367,7 +367,7 @@ export function LandingPage() {
           </header>
 
           {/* Full-width content — top padding clears the overlaid nav */}
-          <div className="relative z-10 px-8 pb-10 pt-32 sm:px-12 sm:pb-16 sm:pt-32 lg:flex-1 lg:flex lg:flex-col lg:px-16 lg:pt-28 lg:pb-4">
+          <div className="relative z-10 px-8 pb-10 pt-32 sm:px-12 sm:pb-16 sm:pt-32 lg:px-16 lg:pt-28 lg:pb-6">
 
             {/* Headline — spans full width */}
             <h1 className="text-center text-[1.65rem] font-black leading-[1.1] tracking-tight text-slate-900 sm:text-[2.7rem] lg:text-[1.5rem] xl:text-[2rem]">
@@ -380,10 +380,10 @@ export function LandingPage() {
             </p>
 
             {/* Two-column: photo left, resume card right */}
-            <div className="mt-7 grid grid-cols-1 gap-6 pb-4 sm:mt-10 lg:mt-4 lg:grid-cols-2 lg:grid-rows-1 lg:gap-8 lg:flex-1 lg:min-h-0 lg:overflow-hidden">
+            <div className="mt-7 grid grid-cols-1 gap-6 pb-4 sm:mt-10 lg:mt-4 lg:grid-cols-2 lg:gap-8">
 
               {/* Left: slideshow — desktop only */}
-              <div className="relative hidden overflow-hidden rounded-3xl shadow-lg lg:block lg:h-full" style={{ minHeight: "250px" }}>
+              <div className="relative hidden overflow-hidden rounded-3xl shadow-lg lg:block lg:h-[55vh] lg:max-h-[600px] lg:min-h-[360px]">
                 {heroImages.map((src, i) => (
                   <img
                     key={src}
@@ -418,7 +418,7 @@ export function LandingPage() {
                   event.preventDefault();
                   handleHeroFile(event.dataTransfer.files?.[0]);
                 }}
-                className="Koalapply-pop-in flex flex-col items-center justify-center rounded-[1.5rem] border-2 border-dashed border-[#b9adff] bg-white/95 p-6 text-center shadow-[0_28px_90px_rgba(34,0,255,0.16)] backdrop-blur transition hover:-translate-y-0.5 hover:border-[#2200ff] sm:rounded-[2.25rem] sm:p-12 lg:h-full lg:overflow-hidden lg:p-5"
+                className="Koalapply-pop-in flex flex-col items-center justify-center rounded-[1.5rem] border-2 border-dashed border-[#b9adff] bg-white/95 p-6 text-center shadow-[0_28px_90px_rgba(34,0,255,0.16)] backdrop-blur transition hover:-translate-y-0.5 hover:border-[#2200ff] sm:rounded-[2.25rem] sm:p-12 lg:p-5"
               >
                 <input
                   ref={resumeInputRef}
