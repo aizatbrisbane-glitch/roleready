@@ -33,16 +33,22 @@ const strengthenSchema = {
   },
 };
 
+// Normalise a string for fuzzy comparison: strip markdown, punctuation, collapse whitespace.
+function normStr(s: string): string {
+  return s
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/^#{1,6}\s+/, "")
+    .replace(/^[-*•]\s+/, "")
+    .replace(/[^\w\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .toLowerCase()
+    .trim();
+}
+
 // Apply a find→replace patch to a document. Returns null if the original text cannot be located.
 function applyPatch(doc: string, original: string, changed: string, anchor: string): string | null {
-  const stripMd = (s: string) =>
-    s.replace(/\*\*([^*]+)\*\*/g, "$1")
-     .replace(/^#{1,6}\s+/, "")
-     .replace(/^[-*•]\s+/, "")
-     .trim();
-
   if (original) {
-    // 1. Exact match (verbatim with markdown)
+    // 1. Exact verbatim match
     if (doc.includes(original)) return doc.replace(original, changed);
 
     // 2. Case-insensitive match
@@ -50,12 +56,48 @@ function applyPatch(doc: string, original: string, changed: string, anchor: stri
     const idx = lowerDoc.indexOf(original.toLowerCase());
     if (idx !== -1) return doc.slice(0, idx) + changed + doc.slice(idx + original.length);
 
-    // 3. Line-level markdown-stripped match
     const lines = doc.split("\n");
-    const strippedTarget = stripMd(original).toLowerCase();
+    const normOriginal = normStr(original);
+
+    // 3. Exact line match after full normalisation
     for (let i = 0; i < lines.length; i++) {
-      if (stripMd(lines[i]).toLowerCase() === strippedTarget) {
+      if (normStr(lines[i]) === normOriginal) {
         lines[i] = changed;
+        return lines.join("\n");
+      }
+    }
+
+    // 4. First-6-words prefix match — catches cases where AI truncated the snippet
+    const words = normOriginal.split(" ").filter(Boolean);
+    if (words.length >= 4) {
+      const prefix = words.slice(0, Math.min(6, words.length)).join(" ");
+      for (let i = 0; i < lines.length; i++) {
+        const normLine = normStr(lines[i]);
+        if (normLine.length > 10 && (normLine.startsWith(prefix) || normLine.includes(prefix))) {
+          // Preserve any markdown bullet/heading prefix on the original line
+          const mdPfxMatch = lines[i].match(/^(#{1,6}\s+|[-*•]\s+)/);
+          const mdPfx = mdPfxMatch ? mdPfxMatch[0] : "";
+          lines[i] = changed.match(/^(#{1,6}\s+|[-*•]\s+)/) ? changed : mdPfx + changed;
+          return lines.join("\n");
+        }
+      }
+    }
+
+    // 5. Best-overlap line match — find the line sharing the most words with originalSnippet
+    if (words.length >= 4) {
+      const wordSet = new Set(words);
+      let bestIdx = -1, bestScore = 0;
+      for (let i = 0; i < lines.length; i++) {
+        const lineWords = normStr(lines[i]).split(" ").filter(Boolean);
+        if (lineWords.length < 3) continue;
+        const overlap = lineWords.filter(w => wordSet.has(w)).length;
+        const score = overlap / Math.max(words.length, lineWords.length);
+        if (score > bestScore && score >= 0.6) { bestScore = score; bestIdx = i; }
+      }
+      if (bestIdx !== -1) {
+        const mdPfxMatch = lines[bestIdx].match(/^(#{1,6}\s+|[-*•]\s+)/);
+        const mdPfx = mdPfxMatch ? mdPfxMatch[0] : "";
+        lines[bestIdx] = changed.match(/^(#{1,6}\s+|[-*•]\s+)/) ? changed : mdPfx + changed;
         return lines.join("\n");
       }
     }
@@ -68,6 +110,18 @@ function applyPatch(doc: string, original: string, changed: string, anchor: stri
     const lowerDoc = doc.toLowerCase();
     const idx = lowerDoc.indexOf(anchor.toLowerCase());
     if (idx !== -1) return doc.slice(0, idx + anchor.length) + " " + changed + doc.slice(idx + anchor.length);
+    // Fuzzy anchor: first 6 words
+    const anchorWords = normStr(anchor).split(" ").filter(Boolean);
+    if (anchorWords.length >= 4) {
+      const anchorPrefix = anchorWords.slice(0, 6).join(" ");
+      const lines = doc.split("\n");
+      for (let i = 0; i < lines.length; i++) {
+        if (normStr(lines[i]).includes(anchorPrefix)) {
+          lines[i] = lines[i] + " " + changed;
+          return lines.join("\n");
+        }
+      }
+    }
   }
 
   return null;
