@@ -432,20 +432,22 @@ export function LandingPage() {
                 </span>
                 <p className="mt-4 text-2xl font-black tracking-tight text-slate-900 sm:mt-6 sm:text-4xl lg:mt-3 lg:text-xl">Drop your resume here. See what it could look like.</p>
                 <p className="mt-3 text-base font-semibold text-slate-500 lg:mt-2">PDF or DOCX · Max 4 MB</p>
-                <div className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-[#ece8ff] px-3.5 py-1.5 text-xs font-semibold text-[#2200ff] sm:mt-8 lg:mt-3 sm:text-sm">
-                  <Sparkles className="h-3.5 w-3.5 shrink-0" />
-                  1 free tailored resume — get 2 free when you subscribe to career tips
+                <div className="mt-5 flex flex-col gap-3 sm:mt-8 lg:mt-3">
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-[#ece8ff] px-3.5 py-1.5 text-xs font-semibold text-[#2200ff] sm:text-sm">
+                    <Sparkles className="h-3.5 w-3.5 shrink-0" />
+                    1 free tailored resume — get 2 free when you subscribe to career tips
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      resumeInputRef.current?.click();
+                    }}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-base font-bold text-white shadow-[0_16px_44px_rgba(34,0,255,0.34)] transition hover:bg-[#1a00cc] sm:px-7 sm:py-4 sm:text-lg lg:py-2.5 lg:text-base"
+                  >
+                    Tailor My Resume for FREE
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    resumeInputRef.current?.click();
-                  }}
-                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-base font-bold text-white shadow-[0_16px_44px_rgba(34,0,255,0.34)] transition hover:bg-[#1a00cc] sm:px-7 sm:py-4 sm:text-lg lg:mt-2 lg:py-2.5 lg:text-base"
-                >
-                  Tailor My Resume for FREE
-                </button>
                 <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 sm:mt-3 lg:mt-1">
                   <p className="inline-flex items-center gap-1.5 text-xs text-slate-400 sm:text-sm">
                     <ShieldCheck className="h-4 w-4" />
