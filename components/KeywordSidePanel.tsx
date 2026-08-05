@@ -135,7 +135,8 @@ export function KeywordSidePanel({
   // strengthened_keywords.length as a legacy fallback for records where strengthen_count
   // was not yet persisted.
   const effectiveFreeCount = Math.max(strengthenCount, strengthenedKeywords.length) + sessionDelta;
-  const freeLimitReached = !isPremium && (effectiveFreeCount >= 1);
+  // Free limit applies to resume only — cover letter strengthening is always unrestricted.
+  const freeLimitReached = !isPremium && target === "resume" && (effectiveFreeCount >= 1);
 
   const sortedKeywords = [...missingKeywords].sort((a, b) => {
     const aRank = IMPORTANCE_ORDER[keywordImportance[a] ?? "unspecified"] ?? 2;
@@ -453,7 +454,7 @@ export function KeywordSidePanel({
                         <Sparkles className="h-2.5 w-2.5" />
                         Add
                       </button>
-                    ) : (freeLimitReached || !isPremium) ? (
+                    ) : freeLimitReached ? (
                       <Link href="/pricing" className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-2 py-0.5 text-[10px] text-slate-500 hover:text-[#2200ff]">
                         <Lock className="h-2.5 w-2.5" />
                         Upgrade
