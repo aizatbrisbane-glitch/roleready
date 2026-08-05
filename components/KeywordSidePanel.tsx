@@ -131,12 +131,12 @@ export function KeywordSidePanel({
 
   const isPremium = planType !== "free";
   const hasAnyDoc = hasTailoredResume || hasCoverLetter;
-  // Free users get 1 strengthen per application. Use the max of strengthen_count and
-  // strengthened_keywords.length as a legacy fallback for records where strengthen_count
-  // was not yet persisted.
-  const effectiveFreeCount = Math.max(strengthenCount, strengthenedKeywords.length) + sessionDelta;
-  // Cover letter keyword feature is premium-only. Resume gets 1 free strengthen.
-  const freeLimitReached = !isPremium && (target === "cover_letter" || effectiveFreeCount >= 1);
+  // Free users get 1 resume strengthen per application, tracked by strengthen_count.
+  // Do NOT fall back to strengthenedKeywords.length — that field is also written by the
+  // generate route (keywordsAddressed) and would incorrectly trigger the limit for every
+  // brand-new application even before the user has clicked Add once.
+  // Cover letter strengthening is premium-only.
+  const freeLimitReached = !isPremium && (target === "cover_letter" || strengthenCount + sessionDelta >= 1);
 
   const sortedKeywords = [...missingKeywords].sort((a, b) => {
     const aRank = IMPORTANCE_ORDER[keywordImportance[a] ?? "unspecified"] ?? 2;

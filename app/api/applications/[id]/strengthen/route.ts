@@ -198,13 +198,13 @@ export async function POST(request: Request, { params }: Props) {
   if (!application) return NextResponse.json({ error: "Application not found" }, { status: 404 });
 
   // Free users: cover letter keyword feature is fully locked (premium only).
-  // Resume gets 1 free strengthen — check both strengthen_count and strengthened_keywords.length
-  // as a legacy fallback for records where strengthen_count was not yet persisted.
+  // Resume gets 1 free strengthen, tracked by strengthen_count.
+  // Do NOT fall back to strengthened_keywords.length — that field is also written by the
+  // generate route and would block brand-new applications before the user clicks Add once.
   if (access.planType === "free") {
     if (target === "cover_letter") return NextResponse.json({ error: "free_limit_reached" }, { status: 402 });
     const count = (application.strengthen_count as number) ?? 0;
-    const legacy = ((application.strengthened_keywords as string[]) ?? []).length;
-    if (Math.max(count, legacy) >= 1) return NextResponse.json({ error: "free_limit_reached" }, { status: 402 });
+    if (count >= 1) return NextResponse.json({ error: "free_limit_reached" }, { status: 402 });
   }
 
   const effectiveResume = clientResume ?? application.tailored_resume;
