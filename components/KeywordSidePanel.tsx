@@ -131,8 +131,11 @@ export function KeywordSidePanel({
 
   const isPremium = planType !== "free";
   const hasAnyDoc = hasTailoredResume || hasCoverLetter;
-  // Free users get 1 successful strengthen per application (tracked by strengthenCount + sessionDelta)
-  const freeLimitReached = !isPremium && (strengthenCount + sessionDelta >= 1);
+  // Free users get 1 strengthen per application. Use the max of strengthen_count and
+  // strengthened_keywords.length as a legacy fallback for records where strengthen_count
+  // was not yet persisted.
+  const effectiveFreeCount = Math.max(strengthenCount, strengthenedKeywords.length) + sessionDelta;
+  const freeLimitReached = !isPremium && (effectiveFreeCount >= 1);
 
   const sortedKeywords = [...missingKeywords].sort((a, b) => {
     const aRank = IMPORTANCE_ORDER[keywordImportance[a] ?? "unspecified"] ?? 2;

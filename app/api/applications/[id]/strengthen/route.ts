@@ -197,10 +197,13 @@ export async function POST(request: Request, { params }: Props) {
 
   if (!application) return NextResponse.json({ error: "Application not found" }, { status: 404 });
 
-  // Free users get 1 successful strengthen per application
+  // Free users get 1 successful strengthen per application.
+  // Check both strengthen_count (new) and strengthened_keywords.length (legacy fallback
+  // for applications strengthened before strengthen_count was persisted).
   if (access.planType === "free") {
     const count = (application.strengthen_count as number) ?? 0;
-    if (count >= 1) return NextResponse.json({ error: "free_limit_reached" }, { status: 402 });
+    const legacy = ((application.strengthened_keywords as string[]) ?? []).length;
+    if (Math.max(count, legacy) >= 1) return NextResponse.json({ error: "free_limit_reached" }, { status: 402 });
   }
 
   const effectiveResume = clientResume ?? application.tailored_resume;
