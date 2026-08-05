@@ -35,6 +35,8 @@ export async function PATCH(request: Request, { params }: Props) {
   if ("strengthened_keywords" in body) update.strengthened_keywords = body.strengthened_keywords;
   if ("strengthened_keyword_snippets" in body) update.strengthened_keyword_snippets = body.strengthened_keyword_snippets;
   if ("strengthened_keyword_originals" in body) update.strengthened_keyword_originals = body.strengthened_keyword_originals;
+  if ("strengthened_keyword_targets" in body) update.strengthened_keyword_targets = body.strengthened_keyword_targets;
+  if ("strengthen_count" in body) update.strengthen_count = Math.max(0, Number(body.strengthen_count) || 0);
   if ("skipped_keywords" in body) update.skipped_keywords = body.skipped_keywords;
 
   // Update salary on the linked job if provided

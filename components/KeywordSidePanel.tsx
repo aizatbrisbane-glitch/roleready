@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AlertTriangle, CheckCircle2, ChevronDown, Lightbulb, Loader2, Lock, RefreshCw, RotateCcw, Sparkles } from "lucide-react";
@@ -104,8 +104,19 @@ export function KeywordSidePanel({
 
   const router = useRouter();
   const [sessionDelta, setSessionDelta] = useState(0);
-  const [initialStrengthened] = useState(() => strengthenedKeywords.length);
   const [refreshing, setRefreshing] = useState(false);
+  const prevStrengthCountRef = useRef(strengthenedKeywords.length);
+
+  // When router.refresh() brings back updated strengthenedKeywords, drain sessionDelta
+  // so we don't double-count keywords that are now reflected in the server props.
+  useEffect(() => {
+    const newCount = strengthenedKeywords.length;
+    const prev = prevStrengthCountRef.current;
+    if (newCount > prev) {
+      setSessionDelta(d => Math.max(0, d - (newCount - prev)));
+    }
+    prevStrengthCountRef.current = newCount;
+  }, [strengthenedKeywords.length]);
   const [expandedSnippets, setExpandedSnippets] = useState<Set<string>>(new Set());
   const [evidenceMap, setEvidenceMap] = useState<Record<string, string>>({});
   const [snippetEditMap, setSnippetEditMap] = useState<Record<string, string>>({});
@@ -138,8 +149,9 @@ export function KeywordSidePanel({
 
   const totalKeywords = sortedKeywords.length;
   const base = matchScore ?? 0;
-  const pageLoadScore = totalKeywords === 0 ? base : Math.min(100, Math.round(base + initialStrengthened * (100 - base) / totalKeywords));
-  const liveScore = totalKeywords === 0 ? base : Math.min(100, Math.round(base + (initialStrengthened + sessionDelta) * (100 - base) / totalKeywords));
+  const effectiveStrengthened = Math.max(0, strengthenedKeywords.length + sessionDelta);
+  const pageLoadScore = totalKeywords === 0 ? base : Math.min(100, Math.round(base + strengthenedKeywords.length * (100 - base) / totalKeywords));
+  const liveScore = totalKeywords === 0 ? base : Math.min(100, Math.round(base + effectiveStrengthened * (100 - base) / totalKeywords));
   const scoreImproved = liveScore > pageLoadScore;
 
   function getState(kw: string): KeywordState { return states[kw] ?? { phase: "idle" }; }
@@ -315,6 +327,7 @@ export function KeywordSidePanel({
           strengthened_keyword_snippets: newSnippets,
           strengthened_keyword_originals: newOriginals,
           strengthened_keyword_targets: newTargets,
+          strengthen_count: Math.max(0, strengthenCount + sessionDelta - 1),
           ...(revertedResume ? { tailored_resume: revertedResume } : {}),
           ...(revertedCover ? { cover_letter: revertedCover } : {}),
         }),
@@ -612,9 +625,8 @@ export function KeywordSidePanel({
               <button
                 type="button"
                 disabled={refreshing}
-                onClick={async () => {
+                onClick={() => {
                   setRefreshing(true);
-                  setSessionDelta(0);
                   router.refresh();
                   setTimeout(() => setRefreshing(false), 1500);
                 }}
