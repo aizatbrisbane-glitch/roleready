@@ -135,8 +135,8 @@ export function KeywordSidePanel({
   // strengthened_keywords.length as a legacy fallback for records where strengthen_count
   // was not yet persisted.
   const effectiveFreeCount = Math.max(strengthenCount, strengthenedKeywords.length) + sessionDelta;
-  // Free limit applies to resume only — cover letter strengthening is always unrestricted.
-  const freeLimitReached = !isPremium && target === "resume" && (effectiveFreeCount >= 1);
+  // Cover letter keyword feature is premium-only. Resume gets 1 free strengthen.
+  const freeLimitReached = !isPremium && (target === "cover_letter" || effectiveFreeCount >= 1);
 
   const sortedKeywords = [...missingKeywords].sort((a, b) => {
     const aRank = IMPORTANCE_ORDER[keywordImportance[a] ?? "unspecified"] ?? 2;
