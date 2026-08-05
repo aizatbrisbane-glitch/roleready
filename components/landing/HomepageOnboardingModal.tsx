@@ -664,6 +664,11 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                   {message}
                 </p>
               )}
+              {!loading && (
+                <button type="button" onClick={() => setConfirmEmail(false)} className="w-full text-center text-sm font-medium text-slate-400 hover:text-slate-600">
+                  ← Back to account details
+                </button>
+              )}
             </form>
           </section>
         ) : (
@@ -757,6 +762,11 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                     }
                   }}
                 />
+                <div className="mt-4">
+                  <button type="button" onClick={() => setStep(1)} className="text-sm font-medium text-slate-400 hover:text-slate-600">
+                    ← Back
+                  </button>
+                </div>
               </section>
             )}
 
@@ -842,7 +852,10 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                 )}
 
                 <div className="mt-6 space-y-3">
-                  <div className="flex justify-end">
+                  <div className="flex items-center justify-between">
+                    <button type="button" onClick={() => setStep(2)} className="text-sm font-medium text-slate-400 hover:text-slate-600">
+                      ← Back
+                    </button>
                     <button
                       type="button"
                       onClick={continueFromJobStep}
@@ -902,7 +915,10 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                   <p className="mt-1.5 text-xs text-slate-400">We use this to find the most relevant jobs for you on the dashboard.</p>
                 </div>
                 {message && <p className="mt-4 text-sm text-rose-600">{message}</p>}
-                <div className="mt-6 flex justify-end">
+                <div className="mt-6 flex items-center justify-between">
+                  <button type="button" onClick={() => setStep(3)} className="text-sm font-medium text-slate-400 hover:text-slate-600">
+                    ← Back
+                  </button>
                   <button
                     type="button"
                     disabled={!jobSearchIntent}
@@ -962,6 +978,11 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                         {loadingStep === "Reading the job ad..." ? "Reading the job ad can take 15–30 seconds — hang tight!" : "This usually takes less than a minute."}
                       </p>
                     </div>
+                  )}
+                  {!loading && (
+                    <button type="button" onClick={() => setStep(4)} className="w-full text-center text-sm font-medium text-slate-400 hover:text-slate-600">
+                      ← Back
+                    </button>
                   )}
                 </form>
               </section>
