@@ -26,7 +26,7 @@ interface ActivityItemProps {
 
 export function ActivityItem({ event, isNew }: ActivityItemProps) {
   const config = EVENT_CONFIG[event.event_type] ?? { emoji: "•", label: event.event_type };
-  const firstName = event.metadata?.first_name;
+  const displayName = event.metadata?.first_name ?? event.email;
 
   return (
     <div
@@ -38,8 +38,8 @@ export function ActivityItem({ event, isNew }: ActivityItemProps) {
     >
       <span className="text-lg w-7 text-center shrink-0 select-none">{config.emoji}</span>
       <p className="flex-1 min-w-0 text-sm text-gray-600 truncate">
-        {firstName
-          ? <><span className="font-medium text-gray-900">{firstName}</span>{" "}{config.label}</>
+        {displayName
+          ? <><span className="font-medium text-gray-900">{displayName}</span>{" "}{config.label}</>
           : <span className="capitalize">{config.label}</span>
         }
       </p>

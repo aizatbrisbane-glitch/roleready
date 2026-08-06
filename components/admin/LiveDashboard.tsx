@@ -14,6 +14,7 @@ import type { AdminMetrics, KoalapplyEvent, KoalapplyEventType } from "@/types/d
 interface LiveDashboardProps {
   initialMetrics: AdminMetrics;
   initialEvents: KoalapplyEvent[];
+  emailByUserId: Record<string, string>;
 }
 
 function formatClock(d: Date) {
@@ -33,8 +34,8 @@ function formatDate(d: Date) {
   });
 }
 
-export function LiveDashboard({ initialMetrics, initialEvents }: LiveDashboardProps) {
-  const { metrics, events, latestEvent } = useLiveMetrics(initialMetrics, initialEvents);
+export function LiveDashboard({ initialMetrics, initialEvents, emailByUserId }: LiveDashboardProps) {
+  const { metrics, events, latestEvent } = useLiveMetrics(initialMetrics, initialEvents, emailByUserId);
 
   // Live clock — initialise after mount to avoid SSR/client hydration mismatch
   const [clock, setClock] = useState("");

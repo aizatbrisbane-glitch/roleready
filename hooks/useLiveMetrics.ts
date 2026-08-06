@@ -6,7 +6,8 @@ import type { AdminMetrics, KoalapplyEvent } from "@/types/database";
 
 export function useLiveMetrics(
   initialMetrics: AdminMetrics,
-  initialEvents: KoalapplyEvent[]
+  initialEvents: KoalapplyEvent[],
+  emailByUserId: Record<string, string> = {}
 ) {
   const [metrics, setMetrics] = useState(initialMetrics);
   const [events, setEvents] = useState(initialEvents);
@@ -32,7 +33,11 @@ export function useLiveMetrics(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "koalapply_events" },
         (payload) => {
-          const ev = payload.new as KoalapplyEvent;
+          const raw = payload.new as KoalapplyEvent;
+          const ev: KoalapplyEvent = {
+            ...raw,
+            email: raw.user_id ? (emailByUserId[raw.user_id] ?? null) : null,
+          };
           setEvents((prev) => [ev, ...prev].slice(0, 50));
           setLatestEvent(ev);
           void refreshMetrics();

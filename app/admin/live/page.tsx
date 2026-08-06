@@ -30,19 +30,31 @@ export default async function AdminLivePage() {
   const admin = createSupabaseAdminClient();
   if (!admin) redirect("/");
 
-  const [metrics, { data: rawEvents }] = await Promise.all([
+  const [metrics, { data: rawEvents }, rpcResult] = await Promise.all([
     fetchAdminMetrics(admin),
     admin
       .from("koalapply_events")
       .select("id, event_type, user_id, metadata, created_at")
       .order("created_at", { ascending: false })
       .limit(40),
+    admin.rpc("admin_get_user_emails"),
   ]);
+
+  const emailRows = (rpcResult.data ?? []) as { id: string; email: string }[];
+  const emailByUserId: Record<string, string> = Object.fromEntries(
+    emailRows.map((r) => [r.id, r.email])
+  );
+
+  const initialEvents = (rawEvents ?? []).map((ev) => ({
+    ...ev,
+    email: ev.user_id ? (emailByUserId[ev.user_id] ?? null) : null,
+  }));
 
   return (
     <LiveDashboard
       initialMetrics={metrics}
-      initialEvents={rawEvents ?? []}
+      initialEvents={initialEvents}
+      emailByUserId={emailByUserId}
     />
   );
 }
