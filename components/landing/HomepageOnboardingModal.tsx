@@ -903,7 +903,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                 </div>
                 <div className="mt-6">
                   <label className="block text-sm font-semibold text-slate-700">
-                    What role are you looking for? <span className="font-normal text-slate-400">(optional)</span>
+                    What role are you looking for?
                   </label>
                   <input
                     type="text"
@@ -921,7 +921,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                   </button>
                   <button
                     type="button"
-                    disabled={!jobSearchIntent}
+                    disabled={!jobSearchIntent || !targetRole.trim()}
                     onClick={continueFromIntentStep}
                     className="inline-flex items-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-sm font-bold text-white shadow-[0_12px_32px_rgba(34,0,255,0.22)] disabled:opacity-50"
                   >
