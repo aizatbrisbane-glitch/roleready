@@ -31,5 +31,30 @@ export async function GET(request: Request) {
     .order("created_at", { ascending: false })
     .limit(50);
 
-  return NextResponse.json(events ?? []);
+  if (!events || events.length === 0) return NextResponse.json([]);
+
+  // Fetch emails for user_ids that lack a first_name in metadata
+  const userIds = [...new Set(
+    events
+      .filter((e) => !e.metadata?.first_name && e.user_id)
+      .map((e) => e.user_id as string)
+  )];
+
+  let emailMap: Record<string, string> = {};
+  if (userIds.length > 0) {
+    const { data: emailRows } = await admin.rpc("admin_get_user_emails") as { data: { id: string; email: string }[] | null };
+    if (emailRows) {
+      const idSet = new Set(userIds);
+      emailMap = Object.fromEntries(
+        emailRows.filter((r) => idSet.has(r.id)).map((r) => [r.id, r.email])
+      );
+    }
+  }
+
+  const result = events.map((e) => ({
+    ...e,
+    email: e.user_id ? (emailMap[e.user_id] ?? null) : null,
+  }));
+
+  return NextResponse.json(result);
 }

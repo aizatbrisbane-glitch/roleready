@@ -54,6 +54,7 @@ export type KoalapplyEvent = {
   id: string;
   event_type: KoalapplyEventType;
   user_id: string | null;
+  email?: string | null;
   metadata: {
     first_name?: string | null;
     plan_type?: string;
