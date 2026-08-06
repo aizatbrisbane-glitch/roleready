@@ -171,14 +171,14 @@ function EventRow({ event }: { event: KoalapplyEvent }) {
   const firstName = event.metadata?.first_name;
   const planType = event.metadata?.plan_type as string | undefined;
   const planLabel = planType ? (PLAN_LABELS[planType] ?? planType) : null;
-  const displayName = firstName ?? event.email ?? null;
+  const displayName = firstName ?? event.email;
 
   return (
     <div className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0">
       <span className="text-xl w-8 text-center shrink-0 mt-0.5">{config.emoji}</span>
       <div className="flex-1 min-w-0 space-y-0.5">
         <p className="text-sm font-medium text-gray-900 truncate">
-          {displayName ?? <span className="text-gray-400 italic font-normal">Unknown</span>}
+          {displayName}
         </p>
         <p className="text-xs text-gray-500">{config.label}</p>
         {planLabel && (
