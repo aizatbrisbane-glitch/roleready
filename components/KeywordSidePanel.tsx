@@ -305,7 +305,7 @@ export function KeywordSidePanel({
         const remaining = pendingCount - 1;
         setTimeout(() => {
           setUpsellModal({ scoreWas, scoreNow, remaining: Math.max(0, remaining) });
-        }, 5000);
+        }, 10000);
       }
     } catch {
       setState(kw, { phase: "error", message: "Failed to save. Please try again." });
