@@ -111,7 +111,7 @@ export default async function BlogArticlePage({ params }: Props) {
               <div className="space-y-10">
                 {sectionsBefore.map((section) => (
                   <section key={section.id} id={section.id} className="scroll-mt-8">
-                    <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">{section.title}</h2>
+                    <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">{section.title.replace(/^\d+\.\s*/, "")}</h2>
                     <div className="mt-4 space-y-4">
                       {section.paragraphs?.map((paragraph) => (
                         <p key={paragraph} className="text-base leading-8 text-slate-600">{renderInlineLinks(paragraph)}</p>
@@ -169,7 +169,7 @@ export default async function BlogArticlePage({ params }: Props) {
                 <div className="space-y-10">
                   {sectionsAfter.map((section) => (
                     <section key={section.id} id={section.id} className="scroll-mt-8">
-                      <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">{section.title}</h2>
+                      <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">{section.title.replace(/^\d+\.\s*/, "")}</h2>
                       <div className="mt-4 space-y-4">
                         {section.paragraphs?.map((paragraph) => (
                           <p key={paragraph} className="text-base leading-8 text-slate-600">{renderInlineLinks(paragraph)}</p>
