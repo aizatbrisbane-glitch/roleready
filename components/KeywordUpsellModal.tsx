@@ -31,7 +31,7 @@ export function KeywordUpsellModal({ scoreWas, scoreNow, remainingKeywords, onCl
       onClick={handleOverlayClick}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm"
     >
-      <div className="relative w-full max-w-lg rounded-2xl bg-[#0d0b24] shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-3xl rounded-2xl bg-[#0d0b24] shadow-2xl overflow-hidden">
         {/* Close */}
         <button
           type="button"
