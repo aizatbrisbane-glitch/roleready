@@ -177,7 +177,7 @@ Resume (summary):\n${resumeText.slice(0, 6000)}\n\nJobs to score:\n${jobList}`;
     if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured.");
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 0 });
     const response = await client.messages.create({
-      model: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 2000,
       tools: [{ name: "score_jobs", description: "Score job listings against a resume.", input_schema: scoringSchema as Anthropic.Tool.InputSchema }],
       tool_choice: { type: "tool", name: "score_jobs" },
@@ -535,10 +535,10 @@ export async function GET(request: Request) {
     (existingCached ?? []).map((row) => [row.external_id, { score: row.match_score as number, reason: row.match_reason as string }])
   );
 
-  // Only call AI for jobs we haven't scored before; cap at 40 to control cost
+  // Only call AI for jobs we haven't scored before; cap at 20 to keep scoring fast
   const jobsNeedingScore = allJobs
     .filter((j) => !cachedScoreMap.has(j.id))
-    .slice(0, 40)
+    .slice(0, 20)
     .map((j) => ({ id: j.id, title: j.title, company: j.company, description: j.description }));
 
   let newScores: { id: string; score: number; reason: string }[] = [];

@@ -177,9 +177,9 @@ function EventRow({ event }: { event: KoalapplyEvent }) {
     <div className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0">
       <span className="text-xl w-8 text-center shrink-0 mt-0.5">{config.emoji}</span>
       <div className="flex-1 min-w-0 space-y-0.5">
-        <p className="text-sm font-medium text-gray-900 truncate">
-          {displayName}
-        </p>
+        {displayName && (
+          <p className="text-sm font-medium text-gray-900 truncate">{displayName}</p>
+        )}
         <p className="text-xs text-gray-500">{config.label}</p>
         {planLabel && (
           <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200">

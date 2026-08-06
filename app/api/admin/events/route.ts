@@ -33,23 +33,15 @@ export async function GET(request: Request) {
 
   if (!events || events.length === 0) return NextResponse.json([]);
 
-  // Fetch emails for user_ids that lack a first_name in metadata
-  const userIds = [...new Set(
-    events
-      .filter((e) => !e.metadata?.first_name && e.user_id)
-      .map((e) => e.user_id as string)
-  )];
-
-  let emailMap: Record<string, string> = {};
-  if (userIds.length > 0) {
-    const { data: emailRows } = await admin.rpc("admin_get_user_emails") as { data: { id: string; email: string }[] | null };
-    if (emailRows) {
-      const idSet = new Set(userIds);
-      emailMap = Object.fromEntries(
-        emailRows.filter((r) => idSet.has(r.id)).map((r) => [r.id, r.email])
-      );
-    }
-  }
+  // Fetch emails for unique user_ids in this batch
+  const userIds = [...new Set(events.map((e) => e.user_id).filter(Boolean))] as string[];
+  const emailMap: Record<string, string> = {};
+  await Promise.all(
+    userIds.map(async (uid) => {
+      const { data } = await admin.auth.admin.getUserById(uid);
+      if (data?.user?.email) emailMap[uid] = data.user.email;
+    })
+  );
 
   const result = events.map((e) => ({
     ...e,
