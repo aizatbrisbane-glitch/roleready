@@ -177,7 +177,7 @@ Resume (summary):\n${resumeText.slice(0, 6000)}\n\nJobs to score:\n${jobList}`;
     if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured.");
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 0 });
     const response = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-3-5-haiku-20241022",
       max_tokens: 2000,
       tools: [{ name: "score_jobs", description: "Score job listings against a resume.", input_schema: scoringSchema as Anthropic.Tool.InputSchema }],
       tool_choice: { type: "tool", name: "score_jobs" },
@@ -243,7 +243,8 @@ async function fetchAdzunaJobs({
 
   const res = await fetch(`https://api.adzuna.com/v1/api/jobs/au/search/1?${params}`, {
     headers: { Accept: "application/json" },
-    cache: "no-store"
+    cache: "no-store",
+    signal: AbortSignal.timeout(10000),
   });
   if (!res.ok) throw new Error(`Adzuna returned HTTP ${res.status}`);
   const data = (await res.json()) as { results?: AdzunaJob[] };
@@ -307,6 +308,7 @@ async function fetchJoobleJobs({
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
     cache: "no-store",
+    signal: AbortSignal.timeout(10000),
   });
   if (!res.ok) throw new Error(`Jooble returned HTTP ${res.status}`);
   const data = (await res.json()) as { jobs?: JoobleJob[] };
