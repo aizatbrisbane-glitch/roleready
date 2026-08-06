@@ -24,7 +24,11 @@ function barColor(source: string) {
   return SOURCE_COLORS[source.toLowerCase()] ?? "bg-violet-500";
 }
 
-export function TrafficSources() {
+interface TrafficSourcesProps {
+  onSourceClick?: (source: string, title: string) => void;
+}
+
+export function TrafficSources({ onSourceClick }: TrafficSourcesProps) {
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -66,7 +70,10 @@ export function TrafficSources() {
                 {/* Source row */}
                 <button
                   className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors text-left"
-                  onClick={() => setExpanded(expanded === row.source ? null : row.source)}
+                  onClick={() => {
+                    setExpanded(expanded === row.source ? null : row.source);
+                    onSourceClick?.(row.source, `${row.source.charAt(0).toUpperCase() + row.source.slice(1)} Signups`);
+                  }}
                 >
                   {/* Bar */}
                   <div className="flex-1 min-w-0">

@@ -24,6 +24,7 @@ type AdminUser = {
 
 export type PanelConfig =
   | { kind: "users"; filter: "all" | "today" | "week" | "paid"; title: string }
+  | { kind: "users"; filter: "source"; source: string; title: string }
   | { kind: "events"; type: KoalapplyEventType; title: string }
   | null;
 
@@ -215,7 +216,9 @@ export function DetailPanel({ config, onClose }: DetailPanelProps) {
     setEvents([]);
 
     const url = config.kind === "users"
-      ? `/api/admin/users?filter=${config.filter}`
+      ? config.filter === "source"
+        ? `/api/admin/users?filter=source&source=${encodeURIComponent(config.source)}`
+        : `/api/admin/users?filter=${config.filter}`
       : `/api/admin/events?type=${config.type}`;
 
     fetch(url)

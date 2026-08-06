@@ -93,6 +93,11 @@ export async function GET(request: Request) {
     users = users.filter((u) => new Date(u.joined) >= start);
   } else if (filter === "paid") {
     users = users.filter((u) => u.plan !== null);
+  } else if (filter === "source") {
+    const source = searchParams.get("source") ?? "(direct)";
+    users = users.filter((u) =>
+      source === "(direct)" ? !u.attrSource : u.attrSource === source
+    );
   }
 
   return NextResponse.json(users.slice(0, 150));

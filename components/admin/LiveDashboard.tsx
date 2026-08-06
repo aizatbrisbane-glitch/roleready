@@ -188,7 +188,7 @@ export function LiveDashboard({ initialMetrics, initialEvents, emailByUserId }: 
         <ChartsRow />
 
         {/* Row 3: Traffic sources */}
-        <TrafficSources />
+        <TrafficSources onSourceClick={(source, title) => setPanel({ kind: "users", filter: "source", source, title })} />
 
         {/* Row 4: Usage */}
         <UsageStats
