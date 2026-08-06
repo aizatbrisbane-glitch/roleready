@@ -159,13 +159,21 @@ export async function POST(request: Request) {
 
   // Fire server-side purchase events — more reliable than client-side redirect page
   void trackPurchaseServerSide({
-    email: session.customer_details?.email ?? undefined,
-    userId: resolvedUserId,
+    email:         session.customer_details?.email ?? undefined,
+    userId:        resolvedUserId,
     transactionId: sessionId,
-    valueCents: session.amount_total ?? 0,
-    currency: session.currency ?? "aud",
+    valueCents:    session.amount_total ?? 0,
+    currency:      session.currency ?? "aud",
     planType,
-    gaClientId: session.metadata?.ga_client_id ?? undefined,
+    gaClientId:    session.metadata?.ga_client_id  ?? undefined,
+    attrSource:    session.metadata?.attr_source   ?? undefined,
+    attrMedium:    session.metadata?.attr_medium   ?? undefined,
+    attrCampaign:  session.metadata?.attr_campaign ?? undefined,
+    attrContent:   session.metadata?.attr_content  ?? undefined,
+    attrTerm:      session.metadata?.attr_term     ?? undefined,
+    attrReferrer:  session.metadata?.attr_referrer ?? undefined,
+    attrFbp:       session.metadata?.attr_fbp      ?? undefined,
+    attrFbc:       session.metadata?.attr_fbc      ?? undefined,
   });
 
   return NextResponse.json({ received: true });

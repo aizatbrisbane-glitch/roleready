@@ -13,10 +13,16 @@ export default function GuestCheckoutPage() {
     if (called.current || !plan) return;
     called.current = true;
 
+    let attribution: Record<string, string> = {};
+    try {
+      const stored = localStorage.getItem("koala_attr");
+      if (stored) attribution = JSON.parse(stored);
+    } catch { /* ignore */ }
+
     fetch("/api/checkout/guest", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ planType: plan }),
+      body: JSON.stringify({ planType: plan, attribution }),
     })
       .then((res) => res.json())
       .then((data) => {

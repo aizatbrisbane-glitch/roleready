@@ -38,6 +38,16 @@ export type Profile = {
   role: ProfileRole;
   created_at: string;
   updated_at: string;
+  attr_source:       string | null;
+  attr_medium:       string | null;
+  attr_campaign:     string | null;
+  attr_content:      string | null;
+  attr_term:         string | null;
+  attr_referrer:     string | null;
+  attr_ga_client_id: string | null;
+  attr_fbp:          string | null;
+  attr_fbc:          string | null;
+  attr_landed_at:    string | null;
 };
 
 export type KoalapplyEvent = {

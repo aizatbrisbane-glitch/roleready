@@ -7,6 +7,7 @@ import { Plus } from "lucide-react";
 import { headers } from "next/headers";
 import { MobileNav } from "@/components/MobileNav";
 import { Sidebar } from "@/components/Sidebar";
+import { AttributionCapture } from "@/components/AttributionCapture";
 import { SignOutButton } from "@/components/SignOutButton";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -122,6 +123,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <img height="1" width="1" style={{ display: "none" }} alt=""
             src="https://px.ads.linkedin.com/collect/?pid=9404122&fmt=gif" />
         </noscript>
+        <AttributionCapture isAuthenticated={Boolean(user)} />
         {authed && (
           <Sidebar
             userName={displayName}

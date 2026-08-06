@@ -40,6 +40,18 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
     setOtp("");
   }
 
+  async function pushStoredAttribution() {
+    try {
+      const stored = localStorage.getItem("koala_attr");
+      if (!stored) return;
+      await fetch("/api/attribution", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: stored,
+      });
+    } catch { /* non-critical */ }
+  }
+
   function captureAttribution() {
     const params = new URLSearchParams(window.location.search);
     const getCookie = (name: string) => {
@@ -118,11 +130,14 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
       }
       const userId = data.session.user.id;
       try {
-        await fetch("/api/track/signup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ method: "email", attribution: captureAttribution() }),
-        });
+        await Promise.all([
+          fetch("/api/track/signup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ method: "email", attribution: captureAttribution() }),
+          }),
+          pushStoredAttribution(),
+        ]);
       } catch { /* tracking failure must never block signup */ }
       analytics.signupComplete({ method: "email", source: analytics.getSignupSource(), userId });
       window.location.href = redirectTo;
@@ -183,6 +198,7 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
       // DEBUG — remove once confirmed
       console.error("[DEBUG signup-track] /api/track/signup fetch error:", err);
     }
+    await pushStoredAttribution();
 
     analytics.signupComplete({ method: "email_otp", source: analytics.getSignupSource(), userId });
 

@@ -1,5 +1,4 @@
 ﻿import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { getStripeClient } from "@/lib/stripe";
 
 const PLAN_CONFIG: Record<string, { name: string; amountAud: number; desc: string }> = {
@@ -18,7 +17,8 @@ export async function POST(request: Request) {
   }
 
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
-  const gaClientId = (await cookies()).get("_ga")?.value ?? null;
+  // For guest checkout, attribution comes from localStorage via the client (more reliable than server cookies)
+  const attr = (typeof body?.attribution === "object" && body.attribution !== null) ? body.attribution as Record<string, string> : {};
 
   try {
     const stripe = getStripeClient();
@@ -40,7 +40,15 @@ export async function POST(request: Request) {
       ],
       metadata: {
         planType: planKey,
-        ...(gaClientId ? { ga_client_id: gaClientId } : {}),
+        ...(attr.ga_client_id ? { ga_client_id:  attr.ga_client_id } : {}),
+        ...(attr.source       ? { attr_source:    attr.source }       : {}),
+        ...(attr.medium       ? { attr_medium:    attr.medium }       : {}),
+        ...(attr.campaign     ? { attr_campaign:  attr.campaign }     : {}),
+        ...(attr.content      ? { attr_content:   attr.content }      : {}),
+        ...(attr.term         ? { attr_term:      attr.term }         : {}),
+        ...(attr.referrer     ? { attr_referrer:  attr.referrer }     : {}),
+        ...(attr.fbp          ? { attr_fbp:       attr.fbp }          : {}),
+        ...(attr.fbc          ? { attr_fbc:       attr.fbc }          : {}),
       },
       success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}&guest=true&plan=${planKey}&value=${plan.amountAud}`,
       cancel_url: `${appUrl}/pricing`,

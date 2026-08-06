@@ -280,12 +280,22 @@ export async function trackPurchaseServerSide(opts: {
   currency: string;
   planType: string;
   gaClientId?: string;
+  attrSource?: string;
+  attrMedium?: string;
+  attrCampaign?: string;
+  attrContent?: string;
+  attrTerm?: string;
+  attrReferrer?: string;
+  attrFbp?: string;
+  attrFbc?: string;
 }) {
-  console.log(`[server-analytics] trackPurchaseServerSide: txn=${opts.transactionId} userId=${opts.userId}`);
+  console.log(`[server-analytics] trackPurchaseServerSide: txn=${opts.transactionId} userId=${opts.userId} source=${opts.attrSource ?? "(none)"} medium=${opts.attrMedium ?? "(none)"} campaign=${opts.attrCampaign ?? "(none)"}`);
   const eventTime = Math.floor(Date.now() / 1000);
   const value = opts.valueCents / 100;
   const userData: Record<string, unknown> = {};
   if (opts.email) userData.em = [sha256(opts.email)];
+  if (opts.attrFbp) userData.fbp = opts.attrFbp;
+  if (opts.attrFbc) userData.fbc = opts.attrFbc;
 
   // Use the real browser client_id so the purchase event links to the session that had the UTM params.
   // Fall back to a synthetic id only when the _ga cookie wasn't available at checkout time.
@@ -297,6 +307,30 @@ export async function trackPurchaseServerSide(opts: {
     console.warn("[server-analytics] trackPurchaseServerSide: ga_client_id missing — purchase event will use synthetic client_id and lose UTM attribution");
   }
 
+  const ga4PurchaseParams: Record<string, unknown> = {
+    transaction_id: opts.transactionId,
+    value,
+    currency: opts.currency.toUpperCase(),
+    items: [{ item_name: opts.planType }],
+  };
+  if (opts.attrSource)   ga4PurchaseParams.campaign_source   = opts.attrSource;
+  if (opts.attrMedium)   ga4PurchaseParams.campaign_medium   = opts.attrMedium;
+  if (opts.attrCampaign) ga4PurchaseParams.campaign_name     = opts.attrCampaign;
+  if (opts.attrContent)  ga4PurchaseParams.campaign_content  = opts.attrContent;
+  if (opts.attrTerm)     ga4PurchaseParams.campaign_term     = opts.attrTerm;
+  if (opts.attrReferrer) ga4PurchaseParams.page_referrer     = opts.attrReferrer;
+
+  const metaCustomData: Record<string, unknown> = {
+    currency: opts.currency.toUpperCase(),
+    value,
+    order_id: opts.transactionId,
+    content_name: opts.planType,
+    content_type: "product",
+  };
+  if (opts.attrSource)   metaCustomData.utm_source   = opts.attrSource;
+  if (opts.attrMedium)   metaCustomData.utm_medium   = opts.attrMedium;
+  if (opts.attrCampaign) metaCustomData.utm_campaign = opts.attrCampaign;
+
   const results = await Promise.allSettled([
     sendMetaEvent([
       {
@@ -305,13 +339,7 @@ export async function trackPurchaseServerSide(opts: {
         event_id: `purchase_${opts.transactionId}`,
         action_source: "website",
         user_data: userData,
-        custom_data: {
-          currency: opts.currency.toUpperCase(),
-          value,
-          order_id: opts.transactionId,
-          content_name: opts.planType,
-          content_type: "product",
-        },
+        custom_data: metaCustomData,
       },
     ]),
 
@@ -320,12 +348,7 @@ export async function trackPurchaseServerSide(opts: {
       [
         {
           name: "purchase",
-          params: {
-            transaction_id: opts.transactionId,
-            value,
-            currency: opts.currency.toUpperCase(),
-            items: [{ item_name: opts.planType }],
-          },
+          params: ga4PurchaseParams,
         },
       ],
       {

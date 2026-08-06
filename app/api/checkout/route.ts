@@ -1,5 +1,4 @@
 ﻿import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getStripeClient } from "@/lib/stripe";
 import type { EntitlementPlanType } from "@/types/database";
@@ -52,7 +51,13 @@ export async function POST(request: Request) {
   }
 
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
-  const gaClientId = (await cookies()).get("_ga")?.value ?? null;
+
+  // Read first-touch attribution from the user's profile — more reliable than cookies at checkout time
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("attr_source,attr_medium,attr_campaign,attr_content,attr_term,attr_referrer,attr_ga_client_id,attr_fbp,attr_fbc")
+    .eq("id", user.id)
+    .maybeSingle();
 
   try {
     const stripe = getStripeClient();
@@ -73,9 +78,17 @@ export async function POST(request: Request) {
         },
       ],
       metadata: {
-        userId: user.id,
+        userId:   user.id,
         planType: plan.planType,
-        ...(gaClientId ? { ga_client_id: gaClientId } : {}),
+        ...(profile?.attr_ga_client_id ? { ga_client_id:   profile.attr_ga_client_id } : {}),
+        ...(profile?.attr_source       ? { attr_source:     profile.attr_source }       : {}),
+        ...(profile?.attr_medium       ? { attr_medium:     profile.attr_medium }       : {}),
+        ...(profile?.attr_campaign     ? { attr_campaign:   profile.attr_campaign }     : {}),
+        ...(profile?.attr_content      ? { attr_content:    profile.attr_content }      : {}),
+        ...(profile?.attr_term         ? { attr_term:       profile.attr_term }         : {}),
+        ...(profile?.attr_referrer     ? { attr_referrer:   profile.attr_referrer }     : {}),
+        ...(profile?.attr_fbp          ? { attr_fbp:        profile.attr_fbp }          : {}),
+        ...(profile?.attr_fbc          ? { attr_fbc:        profile.attr_fbc }          : {}),
       },
       customer_email: user.email,
       success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}&plan=${plan.planType}&value=${plan.amountAud}`,
