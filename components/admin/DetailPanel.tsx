@@ -14,6 +14,8 @@ type AdminUser = {
   applicationsUsed: number | null;
   applicationLimit: number | null;
   validUntil: string | null;
+  monthlyGenerationsUsed: number;
+  monthlyResetAt: string | null;
   joined: string;
 };
 
@@ -104,7 +106,7 @@ function UserRow({ user }: { user: AdminUser }) {
           <span className="text-gray-300 mx-1">·</span>
           {timeAgo(user.joined)}
         </p>
-        {label && (
+        {label ? (
           <div className="flex items-center gap-2 pt-0.5 flex-wrap">
             {remaining !== null && (
               <span className="text-[11px] text-gray-500">
@@ -114,6 +116,17 @@ function UserRow({ user }: { user: AdminUser }) {
             {expiryLabel && (
               <span className={`text-[11px] font-medium ${expiryUrgent ? "text-rose-500" : "text-gray-400"}`}>
                 · {expiryLabel}
+              </span>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-1 pt-0.5">
+            <span className="text-[11px] text-gray-500">
+              <span className="font-semibold text-gray-700">{user.monthlyGenerationsUsed}</span>/1 free use this month
+            </span>
+            {user.monthlyResetAt && (
+              <span className="text-[11px] text-gray-400">
+                · resets {formatDate(user.monthlyResetAt)}
               </span>
             )}
           </div>

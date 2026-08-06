@@ -26,7 +26,7 @@ export async function GET(request: Request) {
 
   const [rpcResult, { data: profiles }, { data: entitlements }] = await Promise.all([
     admin.rpc("admin_get_user_emails"),
-    admin.from("profiles").select("id, name, created_at"),
+    admin.from("profiles").select("id, name, created_at, monthly_generations_used, monthly_generations_reset_at"),
     admin
       .from("entitlements")
       .select("user_id, plan_type, applications_used, application_limit, valid_until")
@@ -36,8 +36,13 @@ export async function GET(request: Request) {
 
   const authEmails = (rpcResult.data ?? []) as { id: string; email: string; created_at: string }[];
 
-  const profileById: Record<string, { name: string | null; created_at: string }> = Object.fromEntries(
-    (profiles ?? []).map((p) => [p.id as string, { name: (p.name as string | null) ?? null, created_at: p.created_at as string }])
+  const profileById: Record<string, { name: string | null; created_at: string; monthlyUsed: number; monthlyResetAt: string | null }> = Object.fromEntries(
+    (profiles ?? []).map((p) => [p.id as string, {
+      name: (p.name as string | null) ?? null,
+      created_at: p.created_at as string,
+      monthlyUsed: (p.monthly_generations_used as number) ?? 0,
+      monthlyResetAt: (p.monthly_generations_reset_at as string | null) ?? null,
+    }])
   );
 
   const entitlementByUser = Object.fromEntries(
@@ -61,6 +66,8 @@ export async function GET(request: Request) {
       applicationsUsed: ent?.used ?? null,
       applicationLimit: ent?.limit ?? null,
       validUntil: ent?.validUntil ?? null,
+      monthlyGenerationsUsed: prof?.monthlyUsed ?? 0,
+      monthlyResetAt: prof?.monthlyResetAt ?? null,
       joined: prof?.created_at ?? u.created_at,
     };
   });
