@@ -11,6 +11,9 @@ type AdminUser = {
   name: string | null;
   email: string;
   plan: string | null;
+  applicationsUsed: number | null;
+  applicationLimit: number | null;
+  validUntil: string | null;
   joined: string;
 };
 
@@ -61,6 +64,24 @@ function UserRow({ user }: { user: AdminUser }) {
   const label = user.plan ? (PLAN_LABELS[user.plan] ?? user.plan) : null;
   const initial = (user.name ?? user.email ?? "?")[0]?.toUpperCase() ?? "?";
 
+  const remaining = user.applicationLimit !== null && user.applicationsUsed !== null
+    ? user.applicationLimit - user.applicationsUsed
+    : null;
+
+  const expiresIn = user.validUntil
+    ? Math.ceil((new Date(user.validUntil).getTime() - Date.now()) / 86400000)
+    : null;
+
+  const expiryLabel = expiresIn !== null
+    ? expiresIn <= 0
+      ? "Expired"
+      : expiresIn === 1
+        ? "Expires tomorrow"
+        : `Expires in ${expiresIn}d`
+    : null;
+
+  const expiryUrgent = expiresIn !== null && expiresIn <= 3;
+
   return (
     <div className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0">
       {/* Avatar */}
@@ -83,6 +104,20 @@ function UserRow({ user }: { user: AdminUser }) {
           <span className="text-gray-300 mx-1">·</span>
           {timeAgo(user.joined)}
         </p>
+        {label && (
+          <div className="flex items-center gap-2 pt-0.5 flex-wrap">
+            {remaining !== null && (
+              <span className="text-[11px] text-gray-500">
+                <span className="font-semibold text-gray-700">{remaining}</span>/{user.applicationLimit} apps left
+              </span>
+            )}
+            {expiryLabel && (
+              <span className={`text-[11px] font-medium ${expiryUrgent ? "text-rose-500" : "text-gray-400"}`}>
+                · {expiryLabel}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Plan badge */}

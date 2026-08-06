@@ -29,7 +29,7 @@ export async function GET(request: Request) {
     admin.from("profiles").select("id, name, created_at"),
     admin
       .from("entitlements")
-      .select("user_id, plan_type")
+      .select("user_id, plan_type, applications_used, application_limit, valid_until")
       .eq("status", "active")
       .not("stripe_payment_id", "is", null),
   ]);
@@ -40,18 +40,27 @@ export async function GET(request: Request) {
     (profiles ?? []).map((p) => [p.id as string, { name: (p.name as string | null) ?? null, created_at: p.created_at as string }])
   );
 
-  const planByUser = Object.fromEntries(
-    (entitlements ?? []).map((e) => [e.user_id as string, e.plan_type as string])
+  const entitlementByUser = Object.fromEntries(
+    (entitlements ?? []).map((e) => [e.user_id as string, {
+      plan: e.plan_type as string,
+      used: e.applications_used as number,
+      limit: e.application_limit as number,
+      validUntil: e.valid_until as string,
+    }])
   );
 
   // Build user list from auth (all real users) joined with profile + entitlement data
   let users = authEmails.map((u) => {
     const prof = profileById[u.id];
+    const ent = entitlementByUser[u.id] ?? null;
     return {
       id: u.id,
       name: prof?.name ?? null,
       email: u.email,
-      plan: planByUser[u.id] ?? null,
+      plan: ent?.plan ?? null,
+      applicationsUsed: ent?.used ?? null,
+      applicationLimit: ent?.limit ?? null,
+      validUntil: ent?.validUntil ?? null,
       joined: prof?.created_at ?? u.created_at,
     };
   });
