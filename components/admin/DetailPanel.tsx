@@ -16,6 +16,9 @@ type AdminUser = {
   validUntil: string | null;
   monthlyGenerationsUsed: number;
   monthlyResetAt: string | null;
+  attrSource: string | null;
+  attrMedium: string | null;
+  attrCampaign: string | null;
   joined: string;
 };
 
@@ -106,6 +109,17 @@ function UserRow({ user }: { user: AdminUser }) {
           <span className="text-gray-300 mx-1">·</span>
           {timeAgo(user.joined)}
         </p>
+        {user.attrSource && (
+          <p className="text-[11px] text-gray-400">
+            <span className="capitalize font-medium text-gray-500">{user.attrSource}</span>
+            {user.attrMedium && user.attrMedium !== "(none)" && (
+              <span className="text-gray-300"> · {user.attrMedium}</span>
+            )}
+            {user.attrCampaign && user.attrCampaign !== "(none)" && (
+              <span className="text-gray-300"> · {user.attrCampaign}</span>
+            )}
+          </p>
+        )}
         {label ? (
           <div className="flex items-center gap-2 pt-0.5 flex-wrap">
             {remaining !== null && (

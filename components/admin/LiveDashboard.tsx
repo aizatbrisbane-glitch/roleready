@@ -8,6 +8,7 @@ import { LiveFeed } from "./LiveFeed";
 import { CelebrationToast } from "./CelebrationToast";
 import { DetailPanel, type PanelConfig } from "./DetailPanel";
 import { ChartsRow } from "./ChartsRow";
+import { TrafficSources } from "./TrafficSources";
 import type { AdminMetrics, KoalapplyEvent, KoalapplyEventType } from "@/types/database";
 
 interface LiveDashboardProps {
@@ -185,7 +186,10 @@ export function LiveDashboard({ initialMetrics, initialEvents }: LiveDashboardPr
         {/* Row 2: Charts */}
         <ChartsRow />
 
-        {/* Row 3: Usage */}
+        {/* Row 3: Traffic sources */}
+        <TrafficSources />
+
+        {/* Row 4: Usage */}
         <UsageStats
           usage={metrics.usage}
           onCardClick={(type) => openEvents(type, type.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()))}
