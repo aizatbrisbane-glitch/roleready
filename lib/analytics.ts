@@ -104,4 +104,10 @@ export const analytics = {
   atsCheckerNavClick(opts: { placement: "nav" | "footer" | "homepage_card" | "blog_inline" }) {
     fireEvent("ats_checker_nav_click", { placement: opts.placement });
   },
+
+  /** Free-tier user hit their generation limit (server returned 402).
+   *  limit=1 → base free tier; limit=2 → newsletter subscriber bonus tier. */
+  creditLimitReached(opts: { limit: number }) {
+    fireEvent("credit_limit_reached", { application_limit: opts.limit });
+  },
 };

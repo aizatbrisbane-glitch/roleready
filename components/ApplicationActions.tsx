@@ -3,6 +3,7 @@
 import { Download, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { analytics } from "@/lib/analytics";
 
 type AiProvider = "openai" | "anthropic";
 
@@ -46,6 +47,7 @@ export function ApplicationActions({ applicationId, hasDocuments }: Props) {
       const payload = await response.text().then((t) => (t ? JSON.parse(t) : null));
 
       if (!response.ok) {
+        if (response.status === 402) analytics.creditLimitReached({ limit: payload?.applicationLimit ?? 1 });
         setMessage(payload?.error ?? "Unable to prepare application.");
         setLoading(false);
         return;

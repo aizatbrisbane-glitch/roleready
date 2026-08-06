@@ -30,6 +30,23 @@ export async function GET(request: Request) {
         if (attrMatch) {
           try {
             attribution = JSON.parse(decodeURIComponent(attrMatch[1])) as AttributionData;
+
+            // Write attribution to the profiles table so Mission Control reflects the correct
+            // traffic source. This is more reliable than AttributionCapture.tsx reading
+            // localStorage after the redirect (which may be empty or stale).
+            const truncate = (v: unknown) => typeof v === "string" ? v.slice(0, 500) : undefined;
+            await supabase.from("profiles").update({
+              attr_source:       truncate(attribution.utm_source),
+              attr_medium:       truncate(attribution.utm_medium),
+              attr_campaign:     truncate(attribution.utm_campaign),
+              attr_content:      truncate(attribution.utm_content),
+              attr_term:         truncate(attribution.utm_term),
+              attr_referrer:     truncate(attribution.referrer),
+              attr_ga_client_id: truncate(attribution.ga_client_id),
+              attr_fbp:          truncate(attribution.fbp),
+              attr_fbc:          truncate(attribution.fbc),
+              attr_landed_at:    new Date().toISOString(),
+            }).eq("id", user.id).is("attr_landed_at", null);
           } catch {
             console.warn("[auth/callback] Failed to parse koalapply_attribution cookie — attribution will be absent from signup events");
           }

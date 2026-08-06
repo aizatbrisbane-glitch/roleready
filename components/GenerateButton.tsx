@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { NewsletterBonusToast } from "@/components/NewsletterBonusToast";
+import { analytics } from "@/lib/analytics";
 
 type Props = {
   applicationId: string;
@@ -88,6 +89,7 @@ export function GenerateButton({ applicationId, hasDocuments, canGenerate, newsl
       });
       const payload = await response.text().then((t) => (t ? JSON.parse(t) : null));
       if (!response.ok) {
+        if (response.status === 402) analytics.creditLimitReached({ limit: payload?.applicationLimit ?? 1 });
         setMessage(payload?.error ?? "Unable to prepare application.");
         setLoading(false);
         return;

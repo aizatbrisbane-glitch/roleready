@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { consumeGenerationCredit, generationLimitMessage, getAccessState } from "@/lib/entitlements";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logEvent } from "@/lib/events";
+import { sendLimitReachedEmail } from "@/lib/limit-email";
 
 export const maxDuration = 120;
 import type { ApplicationWithJob, MasterCoverLetter, MasterResume, Profile } from "@/types/database";
@@ -300,7 +301,19 @@ export async function POST(request: Request, { params }: Props) {
   const access = await getAccessState(supabase, user.id);
 
   if (shouldConsumeCredit && !access.canGenerate) {
-    return NextResponse.json({ error: generationLimitMessage(access) }, { status: 402 });
+    const profileData = profile as Profile | null;
+    void sendLimitReachedEmail({
+      supabase,
+      userId: user.id,
+      email: user.email ?? "",
+      firstName: (profileData?.name ?? "").split(" ")[0] || null,
+      applicationLimit: access.applicationLimit,
+      limitEmailSentAt: (profile as Record<string, unknown>)?.limit_email_sent_at as string | null ?? null,
+    });
+    return NextResponse.json(
+      { error: generationLimitMessage(access), applicationLimit: access.applicationLimit },
+      { status: 402 }
+    );
   }
 
   const appRecord = app as ApplicationWithJob & { reference_ids?: string[]; include_references_in_cv?: boolean };
