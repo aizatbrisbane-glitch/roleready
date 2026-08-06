@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { blogArticles } from "@/lib/blog";
+import { getLatestArticles } from "@/lib/blog";
 import { PublicFooter } from "@/components/PublicFooter";
 import { analytics } from "@/lib/analytics";
 import {
@@ -74,7 +74,7 @@ const stats = [
   { icon: TrendingUp, value: "28%", label: "Response Rate", period: "This month", iconCls: "bg-violet-50 text-violet-600"   },
 ];
 
-const landingArticles = blogArticles.slice(0, 3);
+const landingArticles = getLatestArticles(3);
 
 function ImageFallback({ className }: { className?: string }) {
   return (

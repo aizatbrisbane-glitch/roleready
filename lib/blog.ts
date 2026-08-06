@@ -2236,6 +2236,16 @@ export const blogArticles: BlogArticle[] = [
   },
 ];
 
+function parsePublishDate(dateStr: string): number {
+  return new Date(dateStr).getTime();
+}
+
+export function getLatestArticles(limit = 3): BlogArticle[] {
+  return [...blogArticles]
+    .sort((a, b) => parsePublishDate(b.publishDate) - parsePublishDate(a.publishDate))
+    .slice(0, limit);
+}
+
 export function getFeaturedArticle() {
   return blogArticles.find((article) => article.featured) ?? blogArticles[0];
 }

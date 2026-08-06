@@ -95,11 +95,10 @@ export default async function BlogArticlePage({ params }: Props) {
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Table of contents</p>
               <nav className="mt-4">
                 <ol className="space-y-1">
-                  {article.sections.filter((s) => s.title).map((section, index) => (
-                    <li key={section.id} className="flex items-baseline gap-3">
-                      <span className="w-5 shrink-0 text-right text-xs font-bold text-slate-300">{index + 1}.</span>
+                  {article.sections.filter((s) => s.title).map((section) => (
+                    <li key={section.id}>
                       <a href={`#${section.id}`} className="text-sm font-semibold leading-6 text-slate-600 transition hover:text-[#2200ff]">
-                        {section.title.replace(/^\d+\.\s*/, "")}
+                        {section.title}
                       </a>
                     </li>
                   ))}
@@ -111,7 +110,7 @@ export default async function BlogArticlePage({ params }: Props) {
               <div className="space-y-10">
                 {sectionsBefore.map((section) => (
                   <section key={section.id} id={section.id} className="scroll-mt-8">
-                    <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">{section.title.replace(/^\d+\.\s*/, "")}</h2>
+                    <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">{section.title}</h2>
                     <div className="mt-4 space-y-4">
                       {section.paragraphs?.map((paragraph) => (
                         <p key={paragraph} className="text-base leading-8 text-slate-600">{renderInlineLinks(paragraph)}</p>
@@ -169,7 +168,7 @@ export default async function BlogArticlePage({ params }: Props) {
                 <div className="space-y-10">
                   {sectionsAfter.map((section) => (
                     <section key={section.id} id={section.id} className="scroll-mt-8">
-                      <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">{section.title.replace(/^\d+\.\s*/, "")}</h2>
+                      <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">{section.title}</h2>
                       <div className="mt-4 space-y-4">
                         {section.paragraphs?.map((paragraph) => (
                           <p key={paragraph} className="text-base leading-8 text-slate-600">{renderInlineLinks(paragraph)}</p>
