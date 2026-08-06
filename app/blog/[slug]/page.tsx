@@ -99,7 +99,7 @@ export default async function BlogArticlePage({ params }: Props) {
                     <li key={section.id} className="flex items-baseline gap-3">
                       <span className="w-5 shrink-0 text-right text-xs font-bold text-slate-300">{index + 1}.</span>
                       <a href={`#${section.id}`} className="text-sm font-semibold leading-6 text-slate-600 transition hover:text-[#2200ff]">
-                        {section.title}
+                        {section.title.replace(/^\d+\.\s*/, "")}
                       </a>
                     </li>
                   ))}
