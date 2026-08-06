@@ -19,6 +19,7 @@ type AdminUser = {
   attrSource: string | null;
   attrMedium: string | null;
   attrCampaign: string | null;
+  attrLandingPage: string | null;
   joined: string;
 };
 
@@ -119,6 +120,12 @@ function UserRow({ user }: { user: AdminUser }) {
             {user.attrCampaign && user.attrCampaign !== "(none)" && (
               <span className="text-gray-300"> · {user.attrCampaign}</span>
             )}
+          </p>
+        )}
+        {user.attrLandingPage && (
+          <p className="text-[11px] text-gray-400 truncate">
+            <span className="text-gray-300">landed </span>
+            <span className="font-medium text-gray-500">{user.attrLandingPage}</span>
           </p>
         )}
         {label ? (

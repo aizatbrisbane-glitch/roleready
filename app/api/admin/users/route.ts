@@ -26,7 +26,7 @@ export async function GET(request: Request) {
 
   const [rpcResult, { data: profiles }, { data: entitlements }] = await Promise.all([
     admin.rpc("admin_get_user_emails"),
-    admin.from("profiles").select("id, name, created_at, monthly_generations_used, monthly_generations_reset_at, attr_source, attr_medium, attr_campaign, attr_landed_at"),
+    admin.from("profiles").select("id, name, created_at, monthly_generations_used, monthly_generations_reset_at, attr_source, attr_medium, attr_campaign, attr_landing_page, attr_landed_at"),
     admin
       .from("entitlements")
       .select("user_id, plan_type, applications_used, application_limit, valid_until")
@@ -36,7 +36,7 @@ export async function GET(request: Request) {
 
   const authEmails = (rpcResult.data ?? []) as { id: string; email: string; created_at: string }[];
 
-  const profileById: Record<string, { name: string | null; created_at: string; monthlyUsed: number; monthlyResetAt: string | null; attrSource: string | null; attrMedium: string | null; attrCampaign: string | null; attrLandedAt: string | null }> = Object.fromEntries(
+  const profileById: Record<string, { name: string | null; created_at: string; monthlyUsed: number; monthlyResetAt: string | null; attrSource: string | null; attrMedium: string | null; attrCampaign: string | null; attrLandingPage: string | null; attrLandedAt: string | null }> = Object.fromEntries(
     (profiles ?? []).map((p) => [p.id as string, {
       name: (p.name as string | null) ?? null,
       created_at: p.created_at as string,
@@ -45,6 +45,7 @@ export async function GET(request: Request) {
       attrSource: (p.attr_source as string | null) ?? null,
       attrMedium: (p.attr_medium as string | null) ?? null,
       attrCampaign: (p.attr_campaign as string | null) ?? null,
+      attrLandingPage: (p.attr_landing_page as string | null) ?? null,
       attrLandedAt: (p.attr_landed_at as string | null) ?? null,
     }])
   );
@@ -75,6 +76,7 @@ export async function GET(request: Request) {
       attrSource: prof?.attrSource ?? null,
       attrMedium: prof?.attrMedium ?? null,
       attrCampaign: prof?.attrCampaign ?? null,
+      attrLandingPage: prof?.attrLandingPage ?? null,
       joined: prof?.created_at ?? u.created_at,
     };
   });

@@ -15,16 +15,17 @@ export async function POST(request: Request) {
     typeof v === "string" ? v.slice(0, 500) : undefined;
 
   const update = {
-    attr_source:       truncate(body.source),
-    attr_medium:       truncate(body.medium),
-    attr_campaign:     truncate(body.campaign),
-    attr_content:      truncate(body.content),
-    attr_term:         truncate(body.term),
-    attr_referrer:     truncate(body.referrer),
-    attr_ga_client_id: truncate(body.ga_client_id),
-    attr_fbp:          truncate(body.fbp),
-    attr_fbc:          truncate(body.fbc),
-    attr_landed_at:    new Date().toISOString(),
+    attr_source:        truncate(body.source),
+    attr_medium:        truncate(body.medium),
+    attr_campaign:      truncate(body.campaign),
+    attr_content:       truncate(body.content),
+    attr_term:          truncate(body.term),
+    attr_referrer:      truncate(body.referrer),
+    attr_landing_page:  truncate(body.landing_page),
+    attr_ga_client_id:  truncate(body.ga_client_id),
+    attr_fbp:           truncate(body.fbp),
+    attr_fbc:           truncate(body.fbc),
+    attr_landed_at:     new Date().toISOString(),
   };
 
   // First-touch only — only writes if attr_landed_at is still NULL

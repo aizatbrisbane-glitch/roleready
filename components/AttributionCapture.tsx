@@ -33,6 +33,7 @@ export function AttributionCapture({ isAuthenticated }: { isAuthenticated: boole
         content:      params.get("utm_content")  ?? undefined,
         term:         params.get("utm_term")     ?? undefined,
         referrer:     document.referrer || undefined,
+        landing_page: window.location.pathname + (window.location.search || ""),
         // Store raw _ga value — server's parseGa4ClientId() handles stripping the prefix
         ga_client_id: gaCookie ?? undefined,
         fbp:          getCookie("_fbp"),
