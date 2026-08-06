@@ -1548,7 +1548,7 @@ export const blogArticles: BlogArticle[] = [
   {
     slug: "fastest-way-to-lose-a-high-performer",
     title: "The Fastest Way to Lose a High Performer",
-    excerpt: "Losing a good employee rarely looks dramatic. It is a slow drift, over months, from fully switched on to just going through the motions. Here is what that looks like from the inside.",
+    excerpt: "Losing a good employee rarely looks dramatic. It is a slow drift, over months, from fully switched on to just going through the motions.",
     category: "Career Growth",
     author: "Koalapply",
     publishDate: "3 Jul 2026",
@@ -1560,10 +1560,10 @@ export const blogArticles: BlogArticle[] = [
         id: "intro",
         title: "",
         paragraphs: [
-          "You already know if you are a high performer. Nobody has to tell you in a performance review. You know because you are the one who catches what everyone else missed, the one who stays fifteen minutes late so the deck actually makes sense, the one whose name ends up attached to anything that needs someone reliable on it.",
-          "What you are less sure of is whether anyone has actually noticed.",
-          "That is the part most companies get wrong, and not occasionally. Consistently. Losing a good employee rarely looks dramatic from the outside. There is no blow-up, no scene in the break room, no dramatic resignation letter. It is quieter than that: a slow drift, over months, from fully switched on to just going through the motions, long before anyone hands in their notice.",
-          "Here is what that drift usually looks like from the inside, and what is worth doing if you are somewhere in the middle of it right now.",
+          "High performers rarely leave because they suddenly stopped caring. More often, they leave because they cared for a long time and eventually realised the relationship was becoming one-sided.",
+          "They were the person who caught what everyone else missed or took on the difficult project and quietly kept things moving. Their reliability earned them more work, more pressure and more problems to solve.",
+          "Unfortunately good work is not always noticed and that can leave their contribution overlooked, diluted or, in some cases, claimed by someone more comfortable taking the credit or just louder and more visible.",
+          "Here are some of the most common reasons high performers decide it is time to go, and what to do when you recognise yourself in them.",
         ],
       },
       {
