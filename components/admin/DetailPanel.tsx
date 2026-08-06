@@ -139,17 +139,11 @@ function UserRow({ user }: { user: AdminUser }) {
             <span className="text-[11px] text-gray-500">
               <span className="font-semibold text-gray-700">{user.monthlyGenerationsUsed}</span>/1 free use this month
             </span>
-            {user.monthlyResetAt && (() => {
-              const stored = new Date(user.monthlyResetAt);
-              const resetDate = stored < new Date()
-                ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1)
-                : stored;
-              return (
-                <span className="text-[11px] text-gray-400">
-                  · resets {formatDate(resetDate.toISOString())}
-                </span>
-              );
-            })()}
+            {user.monthlyResetAt && (
+              <span className="text-[11px] text-gray-400">
+                · resets {formatDate(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString())}
+              </span>
+            )}
           </div>
         )}
       </div>
