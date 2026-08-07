@@ -21,7 +21,7 @@ export async function GET() {
 
   const resend = new Resend(apiKey);
 
-  const { data: contactData, error: contactError } = await resend.contacts.list();
+  const { data: contactData, error: contactError } = await resend.contacts.list({ limit: 100 });
   if (contactError) {
     return NextResponse.json({ error: contactError.message }, { status: 500 });
   }

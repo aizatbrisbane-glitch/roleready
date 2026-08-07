@@ -82,7 +82,7 @@ export function LiveDashboard({ initialMetrics, initialEvents, emailByUserId }: 
     setPanel({ kind: "events", type, title });
   }, []);
   const openSubscribers = useCallback(() => {
-    setPanel({ kind: "subscribers", title: "Email Subscribers" });
+    setPanel({ kind: "subscribers", title: "Subscribers" });
   }, []);
 
   const mrr = parseFloat(metrics.revenue.mrr);
