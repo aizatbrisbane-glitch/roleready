@@ -184,7 +184,7 @@ export function LiveDashboard({ initialMetrics, initialEvents, emailByUserId }: 
                 accent="amber"
               />
               <MetricCard
-                label="Email List"
+                label="Subscribers"
                 value={metrics.users.newsletterSubscribers}
                 accent="green"
                 onClick={openSubscribers}
