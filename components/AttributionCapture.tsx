@@ -9,6 +9,19 @@ function getCookie(name: string): string | undefined {
   return match ? decodeURIComponent(match.split("=")[1]) : undefined;
 }
 
+// Returns { source, medium } inferred from the referrer URL when no utm_source is present.
+// campaign is intentionally left to the caller so it can be stamped "organic_referral"
+// to distinguish referrer-inferred attribution from deliberate UTM-tagged campaigns.
+function inferFromReferrer(referrer: string): { source: string; medium: string } | null {
+  if (!referrer) return null;
+  if (/lnkd\.in|linkedin\.com/i.test(referrer))  return { source: "linkedin",  medium: "social" };
+  if (/facebook\.com|fb\.me/i.test(referrer))     return { source: "facebook",  medium: "social" };
+  if (/instagram\.com/i.test(referrer))            return { source: "instagram", medium: "social" };
+  if (/t\.co|twitter\.com|x\.com/i.test(referrer)) return { source: "twitter",  medium: "social" };
+  if (/tiktok\.com/i.test(referrer))               return { source: "tiktok",   medium: "social" };
+  return null;
+}
+
 export function AttributionCapture({ isAuthenticated }: { isAuthenticated: boolean }) {
   useEffect(() => {
     try {
@@ -25,14 +38,21 @@ export function AttributionCapture({ isAuthenticated }: { isAuthenticated: boole
       const params = new URLSearchParams(window.location.search);
       const gaCookie = getCookie("_ga");
       const fbclid = params.get("fbclid");
+      const referrer = document.referrer || undefined;
+
+      const utmSource = params.get("utm_source") ?? undefined;
+      const inferred = !utmSource ? inferFromReferrer(document.referrer) : null;
 
       const attr = {
-        source:       params.get("utm_source")   ?? undefined,
-        medium:       params.get("utm_medium")   ?? undefined,
-        campaign:     params.get("utm_campaign") ?? undefined,
-        content:      params.get("utm_content")  ?? undefined,
-        term:         params.get("utm_term")     ?? undefined,
-        referrer:     document.referrer || undefined,
+        // Prefer explicit UTM params; fall back to referrer inference.
+        // campaign="organic_referral" flags inferred rows in Mission Control/GA4 so they're
+        // distinguishable from properly UTM-tagged campaigns.
+        source:       utmSource                    ?? inferred?.source,
+        medium:       params.get("utm_medium")     ?? inferred?.medium,
+        campaign:     params.get("utm_campaign")   ?? (inferred ? "organic_referral" : undefined),
+        content:      params.get("utm_content")    ?? undefined,
+        term:         params.get("utm_term")       ?? undefined,
+        referrer,
         landing_page: window.location.pathname + (window.location.search || ""),
         // Store raw _ga value — server's parseGa4ClientId() handles stripping the prefix
         ga_client_id: gaCookie ?? undefined,
