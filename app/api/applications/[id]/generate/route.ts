@@ -410,7 +410,7 @@ export async function POST(request: Request, { params }: Props) {
     access.applicationsRemaining === 1;
 
   if (justHitLimit) {
-    void sendLimitReachedEmail({
+    await sendLimitReachedEmail({
       supabase,
       userId: user.id,
       email: user.email ?? "",
