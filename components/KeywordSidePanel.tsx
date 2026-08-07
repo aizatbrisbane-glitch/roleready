@@ -106,10 +106,14 @@ export function KeywordSidePanel({
   const router = useRouter();
   const pendingKey = `koala_score_pending_${applicationId}`;
   const [sessionDelta, setSessionDelta] = useState(0);
-  const [hasPendingScore, setHasPendingScore] = useState(() => {
-    try { return localStorage.getItem(`koala_score_pending_${applicationId}`) === "1"; } catch { return false; }
-  });
+  const [hasPendingScore, setHasPendingScore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(pendingKey) === "1") setHasPendingScore(true);
+    } catch {}
+  }, [pendingKey]);
   const [upsellModal, setUpsellModal] = useState<{ scoreWas: number; scoreNow: number; remaining: number } | null>(null);
   const prevStrengthCountRef = useRef(strengthenedKeywords.length);
 
