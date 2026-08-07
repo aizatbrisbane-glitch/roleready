@@ -47,10 +47,12 @@ export function ApplicationActions({ applicationId, hasDocuments }: Props) {
       const payload = await response.text().then((t) => (t ? JSON.parse(t) : null));
 
       if (!response.ok) {
-        if (response.status === 402) analytics.creditLimitReached({ limit: payload?.applicationLimit ?? 1 });
         setMessage(payload?.error ?? "Unable to prepare application.");
         setLoading(false);
         return;
+      }
+      if (payload?.limitReached) {
+        analytics.creditLimitReached({ limit: payload.applicationLimit ?? 1 });
       }
 
       router.refresh();

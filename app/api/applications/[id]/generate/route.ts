@@ -301,15 +301,6 @@ export async function POST(request: Request, { params }: Props) {
   const access = await getAccessState(supabase, user.id);
 
   if (shouldConsumeCredit && !access.canGenerate) {
-    const profileData = profile as Profile | null;
-    void sendLimitReachedEmail({
-      supabase,
-      userId: user.id,
-      email: user.email ?? "",
-      firstName: (profileData?.name ?? "").split(" ")[0] || null,
-      applicationLimit: access.applicationLimit,
-      limitEmailSentAt: (profile as Record<string, unknown>)?.limit_email_sent_at as string | null ?? null,
-    });
     return NextResponse.json(
       { error: generationLimitMessage(access), applicationLimit: access.applicationLimit },
       { status: 402 }
@@ -410,11 +401,33 @@ export async function POST(request: Request, { params }: Props) {
   void logEvent("RESUME_GENERATED",     user.id, { first_name: firstName });
   void logEvent("COVER_LETTER_CREATED", user.id, { first_name: firstName });
 
-  const showNewsletterOffer =
+  // applicationsRemaining === 1 pre-consume means this generation brought the count to the limit.
+  // Fire the email now (on success) rather than on the next blocked attempt — most users won't
+  // try again immediately, so waiting for a 402 would mean many never receive the email at all.
+  const justHitLimit =
     shouldConsumeCredit &&
     access.planType === "free" &&
-    !(profileData?.newsletter_subscribed ?? false) &&
     access.applicationsRemaining === 1;
 
-  return NextResponse.json({ ok: true, showNewsletterOffer });
+  if (justHitLimit) {
+    void sendLimitReachedEmail({
+      supabase,
+      userId: user.id,
+      email: user.email ?? "",
+      firstName,
+      applicationLimit: access.applicationLimit,
+      limitEmailSentAt: (profile as Record<string, unknown>)?.limit_email_sent_at as string | null ?? null,
+    });
+  }
+
+  const showNewsletterOffer =
+    justHitLimit &&
+    !(profileData?.newsletter_subscribed ?? false);
+
+  return NextResponse.json({
+    ok: true,
+    showNewsletterOffer,
+    limitReached: justHitLimit,
+    applicationLimit: justHitLimit ? access.applicationLimit : undefined,
+  });
 }

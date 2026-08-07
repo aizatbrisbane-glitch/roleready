@@ -89,12 +89,14 @@ export function GenerateButton({ applicationId, hasDocuments, canGenerate, newsl
       });
       const payload = await response.text().then((t) => (t ? JSON.parse(t) : null));
       if (!response.ok) {
-        if (response.status === 402) analytics.creditLimitReached({ limit: payload?.applicationLimit ?? 1 });
         setMessage(payload?.error ?? "Unable to prepare application.");
         setLoading(false);
         return;
       }
       setProgress(100);
+      if (payload?.limitReached) {
+        analytics.creditLimitReached({ limit: payload.applicationLimit ?? 1 });
+      }
       if (payload?.showNewsletterOffer) {
         setShowNewsletterOffer(true);
       }
