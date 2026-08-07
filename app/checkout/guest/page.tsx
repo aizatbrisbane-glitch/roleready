@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 export default function GuestCheckoutPage() {
   const searchParams = useSearchParams();
@@ -19,11 +20,30 @@ export default function GuestCheckoutPage() {
       if (stored) attribution = JSON.parse(stored);
     } catch { /* ignore */ }
 
-    fetch("/api/checkout/guest", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ planType: plan, attribution }),
-    })
+    // Use authenticated checkout for logged-in users so we can lock their email at Stripe
+    const supabase = createSupabaseBrowserClient();
+    const doCheckout = supabase
+      ? supabase.auth.getUser().then(({ data }) => {
+          if (data.user) {
+            return fetch("/api/checkout", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ planType: plan }),
+            });
+          }
+          return fetch("/api/checkout/guest", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ planType: plan, attribution }),
+          });
+        })
+      : fetch("/api/checkout/guest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ planType: plan, attribution }),
+        });
+
+    doCheckout
       .then((res) => res.json())
       .then((data) => {
         if (data.url) {
