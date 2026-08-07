@@ -1,3 +1,4 @@
+import { Resend } from "resend";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AdminMetrics } from "@/types/database";
 
@@ -7,6 +8,21 @@ const PLAN_PRICES_AUD: Record<string, number> = {
   focus_30_day:   parseFloat(process.env.PLAN_PRICE_FOCUS   ?? "0"),
   partner_90_day: parseFloat(process.env.PLAN_PRICE_PARTNER ?? "0") / 3, // quarterly → monthly
 };
+
+async function fetchResendSubscriberCount(): Promise<number> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return 0;
+  try {
+    const resend = new Resend(apiKey);
+    const { data } = await resend.audiences.list();
+    const audienceId = data?.data?.[0]?.id;
+    if (!audienceId) return 0;
+    const { data: contacts } = await resend.contacts.list({ audienceId });
+    return (contacts?.data ?? []).filter((c) => !c.unsubscribed).length;
+  } catch {
+    return 0;
+  }
+}
 
 export async function fetchAdminMetrics(admin: SupabaseClient): Promise<AdminMetrics> {
   const now = new Date();
@@ -24,7 +40,7 @@ export async function fetchAdminMetrics(admin: SupabaseClient): Promise<AdminMet
     { count: coverLettersCreated },
     { count: applicationsCreated },
     { data: activeEntitlements },
-    { count: newsletterSubscribers },
+    newsletterSubscribers,
   ] = await Promise.all([
     admin.rpc("admin_get_user_emails"),
     admin.from("koalapply_events").select("*", { count: "exact", head: true }).eq("event_type", "RESUME_UPLOADED"),
@@ -33,7 +49,7 @@ export async function fetchAdminMetrics(admin: SupabaseClient): Promise<AdminMet
     admin.from("koalapply_events").select("*", { count: "exact", head: true }).eq("event_type", "COVER_LETTER_CREATED"),
     admin.from("koalapply_events").select("*", { count: "exact", head: true }).eq("event_type", "APPLICATION_CREATED"),
     admin.from("entitlements").select("user_id, plan_type").eq("status", "active").not("stripe_payment_id", "is", null),
-    admin.from("profiles").select("*", { count: "exact", head: true }).eq("newsletter_subscribed", true),
+    fetchResendSubscriberCount(),
   ]);
 
   // Derive user counts from auth.users (the real source of truth)

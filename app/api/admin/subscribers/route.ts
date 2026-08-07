@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
+import { Resend } from "resend";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -16,25 +16,30 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 
-  const admin = createSupabaseAdminClient();
-  if (!admin) return NextResponse.json({ error: "Admin client not configured." }, { status: 500 });
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return NextResponse.json({ error: "Resend not configured." }, { status: 500 });
 
-  const [rpcResult, { data: subscribedProfiles }] = await Promise.all([
-    admin.rpc("admin_get_user_emails"),
-    admin.from("profiles").select("id, name, created_at").eq("newsletter_subscribed", true),
-  ]);
+  const resend = new Resend(apiKey);
 
-  const emailById = Object.fromEntries(
-    ((rpcResult.data ?? []) as { id: string; email: string }[]).map((r) => [r.id, r.email])
-  );
+  // Discover the first audience automatically
+  const { data: audienceData, error: audienceError } = await resend.audiences.list();
+  const audienceId = audienceData?.data?.[0]?.id;
+  if (audienceError || !audienceId) {
+    return NextResponse.json({ error: "No Resend audience found." }, { status: 500 });
+  }
 
-  const subscribers = (subscribedProfiles ?? [])
-    .map((p) => ({
-      email: emailById[p.id as string] ?? null,
-      name: (p.name as string | null) ?? null,
-      subscribedAt: p.created_at as string,
+  const { data: contactData, error: contactError } = await resend.contacts.list({ audienceId });
+  if (contactError) {
+    return NextResponse.json({ error: contactError.message }, { status: 500 });
+  }
+
+  const subscribers = (contactData?.data ?? [])
+    .filter((c) => !c.unsubscribed)
+    .map((c) => ({
+      email: c.email,
+      name: [c.first_name, c.last_name].filter(Boolean).join(" ") || null,
+      subscribedAt: c.created_at,
     }))
-    .filter((s) => s.email)
     .sort((a, b) => new Date(b.subscribedAt).getTime() - new Date(a.subscribedAt).getTime());
 
   return NextResponse.json(subscribers);
