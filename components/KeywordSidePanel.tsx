@@ -104,7 +104,11 @@ export function KeywordSidePanel({
   });
 
   const router = useRouter();
+  const pendingKey = `koala_score_pending_${applicationId}`;
   const [sessionDelta, setSessionDelta] = useState(0);
+  const [hasPendingScore, setHasPendingScore] = useState(() => {
+    try { return localStorage.getItem(`koala_score_pending_${applicationId}`) === "1"; } catch { return false; }
+  });
   const [refreshing, setRefreshing] = useState(false);
   const [upsellModal, setUpsellModal] = useState<{ scoreWas: number; scoreNow: number; remaining: number } | null>(null);
   const prevStrengthCountRef = useRef(strengthenedKeywords.length);
@@ -158,7 +162,7 @@ export function KeywordSidePanel({
   const effectiveStrengthened = Math.max(0, strengthenedKeywords.length + sessionDelta);
   const pageLoadScore = totalKeywords === 0 ? base : Math.min(100, Math.round(base + strengthenedKeywords.length * (100 - base) / totalKeywords));
   const liveScore = totalKeywords === 0 ? base : Math.min(100, Math.round(base + effectiveStrengthened * (100 - base) / totalKeywords));
-  const scoreImproved = liveScore > pageLoadScore;
+  const scoreImproved = liveScore > pageLoadScore || hasPendingScore;
 
   function getState(kw: string): KeywordState { return states[kw] ?? { phase: "idle" }; }
   function setState(kw: string, s: KeywordState) { setStates(p => ({ ...p, [kw]: s })); }
@@ -298,6 +302,8 @@ export function KeywordSidePanel({
       onDocumentUpdate({ resume: finalResume ?? null, cover: finalCover ?? null, keyword: kw, snippet: editedSnippet });
       setState(kw, { phase: "success", target: state.target, snippet: editedSnippet, originalSnippet });
       setSessionDelta(d => d + 1);
+      try { localStorage.setItem(pendingKey, "1"); } catch {}
+      setHasPendingScore(true);
       // Delay modal so user sees the keyword go green and score tick up first
       if (!isPremium) {
         const scoreWas = pageLoadScore;
@@ -641,6 +647,8 @@ export function KeywordSidePanel({
                 type="button"
                 disabled={refreshing}
                 onClick={() => {
+                  try { localStorage.removeItem(pendingKey); } catch {}
+                  setHasPendingScore(false);
                   setRefreshing(true);
                   router.refresh();
                   setTimeout(() => setRefreshing(false), 1500);
