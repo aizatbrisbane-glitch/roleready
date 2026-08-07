@@ -215,6 +215,25 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
     // Capture attribution data before leaving the domain — sessionStorage won't survive a
     // cross-domain OAuth redirect, but a first-party cookie will.
     const attribution = captureAttribution();
+
+    // If the current page has no UTM source, pull from what AttributionCapture stored in
+    // localStorage — e.g. user landed from a LinkedIn organic post (no UTMs, referrer stripped
+    // by lnkd.in), browsed to the signup page, and document.referrer is now koalapply.com.
+    if (!attribution.utm_source) {
+      try {
+        const stored = localStorage.getItem("koala_attr");
+        if (stored) {
+          const lsAttr = JSON.parse(stored) as Record<string, string>;
+          attribution.utm_source   = lsAttr.source   || attribution.utm_source;
+          attribution.utm_medium   = lsAttr.medium   || attribution.utm_medium;
+          attribution.utm_campaign = lsAttr.campaign || attribution.utm_campaign;
+          attribution.utm_content  = lsAttr.content  || attribution.utm_content;
+          attribution.utm_term     = lsAttr.term     || attribution.utm_term;
+          if (!attribution.referrer) attribution.referrer = lsAttr.referrer;
+        }
+      } catch { /* non-critical */ }
+    }
+
     const secure = window.location.protocol === "https:" ? "; Secure" : "";
     document.cookie = `koalapply_attribution=${encodeURIComponent(JSON.stringify(attribution))}; path=/auth/callback; max-age=3600; SameSite=Lax${secure}`;
 
