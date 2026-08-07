@@ -52,15 +52,31 @@ export async function POST(request: Request) {
 
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
-  // Read first-touch attribution from the user's profile — more reliable than cookies at checkout time
+  // Read first-touch attribution and existing Stripe customer ID from the user's profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("attr_source,attr_medium,attr_campaign,attr_content,attr_term,attr_referrer,attr_ga_client_id,attr_fbp,attr_fbc")
+    .select("stripe_customer_id,attr_source,attr_medium,attr_campaign,attr_content,attr_term,attr_referrer,attr_ga_client_id,attr_fbp,attr_fbc")
     .eq("id", user.id)
     .maybeSingle();
 
   try {
     const stripe = getStripeClient();
+
+    // Create-or-fetch Stripe customer so we can lock the email and tie purchases to one record
+    let stripeCustomerId = profile?.stripe_customer_id ?? null;
+    if (!stripeCustomerId) {
+      const customer = await stripe.customers.create({
+        email: user.email ?? undefined,
+        metadata: { userId: user.id },
+      });
+      stripeCustomerId = customer.id;
+      // Best-effort — non-fatal if this fails; webhook will also stamp it
+      await supabase
+        .from("profiles")
+        .update({ stripe_customer_id: stripeCustomerId })
+        .eq("id", user.id);
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       currency: "aud",
@@ -90,7 +106,7 @@ export async function POST(request: Request) {
         ...(profile?.attr_fbp          ? { attr_fbp:        profile.attr_fbp }          : {}),
         ...(profile?.attr_fbc          ? { attr_fbc:        profile.attr_fbc }          : {}),
       },
-      customer_email: user.email,
+      customer: stripeCustomerId,
       success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}&plan=${plan.planType}&value=${plan.amountAud}`,
       cancel_url: `${appUrl}/pricing`,
     });

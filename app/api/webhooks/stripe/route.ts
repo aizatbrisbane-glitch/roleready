@@ -152,6 +152,15 @@ export async function POST(request: Request) {
 
   console.log(`[stripe-webhook] Granted ${planType} to user ${resolvedUserId} (session ${sessionId})`);
 
+  // Stamp stripe_customer_id on the profile if not already set
+  if (typeof session.customer === "string") {
+    await adminSupabase
+      .from("profiles")
+      .update({ stripe_customer_id: session.customer })
+      .eq("id", resolvedUserId)
+      .is("stripe_customer_id", null);
+  }
+
   void logEvent("SUBSCRIPTION_STARTED", resolvedUserId, {
     plan_type: planType,
     amount_cents: session.amount_total ?? 0,
