@@ -16,7 +16,7 @@ function variantA(greeting: string) {
         <img src="${APP_URL}/brand/koalapply-logo.png" alt="Koalapply" width="220" style="width:220px;height:auto;margin-bottom:32px" />
         <p style="font-size:15px;line-height:1.6;margin:0 0 16px">${greeting}</p>
         <p style="font-size:15px;line-height:1.6;margin:0 0 16px">
-          You just used your one free application on KoalaApply. Nice work — that's one more resume tailored to actually get past the ATS.
+          You just used your one free application on Koalapply. Nice work — that's one more resume tailored to actually get past the ATS.
         </p>
         <p style="font-size:15px;line-height:1.6;margin:0 0 24px">
           If you're applying to more than one role this month, the 7-Day Sprint gets you 12 applications for $9. That's less than a coffee a day for a focused push.
@@ -28,7 +28,7 @@ function variantA(greeting: string) {
           Your free application resets on the 1st of next month if you'd rather wait.
         </p>
         <p style="font-size:13px;color:#94a3b8;margin:24px 0 0">
-          Cheers,<br />The KoalaApply team
+          Cheers,<br />The Koalapply team
         </p>
       </div>
     `,
@@ -43,7 +43,7 @@ function variantB(greeting: string) {
         <img src="${APP_URL}/brand/koalapply-logo.png" alt="Koalapply" width="220" style="width:220px;height:auto;margin-bottom:32px" />
         <p style="font-size:15px;line-height:1.6;margin:0 0 16px">${greeting}</p>
         <p style="font-size:15px;line-height:1.6;margin:0 0 16px">
-          You've now used both your applications this month, so you're clearly putting KoalaApply to work.
+          You've now used both your applications this month, so you're clearly putting Koalapply to work.
         </p>
         <p style="font-size:15px;line-height:1.6;margin:0 0 24px">
           If you're mid job search, the 30-Day Focus gives you 50 applications over 30 days for $19 — our best value plan. Or if you need a bigger runway, the 90-Day Partner covers 150 applications over 90 days for $49.
@@ -55,7 +55,7 @@ function variantB(greeting: string) {
           Your credits reset on the 1st if you'd rather hold off.
         </p>
         <p style="font-size:13px;color:#94a3b8;margin:24px 0 0">
-          Cheers,<br />The KoalaApply team
+          Cheers,<br />The Koalapply team
         </p>
       </div>
     `,
