@@ -69,6 +69,7 @@ export type AdminMetrics = {
     total: number;
     today: number;
     thisWeek: number;
+    newsletterSubscribers: number;
   };
   usage: {
     resumesUploaded: number;

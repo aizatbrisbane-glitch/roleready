@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { Check, Copy, X } from "lucide-react";
 import type { KoalapplyEvent, KoalapplyEventType } from "@/types/database";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -27,7 +27,10 @@ export type PanelConfig =
   | { kind: "users"; filter: "all" | "today" | "week" | "paid"; title: string }
   | { kind: "users"; filter: "source"; source: string; title: string }
   | { kind: "events"; type: KoalapplyEventType; title: string }
+  | { kind: "subscribers"; title: string }
   | null;
+
+type Subscriber = { email: string; name: string | null; subscribedAt: string };
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -204,6 +207,44 @@ function EventRow({ event }: { event: KoalapplyEvent }) {
   );
 }
 
+function CopyEmailsButton({ emails }: { emails: string[] }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={() => {
+        navigator.clipboard.writeText(emails.join(", ")).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        });
+      }}
+      className="flex items-center gap-1.5 rounded-full bg-indigo-600 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-indigo-700"
+    >
+      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+      {copied ? "Copied!" : "Copy all emails"}
+    </button>
+  );
+}
+
+function SubscriberRow({ subscriber }: { subscriber: Subscriber }) {
+  const initial = (subscriber.name ?? subscriber.email)[0]?.toUpperCase() ?? "?";
+  return (
+    <div className="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0">
+      <div className="h-8 w-8 rounded-full bg-indigo-50 flex items-center justify-center text-sm font-semibold text-indigo-400 shrink-0">
+        {initial}
+      </div>
+      <div className="flex-1 min-w-0">
+        {subscriber.name && (
+          <p className="text-sm font-medium text-gray-900 truncate">{subscriber.name}</p>
+        )}
+        <p className="text-xs text-gray-500 truncate">{subscriber.email}</p>
+      </div>
+      <time className="text-[11px] text-gray-400 shrink-0 font-mono">
+        {timeAgo(subscriber.subscribedAt)}
+      </time>
+    </div>
+  );
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 interface DetailPanelProps {
@@ -215,23 +256,28 @@ export function DetailPanel({ config, onClose }: DetailPanelProps) {
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [events, setEvents] = useState<KoalapplyEvent[]>([]);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
 
   useEffect(() => {
     if (!config) return;
     setLoading(true);
     setUsers([]);
     setEvents([]);
+    setSubscribers([]);
 
     const url = config.kind === "users"
       ? config.filter === "source"
         ? `/api/admin/users?filter=source&source=${encodeURIComponent(config.source)}`
         : `/api/admin/users?filter=${config.filter}`
-      : `/api/admin/events?type=${config.type}`;
+      : config.kind === "subscribers"
+        ? "/api/admin/subscribers"
+        : `/api/admin/events?type=${config.type}`;
 
     fetch(url)
       .then((r) => r.json())
       .then((data) => {
         if (config.kind === "users") setUsers(data as AdminUser[]);
+        else if (config.kind === "subscribers") setSubscribers(data as Subscriber[]);
         else setEvents(data as KoalapplyEvent[]);
       })
       .catch(() => {})
@@ -245,7 +291,7 @@ export function DetailPanel({ config, onClose }: DetailPanelProps) {
   }, [onClose]);
 
   const isOpen = Boolean(config);
-  const count = config?.kind === "users" ? users.length : events.length;
+  const count = config?.kind === "users" ? users.length : config?.kind === "subscribers" ? subscribers.length : events.length;
 
   return (
     <>
@@ -282,12 +328,17 @@ export function DetailPanel({ config, onClose }: DetailPanelProps) {
                 </p>
               )}
             </div>
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              {!loading && config?.kind === "subscribers" && subscribers.length > 0 && (
+                <CopyEmailsButton emails={subscribers.map((s) => s.email)} />
+              )}
+              <button
+                onClick={onClose}
+                className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
           {/* Body */}
@@ -300,6 +351,10 @@ export function DetailPanel({ config, onClose }: DetailPanelProps) {
               users.length === 0
                 ? <p className="text-sm text-gray-400 text-center py-12">No users found.</p>
                 : users.map((u) => <UserRow key={u.id} user={u} />)
+            ) : config?.kind === "subscribers" ? (
+              subscribers.length === 0
+                ? <p className="text-sm text-gray-400 text-center py-12">No subscribers yet.</p>
+                : subscribers.map((s) => <SubscriberRow key={s.email} subscriber={s} />)
             ) : (
               events.length === 0
                 ? <p className="text-sm text-gray-400 text-center py-12">No events yet.</p>

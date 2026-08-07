@@ -81,6 +81,9 @@ export function LiveDashboard({ initialMetrics, initialEvents, emailByUserId }: 
   const openEvents = useCallback((type: KoalapplyEventType, title: string) => {
     setPanel({ kind: "events", type, title });
   }, []);
+  const openSubscribers = useCallback(() => {
+    setPanel({ kind: "subscribers", title: "Email Subscribers" });
+  }, []);
 
   const mrr = parseFloat(metrics.revenue.mrr);
 
@@ -162,7 +165,7 @@ export function LiveDashboard({ initialMetrics, initialEvents, emailByUserId }: 
             <div className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 px-1">
               Revenue
             </div>
-            <div className="grid grid-cols-3 lg:grid-cols-1 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-1 gap-3">
               <MetricCard
                 label="Paid Subscribers"
                 value={metrics.revenue.paidSubscribers}
@@ -179,6 +182,12 @@ export function LiveDashboard({ initialMetrics, initialEvents, emailByUserId }: 
                 value={mrr > 0 ? `$${metrics.revenue.mrr}` : "—"}
                 subLabel={mrr === 0 ? "Set PLAN_PRICE_* env vars" : undefined}
                 accent="amber"
+              />
+              <MetricCard
+                label="Email List"
+                value={metrics.users.newsletterSubscribers}
+                accent="green"
+                onClick={openSubscribers}
               />
             </div>
           </div>

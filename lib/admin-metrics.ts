@@ -24,6 +24,7 @@ export async function fetchAdminMetrics(admin: SupabaseClient): Promise<AdminMet
     { count: coverLettersCreated },
     { count: applicationsCreated },
     { data: activeEntitlements },
+    { count: newsletterSubscribers },
   ] = await Promise.all([
     admin.rpc("admin_get_user_emails"),
     admin.from("koalapply_events").select("*", { count: "exact", head: true }).eq("event_type", "RESUME_UPLOADED"),
@@ -32,6 +33,7 @@ export async function fetchAdminMetrics(admin: SupabaseClient): Promise<AdminMet
     admin.from("koalapply_events").select("*", { count: "exact", head: true }).eq("event_type", "COVER_LETTER_CREATED"),
     admin.from("koalapply_events").select("*", { count: "exact", head: true }).eq("event_type", "APPLICATION_CREATED"),
     admin.from("entitlements").select("user_id, plan_type").eq("status", "active").not("stripe_payment_id", "is", null),
+    admin.from("profiles").select("*", { count: "exact", head: true }).eq("newsletter_subscribed", true),
   ]);
 
   // Derive user counts from auth.users (the real source of truth)
@@ -58,6 +60,7 @@ export async function fetchAdminMetrics(admin: SupabaseClient): Promise<AdminMet
       total,
       today: newToday,
       thisWeek: newWeek,
+      newsletterSubscribers: newsletterSubscribers ?? 0,
     },
     usage: {
       resumesUploaded:       resumesUploaded      ?? 0,
