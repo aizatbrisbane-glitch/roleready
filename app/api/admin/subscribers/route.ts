@@ -21,14 +21,7 @@ export async function GET() {
 
   const resend = new Resend(apiKey);
 
-  // Discover the first audience automatically
-  const { data: audienceData, error: audienceError } = await resend.audiences.list();
-  const audienceId = audienceData?.data?.[0]?.id;
-  if (audienceError || !audienceId) {
-    return NextResponse.json({ error: "No Resend audience found." }, { status: 500 });
-  }
-
-  const { data: contactData, error: contactError } = await resend.contacts.list({ audienceId });
+  const { data: contactData, error: contactError } = await resend.contacts.list();
   if (contactError) {
     return NextResponse.json({ error: contactError.message }, { status: 500 });
   }

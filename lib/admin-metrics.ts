@@ -14,11 +14,8 @@ async function fetchResendSubscriberCount(): Promise<number> {
   if (!apiKey) return 0;
   try {
     const resend = new Resend(apiKey);
-    const { data } = await resend.audiences.list();
-    const audienceId = data?.data?.[0]?.id;
-    if (!audienceId) return 0;
-    const { data: contacts } = await resend.contacts.list({ audienceId });
-    return (contacts?.data ?? []).filter((c) => !c.unsubscribed).length;
+    const { data } = await resend.contacts.list();
+    return (data?.data ?? []).filter((c) => !c.unsubscribed).length;
   } catch {
     return 0;
   }
