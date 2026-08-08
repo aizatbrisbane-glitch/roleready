@@ -30,7 +30,15 @@ export type PanelConfig =
   | { kind: "subscribers"; title: string }
   | null;
 
-type Subscriber = { email: string; name: string | null; subscribedAt: string };
+type Subscriber = { email: string; name: string | null; subscribedAt: string; jobSearchIntent: string | null };
+
+const INTENT_LABELS: Record<string, { label: string; color: string }> = {
+  just_starting:      { label: "Just starting",      color: "bg-sky-100 text-sky-700" },
+  actively_hunting:   { label: "Actively hunting",   color: "bg-rose-100 text-rose-700" },
+  employed_browsing:  { label: "Employed, browsing", color: "bg-amber-100 text-amber-700" },
+  levelling_up:       { label: "Levelling up",        color: "bg-violet-100 text-violet-700" },
+  career_tips_only:   { label: "Not searching yet",  color: "bg-gray-100 text-gray-500" },
+};
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -227,6 +235,7 @@ function CopyEmailsButton({ emails }: { emails: string[] }) {
 
 function SubscriberRow({ subscriber }: { subscriber: Subscriber }) {
   const initial = (subscriber.name ?? subscriber.email)[0]?.toUpperCase() ?? "?";
+  const intent = subscriber.jobSearchIntent ? INTENT_LABELS[subscriber.jobSearchIntent] : null;
   return (
     <div className="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0">
       <div className="h-8 w-8 rounded-full bg-indigo-50 flex items-center justify-center text-sm font-semibold text-indigo-400 shrink-0">
@@ -237,6 +246,11 @@ function SubscriberRow({ subscriber }: { subscriber: Subscriber }) {
           <p className="text-sm font-medium text-gray-900 truncate">{subscriber.name}</p>
         )}
         <p className="text-xs text-gray-500 truncate">{subscriber.email}</p>
+        {intent && (
+          <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ${intent.color}`}>
+            {intent.label}
+          </span>
+        )}
       </div>
       <time className="text-[11px] text-gray-400 shrink-0 font-mono">
         {timeAgo(subscriber.subscribedAt)}
@@ -257,6 +271,7 @@ export function DetailPanel({ config, onClose }: DetailPanelProps) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [events, setEvents] = useState<KoalapplyEvent[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [intentFilter, setIntentFilter] = useState<string | null>(null);
 
   useEffect(() => {
     if (!config) return;
@@ -264,6 +279,7 @@ export function DetailPanel({ config, onClose }: DetailPanelProps) {
     setUsers([]);
     setEvents([]);
     setSubscribers([]);
+    setIntentFilter(null);
 
     const url = config.kind === "users"
       ? config.filter === "source"
@@ -290,8 +306,16 @@ export function DetailPanel({ config, onClose }: DetailPanelProps) {
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
+  const filteredSubscribers = intentFilter
+    ? subscribers.filter((s) => s.jobSearchIntent === intentFilter)
+    : subscribers;
+
+  const availableIntents = Array.from(
+    new Set(subscribers.map((s) => s.jobSearchIntent).filter(Boolean))
+  ) as string[];
+
   const isOpen = Boolean(config);
-  const count = config?.kind === "users" ? users.length : config?.kind === "subscribers" ? subscribers.length : events.length;
+  const count = config?.kind === "users" ? users.length : config?.kind === "subscribers" ? filteredSubscribers.length : events.length;
 
   return (
     <>
@@ -329,8 +353,8 @@ export function DetailPanel({ config, onClose }: DetailPanelProps) {
               )}
             </div>
             <div className="flex items-center gap-2">
-              {!loading && config?.kind === "subscribers" && subscribers.length > 0 && (
-                <CopyEmailsButton emails={subscribers.map((s) => s.email)} />
+              {!loading && config?.kind === "subscribers" && filteredSubscribers.length > 0 && (
+                <CopyEmailsButton emails={filteredSubscribers.map((s) => s.email)} />
               )}
               <button
                 onClick={onClose}
@@ -340,6 +364,38 @@ export function DetailPanel({ config, onClose }: DetailPanelProps) {
               </button>
             </div>
           </div>
+
+          {/* Intent filter pills — subscribers panel only */}
+          {!loading && config?.kind === "subscribers" && availableIntents.length > 0 && (
+            <div className="flex items-center gap-1.5 overflow-x-auto px-5 py-2.5 border-b border-gray-100 shrink-0">
+              <button
+                onClick={() => setIntentFilter(null)}
+                className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold transition ${
+                  intentFilter === null
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                }`}
+              >
+                All ({subscribers.length})
+              </button>
+              {availableIntents.map((intent) => {
+                const meta = INTENT_LABELS[intent];
+                if (!meta) return null;
+                const c = subscribers.filter((s) => s.jobSearchIntent === intent).length;
+                return (
+                  <button
+                    key={intent}
+                    onClick={() => setIntentFilter(intentFilter === intent ? null : intent)}
+                    className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold transition ${
+                      intentFilter === intent ? meta.color : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                    }`}
+                  >
+                    {meta.label} ({c})
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Body */}
           <div className="flex-1 overflow-y-auto px-5">
@@ -352,9 +408,9 @@ export function DetailPanel({ config, onClose }: DetailPanelProps) {
                 ? <p className="text-sm text-gray-400 text-center py-12">No users found.</p>
                 : users.map((u) => <UserRow key={u.id} user={u} />)
             ) : config?.kind === "subscribers" ? (
-              subscribers.length === 0
-                ? <p className="text-sm text-gray-400 text-center py-12">No subscribers yet.</p>
-                : subscribers.map((s) => <SubscriberRow key={s.email} subscriber={s} />)
+              filteredSubscribers.length === 0
+                ? <p className="text-sm text-gray-400 text-center py-12">No subscribers in this category.</p>
+                : filteredSubscribers.map((s) => <SubscriberRow key={s.email} subscriber={s} />)
             ) : (
               events.length === 0
                 ? <p className="text-sm text-gray-400 text-center py-12">No events yet.</p>
