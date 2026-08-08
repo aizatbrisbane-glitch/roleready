@@ -2145,7 +2145,6 @@ export const blogArticles: BlogArticle[] = [
     title: "Candidates Deserve Better: 5 Things Companies Should Change",
     excerpt: "Job hunting shouldn't involve this much emotional admin. Here are five things companies could change right now to fix the candidate experience.",
     category: "Job Market",
-    featured: true,
     author: "Koalapply",
     publishDate: "4 Aug 2026",
     readingTime: "7 min read",
@@ -2233,6 +2232,122 @@ export const blogArticles: BlogArticle[] = [
         ]
       },
     ]
+  },
+  {
+    slug: "should-you-apply-if-you-only-meet-70-percent-of-requirements",
+    title: "Should You Apply If You Only Meet 70% of the Requirements?",
+    excerpt: "You find a job that looks perfect, then you hit the requirements and close the tab. Before you do that, here is something worth remembering.",
+    category: "Job Search",
+    featured: true,
+    author: "Koalapply",
+    publishDate: "8 Aug 2026",
+    readingTime: "6 min read",
+    image: "/blog/apply-70-percent-requirements.jpg",
+    imageAlt: "Job seeker reviewing a job listing and considering whether to apply",
+    relatedSlugs: [
+      "why-youre-not-getting-interviews-even-with-experience",
+      "hidden-cost-of-using-same-resume",
+      "how-to-tailor-your-resume-for-each-job",
+    ],
+    midCta: {
+      afterSectionId: "stop-rejecting-yourself",
+      heading: "Not sure if your experience is a strong enough match?",
+      subtext: "Run your resume against the job ad with Koalapply and see how well you actually stack up before you talk yourself out of applying.",
+    },
+    sections: [
+      {
+        id: "intro",
+        title: "",
+        paragraphs: [
+          "You find a job that looks perfect. Good company, interesting work, decent salary. Then you hit the requirements.",
+          "Seven years' experience. You have five. Salesforce. You use HubSpot. Advanced Excel. You can hold your own, but you are not building financial models for NASA. So you close the tab.",
+          "Before you do that, here is something worth remembering: if you meet around 70% of the requirements, you may still be a very credible candidate.",
+          "Job ads are often descriptions of the ideal candidate, not the minimum acceptable human. Employers naturally write down everything they would love to have: industry experience, specific software, a particular qualification, several years doing almost exactly the same job and, ideally, the ability to 'hit the ground running.' Unfortunately, this mythical candidate may already have a job.",
+        ],
+      },
+      {
+        id: "which-70-percent",
+        title: "1. It matters which 70% you have",
+        paragraphs: [
+          "This is the important bit. If you meet 70% of the requirements but are missing the main skills needed to actually do the job, then yes, it may be too much of a stretch.",
+          "But if you have the core experience and your gaps are things like a different software platform, slightly fewer years of experience or knowledge you could reasonably pick up, apply.",
+          "For example, if a Digital Marketing Manager role wants campaign strategy, paid media, analytics, stakeholder management and Salesforce experience, and you have everything except Salesforce, that is a learnable gap. If you have Salesforce but have never managed a campaign, that is a rather different situation. Not all requirements are created equal.",
+        ],
+      },
+      {
+        id: "years-of-experience",
+        title: "2. Don't let 'five years' experience' scare you off",
+        paragraphs: [
+          "Job ads love years of experience because they are easy to measure — but capability is messier. Someone with four strong years of relevant experience may be far better suited to a role than someone with seven years of vaguely related experience.",
+          "So if they ask for five years and you have four, do not automatically rule yourself out. If they ask for ten and you have eighteen months, common sense should probably make an appearance. The number is a guide, but what you have actually done matters more — as long as the gap is sensible.",
+        ],
+      },
+      {
+        id: "gaps-to-close",
+        title: "3. Some gaps are much easier to close than others",
+        paragraphs: [
+          "A useful question is: how hard would this be for me to learn?",
+        ],
+        bullets: [
+          "Used HubSpot instead of Salesforce? Very likely transferable.",
+          "Worked in a different but related industry? Potentially fine.",
+          "Never managed anyone, but the job involves leading 30 people? Bigger gap.",
+          "Missing a mandatory licence or professional registration? That one is probably not being solved with confidence and a YouTube tutorial.",
+        ],
+        items: [
+          {
+            heading: "",
+            paragraphs: [
+              "Look at both the size of the gap and what kind of gap it is. If it is a new piece of software, process or industry knowledge you could realistically learn on the job, apply. If it involves a legal requirement, professional registration, safety certification or a level of responsibility you have never handled before, that may be a genuine dealbreaker.",
+            ],
+          },
+        ],
+      },
+      {
+        id: "stop-rejecting-yourself",
+        title: "4. Please stop rejecting yourself for them",
+        paragraphs: [
+          "This is where jobseekers can become their own worst recruitment department.",
+          "'They'll probably find someone with more experience.' 'I haven't worked in that exact industry.' 'There will be better candidates.'",
+          "Maybe. But you have absolutely no idea who else is applying. The person who gets the job might meet 95% of the requirements. They might meet 75%. They might have less experience than you but explain their achievements brilliantly. They might simply have looked at the ad and thought, 'Close enough. Worth a shot.'",
+          "Meanwhile, you are looking at your own gaps in 4K resolution and imagining everyone else as a flawless LinkedIn superhero. You do not need to decide whether you are the best candidate. You only need to decide whether you are a credible one. Let the employer do the rejecting. It is literally their job.",
+        ],
+      },
+      {
+        id: "make-70-percent-obvious",
+        title: "5. If you're a 70% match, make that 70% obvious",
+        paragraphs: [
+          "There is one catch. If your experience is not an exact match, your CV needs to help the employer connect the dots. If they want stakeholder management and your resume says: 'Responsible for various projects across the business.' That tells them very little.",
+          "If you actually: 'Led cross-functional projects across product, sales and operations, aligning senior stakeholders on priorities and delivery.' Say that. You are not inventing experience. You are making the relevant experience easier to see.",
+          "This is also why tailoring your application matters. You should not have to rewrite your entire life story for every vacancy, but the employer should be able to quickly understand why your experience fits this job.",
+          "[Koalapply](/pricing) can help you compare your resume with the job ad, spot missing keywords and strengthen the parts of your application that matter — without turning every application into a two-hour Word document renovation.",
+        ],
+      },
+      {
+        id: "should-you-apply",
+        title: "So, should you apply?",
+        paragraphs: [
+          "Ask yourself three things:",
+        ],
+        bullets: [
+          "Can I do most of the core job?",
+          "Are the things I'm missing reasonably learnable?",
+          "Can I show evidence that my existing experience is relevant?",
+        ],
+        items: [
+          {
+            heading: "",
+            paragraphs: [
+              "If the answer is yes, apply.",
+              "Obviously, do not lie about qualifications or claim skills you do not have. And if you are missing something genuinely essential, the 70% rule will not magically make it disappear. But do not confuse not being perfect with not being qualified. Employers hire people with different combinations of experience, skills and potential all the time.",
+              "And sometimes the best candidate never gets considered because they saw three things they did not have, convinced themselves everyone else would be better and closed the tab.",
+              "Don't make rejection your job. The employer already has someone for that.",
+              "Found a role where you meet most, but not all, of the requirements? Run it through [Koalapply](/) and see how well your experience actually matches before you talk yourself out of applying.",
+            ],
+          },
+        ],
+      },
+    ],
   },
 ];
 
