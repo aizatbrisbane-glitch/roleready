@@ -407,7 +407,7 @@ export function DashboardTabs({
     <div className="mx-auto max-w-[1520px] overflow-x-clip">
       {/* Greeting */}
       <div className="mb-6 md:mb-10">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-5xl">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-5xl">
           {getGreeting()}{name ? `, ${name}` : ""} 👋
         </h1>
         {accessState ? (
@@ -450,7 +450,7 @@ export function DashboardTabs({
             </p>
 
             {/* Filter bar */}
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto]">
+            <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-[1fr_1fr_1fr_auto]">
               {/* Keywords */}
               <div>
                 <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Search keywords</p>
@@ -507,8 +507,8 @@ export function DashboardTabs({
               </div>
 
               {/* Salary */}
-              <div>
-                <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Min. salary expectation per annum</p>
+              <div className="col-span-2 sm:col-span-1">
+                <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Min. salary</p>
                 <div className="flex items-center gap-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm focus-within:ring-2 focus-within:ring-[#d4ccff]">
                   <span className="pl-4 text-sm font-medium text-slate-400">$</span>
                   <input
@@ -524,7 +524,7 @@ export function DashboardTabs({
               </div>
 
               {/* More preferences + refresh */}
-              <div>
+              <div className="col-span-2 sm:col-span-1">
                 <p className="mb-1.5 hidden text-xs font-semibold uppercase tracking-[0.14em] text-slate-400 lg:block">More preferences</p>
                 <button
                   type="button"
@@ -559,7 +559,7 @@ export function DashboardTabs({
                 type="button"
                 disabled={loadingMatches || !resumeFileName}
                 onClick={() => refreshMatches(true)}
-                className="inline-flex items-center gap-2 rounded-full bg-[#2200ff] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a00cc] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a00cc] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:justify-start"
               >
                 {loadingMatches ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                 {loadingMatches ? "Searching…" : "Refresh matches"}

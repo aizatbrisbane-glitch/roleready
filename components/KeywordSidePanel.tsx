@@ -421,7 +421,10 @@ export function KeywordSidePanel({
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className={`text-xs font-semibold leading-4 ${isSuccess ? "text-green-700" : isPresent ? "text-slate-500" : isSkipped ? "text-slate-400 line-through" : "text-slate-800"}`}>
+                  <p
+                    title={kw}
+                    className={`truncate text-xs font-semibold leading-4 ${isSuccess ? "text-green-700" : isPresent ? "text-slate-500" : isSkipped ? "text-slate-400 line-through" : "text-slate-800"}`}
+                  >
                     {kw}
                   </p>
                   {/* Status / badge row */}
@@ -470,7 +473,7 @@ export function KeywordSidePanel({
                         type="button"
                         onClick={() => handleAutoStrengthen(kw)}
                         disabled={anyBusy}
-                        className="inline-flex items-center gap-1 rounded-full border border-[#2200ff]/20 bg-white px-2 py-0.5 text-[10px] font-semibold text-[#2200ff] transition hover:bg-[#ece8ff] disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="inline-flex items-center gap-1 rounded-full border border-[#2200ff]/20 bg-white px-2.5 py-1 text-[10px] font-semibold text-[#2200ff] transition hover:bg-[#ece8ff] disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <Sparkles className="h-2.5 w-2.5" />
                         Add
@@ -685,18 +688,51 @@ export function KeywordSidePanel({
 
       {/* Mobile: collapsible above document */}
       <details className="group border-b border-slate-100 md:hidden">
-        <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3">
-          <span className="text-xs font-semibold text-slate-700">
-            Keywords to add
-            {pendingCount > 0 && (
-              <span className="ml-2 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
-                {pendingCount} missing
-              </span>
+        <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-700">Fix missing keywords</span>
+              {pendingCount > 0 && (
+                <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                  {pendingCount}
+                </span>
+              )}
+            </div>
+            {target === "resume" && matchScore !== null && totalKeywords > 0 && (
+              <div className="mt-1.5 flex items-center gap-2">
+                <span className={`text-xs font-bold ${scoreImproved ? "text-green-600" : "text-slate-700"}`}>
+                  {liveScore}%
+                </span>
+                <div className="h-1 flex-1 overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className="h-full rounded-full bg-[#2200ff] transition-all duration-500"
+                    style={{ width: `${liveScore}%` }}
+                  />
+                </div>
+                {scoreImproved && (
+                  <button
+                    type="button"
+                    disabled={refreshing}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      try { localStorage.removeItem(pendingKey); } catch {}
+                      setHasPendingScore(false);
+                      setRefreshing(true);
+                      router.refresh();
+                      setTimeout(() => setRefreshing(false), 1500);
+                    }}
+                    className="shrink-0 inline-flex items-center gap-1 rounded-full bg-green-600 px-2 py-0.5 text-[10px] font-semibold text-white transition hover:bg-green-700 disabled:opacity-60"
+                  >
+                    <RefreshCw className={`h-2.5 w-2.5 ${refreshing ? "animate-spin" : ""}`} />
+                    {refreshing ? "Updating…" : "Update score"}
+                  </button>
+                )}
+              </div>
             )}
-          </span>
-          <ChevronDown className="h-4 w-4 text-slate-400 transition-transform duration-200 group-open:rotate-180" />
+          </div>
+          <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 group-open:rotate-180" />
         </summary>
-        {list}
+        <div className="max-h-72 overflow-y-auto">{list}</div>
       </details>
 
       {/* Upsell modal — shown once to free users after their first keyword save */}

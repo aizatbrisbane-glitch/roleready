@@ -133,13 +133,13 @@ export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFil
             <Sparkles className="h-3.5 w-3.5" />
             Start here
           </div>
-          <h2 className="text-3xl font-bold leading-tight text-slate-900 md:text-[2.1rem]">
+          <h2 className="text-2xl font-bold leading-tight text-slate-900 md:text-[2.1rem]">
             What job are you applying for today?
           </h2>
           <p className="mt-3 text-sm leading-6 text-slate-500">
             Paste a job link and we&apos;ll tailor your resume and cover letter in seconds.
           </p>
-          <p className="mt-2 text-xs text-slate-400">
+          <p className="mt-2 hidden text-xs text-slate-400 sm:block">
             Works best with <span className="font-semibold text-slate-500">SEEK</span> and <span className="font-semibold text-slate-500">LinkedIn</span>. For Indeed or Jora, paste the job description.
           </p>
         </div>
@@ -182,6 +182,14 @@ export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFil
             </p>
           )}
 
+          <button
+            className="inline-flex min-h-13 w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-7 py-3.5 text-base font-semibold text-white shadow-[0_16px_40px_rgba(34,0,255,0.24)] transition duration-300 hover:-translate-y-1 hover:bg-[#1a00cc] sm:hidden"
+            disabled={loading}
+            type="submit"
+          >
+            {loading ? "Working…" : "Generate ✨"} <ArrowRight className="h-5 w-5" />
+          </button>
+
           <details open={descOpen} onToggle={(e) => setDescOpen((e.currentTarget as HTMLDetailsElement).open)} className="group rounded-2xl border border-slate-100 bg-white px-4 py-3">
             <summary className="cursor-pointer list-none text-sm font-medium text-slate-500 transition group-open:text-[#2200ff]">
               Or paste job description
@@ -196,14 +204,6 @@ export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFil
             />
             <p className="mt-1.5 text-xs text-slate-400">{descText.length.toLocaleString()} / 10,000</p>
           </details>
-
-          <button
-            className="inline-flex min-h-13 w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-7 py-3.5 text-base font-semibold text-white shadow-[0_16px_40px_rgba(34,0,255,0.24)] transition duration-300 hover:-translate-y-1 hover:bg-[#1a00cc] sm:hidden"
-            disabled={loading}
-            type="submit"
-          >
-            {loading ? "Working…" : "Generate ✨"} <ArrowRight className="h-5 w-5" />
-          </button>
 
           {loading && (
             <div className="rounded-2xl bg-[#ece8ff]/60 px-4 py-3">
