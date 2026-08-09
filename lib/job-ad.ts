@@ -338,7 +338,7 @@ async function fetchJobWithScrapeDo(url: string): Promise<JobAdDetails | null> {
   try {
     const res = await fetch(
       `https://api.scrape.do?token=${token}&url=${encodeURIComponent(url)}&render=true`,
-      { signal: AbortSignal.timeout(30000) }
+      { signal: AbortSignal.timeout(45000) }
     );
 
     console.log(`[job-ad] Scrape.do HTTP ${res.status}`);
@@ -743,11 +743,14 @@ async function fetchWithScrapingFallbacks(url: string): Promise<JobAdDetails | n
 // ─── Main export ────────────────────────────────────────────────────────────
 
 async function fetchSeekWithFallbacks(url: string): Promise<JobAdDetails | null> {
-  const scrapeDoResult = await fetchJobWithScrapeDo(url);
-  if (scrapeDoResult) return scrapeDoResult;
+  // Race Scrape.do (Cloudflare bypass, up to 45s) and Firecrawl (45s) in parallel.
+  const result = await Promise.any(
+    [fetchJobWithScrapeDo(url), fetchJobWithFirecrawl(url)].map((p) =>
+      p.then((r) => { if (!r) throw new Error("no result"); return r; })
+    )
+  ).catch(() => null);
 
-  const firecrawlResult = await fetchJobWithFirecrawl(url);
-  if (firecrawlResult) return firecrawlResult;
+  if (result) return result;
 
   const jinaResult = await fetchJobWithJina(url);
   if (jinaResult) return jinaResult;
