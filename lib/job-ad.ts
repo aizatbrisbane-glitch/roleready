@@ -674,9 +674,58 @@ async function fetchWithScrapingFallbacks(url: string): Promise<JobAdDetails | n
 
 // ─── Main export ────────────────────────────────────────────────────────────
 
+async function fetchSeekApi(url: string): Promise<JobAdDetails | null> {
+  try {
+    const jobIdMatch = url.match(/\/job\/(\d+)/);
+    if (!jobIdMatch) return null;
+    const jobId = jobIdMatch[1];
+
+    const res = await fetch(
+      `https://chalice-experience-api.cloud.seek.com.au/job/${jobId}?zone=anz-1&locale=AU`,
+      {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+          Accept: "application/json",
+          "Accept-Language": "en-AU,en;q=0.8",
+        },
+        signal: AbortSignal.timeout(15000),
+      }
+    );
+
+    if (!res.ok) return null;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data: any = await res.json();
+    const title = String(data?.title ?? data?.jobTitle ?? "").trim();
+    const company = String(data?.advertiser?.description ?? data?.company ?? "").trim();
+    const location = String(data?.location?.label ?? data?.location ?? "").trim();
+    const salary = String(data?.salary?.label ?? data?.salaryLabel ?? "").trim();
+    const rawContent = String(data?.content ?? data?.jobDescription ?? data?.description ?? "").trim();
+    const description = rawContent.startsWith("<") ? htmlToText(rawContent) : rawContent;
+
+    if (!description || description.length < 100) return null;
+
+    console.log(`[job-ad] Seek API ok — title: "${title}", desc length: ${description.length}`);
+    return {
+      title: title || "Job from SEEK",
+      company: company || "Company from job ad",
+      location,
+      salary,
+      description: description.slice(0, 30000),
+      expiresAt: null,
+    };
+  } catch (e) {
+    console.warn("[job-ad] Seek API failed:", e);
+    return null;
+  }
+}
+
 async function fetchSeekWithFallbacks(url: string): Promise<JobAdDetails | null> {
-  // Race Firecrawl (20s) and Jina (35s) in parallel — take whichever returns first.
-  // Sequential fallbacks previously exceeded the 60s Vercel function limit.
+  // Try Seek's internal API first — no Cloudflare protection on API subdomains.
+  const apiResult = await fetchSeekApi(url);
+  if (apiResult) return apiResult;
+
+  // Race Firecrawl (20s) and Jina (35s) in parallel as fallback.
   const result = await Promise.any(
     [fetchJobWithFirecrawl(url), fetchJobWithJina(url)].map((p) =>
       p.then((r) => { if (!r) throw new Error("no result"); return r; })
