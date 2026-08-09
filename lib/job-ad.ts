@@ -696,6 +696,8 @@ async function fetchSeekApi(url: string): Promise<JobAdDetails | null> {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data: any = await res.json();
+    console.log(`[job-ad] Seek API raw keys: ${Object.keys(data ?? {}).join(", ")}`);
+    console.log(`[job-ad] Seek API advertiser: ${JSON.stringify(data?.advertiser)}, location: ${JSON.stringify(data?.location)}`);
     const title = String(data?.title ?? data?.jobTitle ?? "").trim();
     const company = String(
       data?.advertiser?.description ??
