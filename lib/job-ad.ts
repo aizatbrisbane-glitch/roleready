@@ -692,6 +692,7 @@ async function fetchSeekApi(url: string): Promise<JobAdDetails | null> {
       }
     );
 
+    console.log(`[job-ad] Seek API HTTP ${res.status} for job ${jobId}`);
     if (!res.ok) return null;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
