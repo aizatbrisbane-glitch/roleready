@@ -329,6 +329,74 @@ async function fetchLinkedInGuestApi(url: string): Promise<JobAdDetails | null> 
   }
 }
 
+// ─── Scrape.do (free tier includes Cloudflare bypass + JS rendering) ────────
+
+async function fetchJobWithScrapeDo(url: string): Promise<JobAdDetails | null> {
+  const token = process.env.SCRAPE_DO_TOKEN;
+  if (!token) return null;
+
+  try {
+    const res = await fetch(
+      `https://api.scrape.do?token=${token}&url=${encodeURIComponent(url)}&render=true`,
+      { signal: AbortSignal.timeout(30000) }
+    );
+
+    console.log(`[job-ad] Scrape.do HTTP ${res.status}`);
+    if (!res.ok) return null;
+
+    const html = await res.text();
+    if (!html || html.trim().length < 300) return null;
+    if (looksLikeBlockedPage(html)) return null;
+
+    const structured = scriptJson(html);
+    const nd = nextDataJob(html);
+
+    const description =
+      nd?.description ||
+      (structured?.description ? htmlToText(String(structured.description)) : "") ||
+      meta(html, ["description", "og:description"]);
+
+    if (!description || description.trim().length < 100) return null;
+
+    const rawTitle =
+      nd?.title ||
+      (structured?.title ? decodeHtml(String(structured.title)) : "") ||
+      meta(html, ["og:title", "twitter:title"]) ||
+      "";
+    const title = rawTitle
+      .replace(/\s*[|–—\-]\s*(SEEK|LinkedIn|Indeed|Jora|Adzuna)[\s\S]*$/i, "")
+      .trim() || "Job from link";
+
+    const company =
+      nd?.company ||
+      (structured?.hiringOrganization?.name ? decodeHtml(String(structured.hiringOrganization.name)) : "") ||
+      "Company from job ad";
+
+    const location =
+      nd?.location ||
+      (structured?.jobLocation?.address?.addressLocality
+        ? decodeHtml(String(structured.jobLocation.address.addressLocality))
+        : "");
+
+    const salary =
+      nd?.salary ||
+      (structured?.baseSalary?.value?.value ? String(structured.baseSalary.value.value) : "");
+
+    console.log(`[job-ad] Scrape.do ok — title: "${title}", desc length: ${description.length}`);
+    return {
+      title,
+      company,
+      location,
+      salary,
+      description: description.slice(0, 30000),
+      expiresAt: toIsoDate(structured?.validThrough),
+    };
+  } catch (e) {
+    console.warn("[job-ad] Scrape.do failed:", e);
+    return null;
+  }
+}
+
 // ─── Jina AI Reader fallback (used in serverless / production) ─────────────
 
 async function fetchJobWithJina(url: string): Promise<JobAdDetails | null> {
@@ -675,6 +743,9 @@ async function fetchWithScrapingFallbacks(url: string): Promise<JobAdDetails | n
 // ─── Main export ────────────────────────────────────────────────────────────
 
 async function fetchSeekWithFallbacks(url: string): Promise<JobAdDetails | null> {
+  const scrapeDoResult = await fetchJobWithScrapeDo(url);
+  if (scrapeDoResult) return scrapeDoResult;
+
   const firecrawlResult = await fetchJobWithFirecrawl(url);
   if (firecrawlResult) return firecrawlResult;
 
