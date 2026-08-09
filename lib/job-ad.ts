@@ -697,15 +697,21 @@ async function fetchSeekApi(url: string): Promise<JobAdDetails | null> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data: any = await res.json();
     const title = String(data?.title ?? data?.jobTitle ?? "").trim();
-    const company = String(data?.advertiser?.description ?? data?.company ?? "").trim();
-    const location = String(data?.location?.label ?? data?.location ?? "").trim();
+    const company = String(
+      data?.advertiser?.description ??
+      data?.advertiser?.name ??
+      data?.companyName ??
+      data?.company ??
+      ""
+    ).trim();
+    const location = String(data?.location?.label ?? data?.locationLabel ?? data?.location ?? "").trim();
     const salary = String(data?.salary?.label ?? data?.salaryLabel ?? "").trim();
     const rawContent = String(data?.content ?? data?.jobDescription ?? data?.description ?? "").trim();
     const description = rawContent.startsWith("<") ? htmlToText(rawContent) : rawContent;
 
     if (!description || description.length < 100) return null;
 
-    console.log(`[job-ad] Seek API ok — title: "${title}", desc length: ${description.length}`);
+    console.log(`[job-ad] Seek API ok — title: "${title}", company: "${company}", desc length: ${description.length}`);
     return {
       title: title || "Job from SEEK",
       company: company || "Company from job ad",
