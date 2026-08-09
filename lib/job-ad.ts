@@ -398,9 +398,9 @@ async function fetchJobWithFirecrawl(url: string): Promise<JobAdDetails | null> 
         url,
         formats: ["markdown"],
         onlyMainContent: true,
-        timeout: 60000,
+        timeout: 18000,
       }),
-      signal: AbortSignal.timeout(45000),
+      signal: AbortSignal.timeout(20000),
     });
 
     if (!res.ok) {
@@ -675,12 +675,15 @@ async function fetchWithScrapingFallbacks(url: string): Promise<JobAdDetails | n
 // ─── Main export ────────────────────────────────────────────────────────────
 
 async function fetchSeekWithFallbacks(url: string): Promise<JobAdDetails | null> {
-  const firecrawlResult = await fetchJobWithFirecrawl(url);
-  if (firecrawlResult) return firecrawlResult;
+  // Race Firecrawl (20s) and Jina (35s) in parallel — take whichever returns first.
+  // Sequential fallbacks previously exceeded the 60s Vercel function limit.
+  const result = await Promise.any(
+    [fetchJobWithFirecrawl(url), fetchJobWithJina(url)].map((p) =>
+      p.then((r) => { if (!r) throw new Error("no result"); return r; })
+    )
+  ).catch(() => null);
 
-  const jinaResult = await fetchJobWithJina(url);
-  if (jinaResult) return jinaResult;
-
+  if (result) return result;
   return fetchJobWithBrowser(url);
 }
 
