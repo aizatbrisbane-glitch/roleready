@@ -90,7 +90,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           gtag('config', 'G-R1ZFGNBD6D');
         `}</Script>
 
-        {/* Meta Pixel — base code, fires PageView on every page */}
+        {/* Meta Pixel — base code, fires PageView on every page. Two pixels share one script load. */}
         <Script id="meta-pixel" strategy="afterInteractive">{`
           !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
           n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
@@ -98,12 +98,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
           document,'script','https://connect.facebook.net/en_US/fbevents.js');
           fbq('init','1740921460363763');
+          fbq('init','1596552155409990');
           fbq('track','PageView');
         `}</Script>
         <noscript>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img height="1" width="1" style={{ display: "none" }} alt=""
             src="https://www.facebook.com/tr?id=1740921460363763&ev=PageView&noscript=1" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img height="1" width="1" style={{ display: "none" }} alt=""
+            src="https://www.facebook.com/tr?id=1596552155409990&ev=PageView&noscript=1" />
         </noscript>
 
         {/* LinkedIn Insight Tag — base code, fires on every page */}
