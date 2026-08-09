@@ -44,8 +44,15 @@ export async function GET(request: Request, { params }: Props) {
     return NextResponse.json({ error: "Generate this application before exporting." }, { status: 400 });
   }
 
+  const { data: profileData } = await supabase.from("profiles").select("name").eq("id", user.id).maybeSingle();
+  const nameParts = (profileData?.name ?? "").trim().split(/\s+/);
+  const firstName = nameParts[0] ?? "";
+  const lastName = nameParts.slice(1).join(" ");
+  const date = new Date().toISOString().slice(0, 10);
+
   const title = type === "resume" ? "Tailored Resume" : "Cover Letter";
-  const baseName = slugifyFileName(`${application.jobs.company}-${application.jobs.title}-${type}`);
+  const docLabel = type === "resume" ? "resume" : "cover-letter";
+  const baseName = slugifyFileName(`${firstName}-${lastName}-${application.jobs.title}-${application.jobs.company}-${date}-${docLabel}`);
   const fileName = `${baseName}.${format}`;
 
   if (format === "docx") {
