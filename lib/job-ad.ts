@@ -675,58 +675,70 @@ async function fetchWithScrapingFallbacks(url: string): Promise<JobAdDetails | n
 // ─── Main export ────────────────────────────────────────────────────────────
 
 async function fetchSeekApi(url: string): Promise<JobAdDetails | null> {
-  try {
-    const jobIdMatch = url.match(/\/job\/(\d+)/);
-    if (!jobIdMatch) return null;
-    const jobId = jobIdMatch[1];
+  const jobIdMatch = url.match(/\/job\/(\d+)/);
+  if (!jobIdMatch) return null;
+  const jobId = jobIdMatch[1];
 
-    const res = await fetch(
-      `https://chalice-experience-api.cloud.seek.com.au/job/${jobId}?zone=anz-1&locale=AU`,
-      {
+  // Try both Seek internal endpoints — the experience API sometimes 403s,
+  // the search API is more permissive since it powers their public search page.
+  const endpoints = [
+    `https://chalice-experience-api.cloud.seek.com.au/job/${jobId}?zone=anz-1&locale=AU`,
+    `https://www.seek.com.au/api/chalice-search/v4/search?jobid=${jobId}&siteKey=AU-Main&where=All+Australia&include=seodata`,
+  ];
+
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint, {
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-          Accept: "application/json",
+          Accept: "application/json, text/plain, */*",
           "Accept-Language": "en-AU,en;q=0.8",
+          Referer: "https://au.seek.com/",
+          Origin: "https://au.seek.com",
         },
         signal: AbortSignal.timeout(15000),
+      });
+
+      console.log(`[job-ad] Seek API HTTP ${res.status} for job ${jobId} (${endpoint.includes("chalice-search") ? "search" : "experience"})`);
+      if (!res.ok) continue;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data: any = await res.json();
+
+      // Search endpoint wraps results in a `data` array; experience API returns a single object
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const job: any = Array.isArray(data?.data) ? data.data[0] : data;
+      if (!job) continue;
+
+      console.log(`[job-ad] Seek API keys: ${Object.keys(job).join(", ")}`);
+
+      const title = String(job?.title ?? job?.jobTitle ?? "").trim();
+      const company = String(job?.advertiser?.description ?? job?.advertiser?.name ?? job?.companyName ?? job?.company ?? "").trim();
+      const location = String(job?.location?.label ?? job?.locationLabel ?? job?.location ?? "").trim();
+      const salary = String(job?.salary?.label ?? job?.salaryLabel ?? "").trim();
+      const rawContent = String(job?.content ?? job?.jobDescription ?? job?.description ?? job?.teaser ?? "").trim();
+      const description = rawContent.startsWith("<") ? htmlToText(rawContent) : rawContent;
+
+      if (!description || description.length < 100) {
+        console.log(`[job-ad] Seek API returned short/empty description (${description.length} chars), trying next endpoint`);
+        continue;
       }
-    );
 
-    console.log(`[job-ad] Seek API HTTP ${res.status} for job ${jobId}`);
-    if (!res.ok) return null;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = await res.json();
-    console.log(`[job-ad] Seek API raw keys: ${Object.keys(data ?? {}).join(", ")}`);
-    console.log(`[job-ad] Seek API advertiser: ${JSON.stringify(data?.advertiser)}, location: ${JSON.stringify(data?.location)}`);
-    const title = String(data?.title ?? data?.jobTitle ?? "").trim();
-    const company = String(
-      data?.advertiser?.description ??
-      data?.advertiser?.name ??
-      data?.companyName ??
-      data?.company ??
-      ""
-    ).trim();
-    const location = String(data?.location?.label ?? data?.locationLabel ?? data?.location ?? "").trim();
-    const salary = String(data?.salary?.label ?? data?.salaryLabel ?? "").trim();
-    const rawContent = String(data?.content ?? data?.jobDescription ?? data?.description ?? "").trim();
-    const description = rawContent.startsWith("<") ? htmlToText(rawContent) : rawContent;
-
-    if (!description || description.length < 100) return null;
-
-    console.log(`[job-ad] Seek API ok — title: "${title}", company: "${company}", desc length: ${description.length}`);
-    return {
-      title: title || "Job from SEEK",
-      company: company || "Company from job ad",
-      location,
-      salary,
-      description: description.slice(0, 30000),
-      expiresAt: null,
-    };
-  } catch (e) {
-    console.warn("[job-ad] Seek API failed:", e);
-    return null;
+      console.log(`[job-ad] Seek API ok — title: "${title}", company: "${company}", desc length: ${description.length}`);
+      return {
+        title: title || "Job from SEEK",
+        company: company || "Company from job ad",
+        location,
+        salary,
+        description: description.slice(0, 30000),
+        expiresAt: null,
+      };
+    } catch (e) {
+      console.warn(`[job-ad] Seek API endpoint failed:`, e);
+    }
   }
+
+  return null;
 }
 
 async function fetchSeekWithFallbacks(url: string): Promise<JobAdDetails | null> {
