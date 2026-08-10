@@ -752,9 +752,7 @@ async function fetchSeekWithFallbacks(url: string): Promise<JobAdDetails | null>
 
   if (result) return result;
 
-  const jinaResult = await fetchJobWithJina(url);
-  if (jinaResult) return jinaResult;
-
+  // Skip Jina for SEEK — it can't bypass Cloudflare and only returns the og:description snippet.
   return fetchJobWithBrowser(url);
 }
 
