@@ -29,11 +29,16 @@ export async function POST(request: Request) {
   };
 
   // First-touch only — only writes if attr_landed_at is still NULL
-  await supabase
+  const { error: updateError } = await supabase
     .from("profiles")
     .update(update)
     .eq("id", user.id)
     .is("attr_landed_at", null);
+
+  if (updateError) {
+    console.error("[api/attribution] Failed to write attribution:", updateError.message, { userId: user.id });
+    return NextResponse.json({ ok: false }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true });
 }

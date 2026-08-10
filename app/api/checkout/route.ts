@@ -71,10 +71,13 @@ export async function POST(request: Request) {
       });
       stripeCustomerId = customer.id;
       // Best-effort — non-fatal if this fails; webhook will also stamp it
-      await supabase
+      const { error: saveError } = await supabase
         .from("profiles")
         .update({ stripe_customer_id: stripeCustomerId })
         .eq("id", user.id);
+      if (saveError) {
+        console.warn("[checkout] Best-effort stripe_customer_id save failed:", saveError.message);
+      }
     }
 
     const session = await stripe.checkout.sessions.create({

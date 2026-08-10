@@ -1,11 +1,30 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { trackSignupServerSide, type AttributionData } from "@/lib/server-analytics";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const next = requestUrl.searchParams.get("next") ?? "/";
+
+  // Read the attribution cookie immediately from the raw request headers — before any
+  // Supabase session work that mutates the cookie store. The cookie is set by
+  // AuthPanel.tsx's signInWithGoogle() just before the OAuth redirect and survives the
+  // cross-domain round-trip because SameSite=Lax allows top-level GET navigations.
+  const cookieHeader = request.headers.get("cookie") ?? "";
+  const attrMatch = cookieHeader.match(/(?:^|;\s*)koalapply_attribution=([^;]+)/);
+  let attribution: AttributionData = {};
+  if (attrMatch) {
+    try {
+      attribution = JSON.parse(decodeURIComponent(attrMatch[1])) as AttributionData;
+    } catch {
+      console.warn("[auth/callback] Failed to parse koalapply_attribution cookie — attribution will be absent from signup events");
+    }
+  } else {
+    console.warn("[auth/callback] koalapply_attribution cookie not present — Google OAuth signup will fire without traffic source attribution");
+  }
+
   const supabase = await createSupabaseServerClient();
 
   if (code && supabase) {
@@ -22,20 +41,18 @@ export async function GET(request: Request) {
       const isNewUser = Date.now() - createdAt < 60_000;
 
       if (isNewUser && user.email) {
-        // Read the attribution cookie written by the client immediately before the OAuth redirect.
-        // Cookies survive cross-domain redirects; sessionStorage does not.
-        const cookieHeader = request.headers.get("cookie") ?? "";
-        const attrMatch = cookieHeader.match(/(?:^|;\s*)koalapply_attribution=([^;]+)/);
-        let attribution: AttributionData = {};
-        if (attrMatch) {
-          try {
-            attribution = JSON.parse(decodeURIComponent(attrMatch[1])) as AttributionData;
-
-            // Write attribution to the profiles table so Mission Control reflects the correct
-            // traffic source. This is more reliable than AttributionCapture.tsx reading
-            // localStorage after the redirect (which may be empty or stale).
+        // Only write attribution when the cookie carried a utm_source. An empty cookie
+        // (user went directly to the auth page with no stored landing data) must NOT stamp
+        // attr_landed_at, because that would permanently block the AttributionCapture.tsx
+        // post-redirect fallback which reads from localStorage.
+        if (attrMatch && attribution.utm_source) {
+          // Use the admin client so the write is never blocked by RLS — the session Supabase
+          // client may not be fully authenticated inside the same request that called
+          // exchangeCodeForSession, causing silent 0-row updates under the user RLS policy.
+          const adminSupabase = createSupabaseAdminClient();
+          if (adminSupabase) {
             const truncate = (v: unknown) => typeof v === "string" ? v.slice(0, 500) : undefined;
-            await supabase.from("profiles").update({
+            const { error: attrError } = await adminSupabase.from("profiles").update({
               attr_source:       truncate(attribution.utm_source),
               attr_medium:       truncate(attribution.utm_medium),
               attr_campaign:     truncate(attribution.utm_campaign),
@@ -47,11 +64,21 @@ export async function GET(request: Request) {
               attr_fbc:          truncate(attribution.fbc),
               attr_landed_at:    new Date().toISOString(),
             }).eq("id", user.id).is("attr_landed_at", null);
-          } catch {
-            console.warn("[auth/callback] Failed to parse koalapply_attribution cookie — attribution will be absent from signup events");
+
+            if (attrError) {
+              console.error("[auth/callback] Failed to write attribution to profile:", {
+                error: attrError.message,
+                userId: user.id,
+                utm_source: attribution.utm_source,
+              });
+            } else {
+              console.log("[auth/callback] Attribution written for new user", {
+                userId: user.id,
+                utm_source: attribution.utm_source,
+                utm_medium: attribution.utm_medium,
+              });
+            }
           }
-        } else {
-          console.warn("[auth/callback] koalapply_attribution cookie not present — Google OAuth signup will fire without traffic source attribution");
         }
 
         // Fire server-side tracking — no client-side pixel needed for Google OAuth signups

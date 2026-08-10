@@ -154,11 +154,25 @@ export async function POST(request: Request) {
 
   // Stamp stripe_customer_id on the profile if not already set
   if (typeof session.customer === "string") {
-    await adminSupabase
+    const { error: stampError } = await adminSupabase
       .from("profiles")
       .update({ stripe_customer_id: session.customer })
       .eq("id", resolvedUserId)
       .is("stripe_customer_id", null);
+    if (stampError) {
+      console.error("[stripe-webhook] Failed to stamp stripe_customer_id:", {
+        error: stampError.message,
+        userId: resolvedUserId,
+        customerId: session.customer,
+        sessionId,
+      });
+    }
+  } else {
+    console.warn("[stripe-webhook] session.customer is not a string — stripe_customer_id not stamped", {
+      customer: session.customer,
+      sessionId,
+      userId: resolvedUserId,
+    });
   }
 
   void logEvent("SUBSCRIPTION_STARTED", resolvedUserId, {
