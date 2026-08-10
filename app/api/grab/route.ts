@@ -125,7 +125,13 @@ const scoringSchema = {
 };
 
 async function extractKeywords(resumeText: string, provider: "anthropic" | "openai") {
-  const userMsg = `Extract the primary job title and a 5–8 keyword search query from this resume. Focus on the most recent role and core skills.\n\nResume:\n${resumeText.slice(0, 8000)}`;
+  const userMsg = `Extract the candidate's primary job title and a short search query from this resume.
+
+Rules:
+- jobTitle: 2–4 words max, the exact role they are targeting (e.g. "Store Manager", "Governance Manager", "Software Engineer"). No fluff.
+- searchQuery: 3–5 words max, the jobTitle plus 1–2 key specialisations if useful (e.g. "Governance Risk Compliance Manager", "Retail Store Manager"). Still short — this goes directly into a job board search engine.
+
+Resume:\n${resumeText.slice(0, 8000)}`;
 
   if (provider === "anthropic") {
     if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured.");
@@ -159,7 +165,7 @@ async function scoreJobs(
   targetJobTitle?: string
 ) {
   const jobList = jobs
-    .map((j) => `ID:${j.id}\nTitle: ${j.title} at ${j.company}\n${j.description.slice(0, 600)}`)
+    .map((j) => `ID:${j.id}\nTitle: ${j.title} at ${j.company}\n${j.description.slice(0, 1500)}`)
     .join("\n---\n");
 
   const targetLine = targetJobTitle?.trim()
@@ -281,6 +287,16 @@ type CountryInfo = {
   geoTerms: string[];        // used to filter Jooble results to this country
 };
 
+// Jooble source domains known to carry low-quality or niche job listings (crypto, scrapers, etc.)
+const JOOBLE_BLOCKED_DOMAINS = [
+  "decentrajobs.com", "web3.career", "cryptocurrencyjobs.co", "cryptojobslist.com",
+  "remote3.co", "useweb3.xyz", "jobstash.xyz", "blockchain.works-hub.com",
+];
+
+function isBlockedJoobleSource(jobUrl: string): boolean {
+  return JOOBLE_BLOCKED_DOMAINS.some((d) => jobUrl.includes(d));
+}
+
 const COUNTRY_RULES: { pattern: RegExp; info: CountryInfo }[] = [
   {
     pattern: /\b(uk|united kingdom|england|scotland|wales|northern ireland|london|manchester|birmingham|leeds|glasgow|edinburgh|bristol|liverpool|sheffield|coventry|leicester|cardiff)\b/i,
@@ -392,9 +408,9 @@ async function fetchJoobleJobs({
 
   return (data.jobs ?? [])
     .filter((j) => {
+      if (isBlockedJoobleSource(j.link ?? "")) return false;
       if (!j.location) return true;
       if (!isCountryLocation(j.location, countryInfo)) return false;
-      // If a specific city/location was requested, enforce it at the city level
       if (location) return matchesRequestedLocation(j.location, location);
       return true;
     })
@@ -438,7 +454,7 @@ export async function GET(request: Request) {
       .maybeSingle(),
     supabase
       .from("profiles")
-      .select("target_job_titles, preferred_locations")
+      .select("target_job_titles, preferred_locations, location")
       .eq("id", user.id)
       .maybeSingle(),
   ]);
@@ -467,9 +483,10 @@ export async function GET(request: Request) {
   const salaryMinParam = url.searchParams.get("salary_min") ? Number(url.searchParams.get("salary_min")) : undefined;
   const forceRefresh = url.searchParams.get("refresh") === "true" || Boolean(manualQuery) || Boolean(explicitLocation) || Boolean(workTypeParam) || Boolean(salaryMinParam);
 
-  // Infer the user's country from their preferred locations (falls back to Australia)
+  // Infer country from preferred_locations, profile location, and explicit location param
   const countryInfo = inferCountry([
     ...(profile?.preferred_locations ?? []),
+    ...((profile as { location?: string } | null)?.location ? [(profile as { location?: string }).location!] : []),
     ...(locationParam ? [locationParam] : []),
   ]);
 
@@ -508,17 +525,20 @@ export async function GET(request: Request) {
     }
   }
 
-  let actualSearchQuery = keywords.searchQuery;
+  // Primary Adzuna search uses the short job title (2-4 words) for precise AND matching.
+  // Jooble and fallbacks use the broader searchQuery.
+  const primaryQuery = keywords.jobTitle.trim() || keywords.searchQuery;
+  let actualSearchQuery = primaryQuery;
   const joobleApiKey = process.env.JOOBLE_API_KEY;
   const adzunaCountry = countryInfo.adzunaCode; // null = not covered by Adzuna
 
-  // Run Adzuna + Jooble in parallel (skip Adzuna if country not covered)
+  // Run Adzuna (short title) + Jooble (broader query) in parallel
   const [adzunaSettled, joobleSettled] = await Promise.allSettled([
     adzunaCountry
-      ? fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, where: locationParam, country: adzunaCountry, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 30, resultsPerPage: 50 })
+      ? fetchAdzunaJobs({ appId, appKey, query: primaryQuery, where: locationParam, country: adzunaCountry, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 30, resultsPerPage: 50 })
       : Promise.resolve([]),
     joobleApiKey
-      ? fetchJoobleJobs({ apiKey: joobleApiKey, query: actualSearchQuery, location: locationParam, countryInfo })
+      ? fetchJoobleJobs({ apiKey: joobleApiKey, query: keywords.searchQuery, location: locationParam, countryInfo })
       : Promise.resolve([]),
   ]);
 
@@ -527,26 +547,24 @@ export async function GET(request: Request) {
   if (adzunaSettled.status === "rejected") console.error("[grab] Adzuna primary fetch failed:", adzunaSettled.reason);
   if (joobleSettled.status === "rejected") console.error("[grab] Jooble fetch failed:", joobleSettled.reason);
 
-  // If Adzuna city-scoped search returned nothing, retry nationwide and rely on post-hoc filter
+  // If Adzuna city-scoped returned nothing, retry nationwide
   if (adzunaCountry && adzunaJobs.length === 0 && locationParam) {
     try {
-      adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, country: adzunaCountry, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 30, resultsPerPage: 50 });
+      adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: primaryQuery, country: adzunaCountry, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 30, resultsPerPage: 50 });
     } catch (e) {
       console.error("[grab] Adzuna nationwide primary fetch failed:", e);
     }
   }
 
-  // Fallback: if both returned nothing, retry with just the job title and a wider window.
-  // First try with location, then without (relying on post-hoc filtering) if still empty.
-  if (adzunaJobs.length === 0 && joobleJobs.length === 0 && keywords.jobTitle.trim()) {
-    actualSearchQuery = keywords.jobTitle.trim();
+  // Fallback: broaden to searchQuery with wider time window
+  if (adzunaJobs.length === 0 && joobleJobs.length === 0) {
+    actualSearchQuery = keywords.searchQuery;
     if (adzunaCountry) {
       try {
         adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, where: locationParam, country: adzunaCountry, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 60, resultsPerPage: 50 });
       } catch (e) {
         console.error("[grab] Adzuna fallback fetch failed:", e);
       }
-      // If city-scoped search still empty, broaden to nationwide and rely on post-hoc filter
       if (adzunaJobs.length === 0) {
         try {
           adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, country: adzunaCountry, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 60, resultsPerPage: 50 });
@@ -555,7 +573,6 @@ export async function GET(request: Request) {
         }
       }
     }
-    // Retry Jooble with title too
     if (joobleApiKey) {
       try {
         joobleJobs = await fetchJoobleJobs({ apiKey: joobleApiKey, query: actualSearchQuery, location: locationParam, countryInfo });
@@ -565,10 +582,10 @@ export async function GET(request: Request) {
     }
   }
 
-  // Last resort: OR-mode search so ANY keyword word matches — AI scoring filters out irrelevant results
+  // Last resort: OR-mode on short title only — keeps field relevance while broadening matches
   if (adzunaCountry && adzunaJobs.length === 0 && joobleJobs.length === 0) {
     try {
-      adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, where: locationParam, country: adzunaCountry, maxDaysOld: 60, resultsPerPage: 50, orMode: true });
+      adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: primaryQuery, where: locationParam, country: adzunaCountry, maxDaysOld: 60, resultsPerPage: 50, orMode: true });
     } catch (e) {
       console.error("[grab] Adzuna OR-mode fallback failed:", e);
     }
@@ -628,10 +645,10 @@ export async function GET(request: Request) {
       .map((row) => [row.external_id, { score: row.match_score as number, reason: row.match_reason as string }])
   );
 
-  // Only call AI for jobs we haven't scored before; cap at 20 to keep scoring fast
+  // Only call AI for jobs we haven't scored before; cap at 40 to keep scoring fast
   const jobsNeedingScore = allJobs
     .filter((j) => !cachedScoreMap.has(j.id))
-    .slice(0, 20)
+    .slice(0, 40)
     .map((j) => ({ id: j.id, title: j.title, company: j.company, description: j.description }));
 
   let newScores: { id: string; score: number; reason: string }[] = [];
