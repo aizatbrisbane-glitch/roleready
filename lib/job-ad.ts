@@ -38,6 +38,28 @@ export function normaliseJobUrl(raw: string): string {
   }
 }
 
+export function isSearchResultsPage(url: string): boolean {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\./, "").toLowerCase();
+    if (host === "reed.co.uk") {
+      const last = u.pathname.split("/").filter(Boolean).pop() ?? "";
+      return !/^\d{5,}$/.test(last);
+    }
+    if (host === "totaljobs.com") {
+      const last = u.pathname.split("/").filter(Boolean).pop() ?? "";
+      return !/^\d{5,}$/.test(last);
+    }
+    if (host === "cv-library.co.uk") {
+      const segments = u.pathname.split("/").filter(Boolean);
+      return !(segments[0] === "job" && /^\d{5,}$/.test(segments[1] ?? ""));
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export function isBlockedJobBoard(url: string): boolean {
   try {
     const host = new URL(url).hostname.replace(/^www\./, "").toLowerCase();

@@ -141,6 +141,12 @@ export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFil
       setMessage("Paste a job link or the job description first.");
       return;
     }
+    // Block search results page URLs — user must open the specific job first
+    const spw = jobUrl.trim() ? searchPageWarning(jobUrl.trim()) : null;
+    if (spw && !descText.trim()) {
+      setMessage(spw);
+      return;
+    }
     setLoading(true);
     setMessage("");
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { extractTextFromFile } from "@/lib/file-text";
-import { fetchJobAdDetails, detectJobSource, isBlockedJobBoard, normaliseJobUrl } from "@/lib/job-ad";
+import { fetchJobAdDetails, detectJobSource, isBlockedJobBoard, isSearchResultsPage, normaliseJobUrl } from "@/lib/job-ad";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const maxDuration = 60;
@@ -92,6 +92,13 @@ export async function POST(request: Request) {
 
   if (!jobUrl && !jobDescriptionFallback) {
     return NextResponse.json({ error: "Paste a job ad link or job description first." }, { status: 400 });
+  }
+
+  if (jobUrl && isSearchResultsPage(jobUrl) && !jobDescriptionFallback) {
+    return NextResponse.json(
+      { error: "This looks like a job search results page, not a specific job. Open the job in a new tab to get the direct URL, then paste that instead." },
+      { status: 400 }
+    );
   }
 
   try {
