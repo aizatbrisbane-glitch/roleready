@@ -39,6 +39,40 @@ function useFetchStage(loading: boolean) {
 
 const BLOCKED_HOSTS = ["jora.com", "indeed.com", "au.indeed.com", "www.indeed.com", "www.jora.com"];
 
+// Job boards that show job details in a side panel without changing the URL to a direct job link.
+// We detect these and prompt the user to open the job in a new tab instead.
+const SEARCH_PAGE_PATTERNS: { test: (u: URL) => boolean; message: string }[] = [
+  {
+    // Reed: direct job URLs end with a numeric ID, e.g. /jobs/job-title/72374836
+    // A URL without a numeric last segment is a search results page.
+    test: (u) => {
+      if (!u.hostname.replace(/^www\./, "").endsWith("reed.co.uk")) return false;
+      const last = u.pathname.split("/").filter(Boolean).pop() ?? "";
+      return !/^\d{5,}$/.test(last);
+    },
+    message: 'This looks like a Reed search page. Click a job, then right-click the title and "Open in new tab" to get the direct job URL.',
+  },
+  {
+    // Totaljobs: direct job URLs end with a numeric ID, e.g. /jobs/job-title/12345678
+    test: (u) => {
+      if (!u.hostname.replace(/^www\./, "").endsWith("totaljobs.com")) return false;
+      const last = u.pathname.split("/").filter(Boolean).pop() ?? "";
+      return !/^\d{5,}$/.test(last);
+    },
+    message: 'This looks like a Totaljobs search page. Click a job, then right-click the title and "Open in new tab" to get the direct job URL.',
+  },
+  {
+    // CV-Library: direct job URLs end with a numeric ID, e.g. /job/123456/job-title
+    test: (u) => {
+      if (!u.hostname.replace(/^www\./, "").endsWith("cv-library.co.uk")) return false;
+      const segments = u.pathname.split("/").filter(Boolean);
+      // /job/{id}/{slug} — second segment should be numeric
+      return !(segments[0] === "job" && /^\d{5,}$/.test(segments[1] ?? ""));
+    },
+    message: 'This looks like a CV-Library search page. Click a job, then right-click the title and "Open in new tab" to get the direct job URL.',
+  },
+];
+
 type Props = {
   resumeFileName: string | null;
   coverLetterFileName: string | null;
@@ -64,13 +98,23 @@ export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFil
     }
   }
 
+  function searchPageWarning(url: string): string | null {
+    try {
+      const u = new URL(url.startsWith("http") ? url : `https://${url}`);
+      return SEARCH_PAGE_PATTERNS.find((p) => p.test(u))?.message ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   function handleUrlChange(value: string) {
     setJobUrl(value);
     if (value && isBlockedHost(value)) {
       setUrlWarning("Indeed and Jora block link imports. Paste the job description below instead.");
       setDescOpen(true);
     } else {
-      setUrlWarning("");
+      const spw = value ? searchPageWarning(value) : null;
+      setUrlWarning(spw ?? "");
     }
   }
 
@@ -140,7 +184,7 @@ export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFil
             Paste a job link and we&apos;ll tailor your resume and cover letter in seconds.
           </p>
           <p className="mt-2 hidden text-xs text-slate-400 sm:block">
-            Works best with <span className="font-semibold text-slate-500">SEEK</span>, <span className="font-semibold text-slate-500">LinkedIn</span>, <span className="font-semibold text-slate-500">Reed</span> and <span className="font-semibold text-slate-500">JobStreet</span>. For Indeed or Jora, paste the job description.
+            Works best with <span className="font-semibold text-slate-500">SEEK</span>, <span className="font-semibold text-slate-500">LinkedIn</span>, <span className="font-semibold text-slate-500">Reed</span>, <span className="font-semibold text-slate-500">Totaljobs</span> and <span className="font-semibold text-slate-500">JobStreet</span>. For search pages, open the job in a new tab first.
           </p>
         </div>
 
