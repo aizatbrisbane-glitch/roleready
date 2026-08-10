@@ -26,6 +26,12 @@ export function normaliseJobUrl(raw: string): string {
         return `${url.origin}/job/${jobId}`;
       }
     }
+    if (url.hostname.includes("jobstreet.")) {
+      const jobId = url.searchParams.get("jobId");
+      if (jobId && /^\d+$/.test(jobId)) {
+        return `${url.origin}/en/job/${jobId}`;
+      }
+    }
     return trimmed;
   } catch {
     return trimmed;
@@ -766,6 +772,8 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
     const u = new URL(jobUrl);
     if ((u.hostname === "au.seek.com" || u.hostname.endsWith(".seek.com")) && u.searchParams.has("jobId")) {
       jobUrl = `https://au.seek.com/job/${u.searchParams.get("jobId")}`;
+    } else if (u.hostname.includes("jobstreet.") && u.searchParams.has("jobId")) {
+      jobUrl = `${u.origin}/en/job/${u.searchParams.get("jobId")}`;
     } else if (u.hostname.includes("linkedin.com") && u.searchParams.has("currentJobId")) {
       jobUrl = `https://www.linkedin.com/jobs/view/${u.searchParams.get("currentJobId")}/`;
     } else if (u.hostname.includes("indeed.com")) {
