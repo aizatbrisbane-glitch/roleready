@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     }
   }
 
-  if (resumeText.trim() || resumeFileName) {
+  if (resumeFileName) {
     const { error: resumeError } = await supabase.from("master_resumes").insert({
       user_id: user.id,
       file_name: resumeFileName,
@@ -63,6 +63,21 @@ export async function POST(request: Request) {
     if (resumeError) {
       return NextResponse.json({ error: resumeError.message }, { status: 400 });
     }
+  } else if (resumeText.trim()) {
+    const { data: existingResume } = await supabase
+      .from("master_resumes")
+      .select("id")
+      .eq("user_id", user.id)
+      .not("file_name", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (existingResume) {
+      await supabase.from("master_resumes").update({ resume_text: resumeText }).eq("id", existingResume.id);
+    }
+  }
+
+  if (resumeFileName) {
 
     const { data: profileRow } = await supabase.from("profiles").select("name").eq("id", user.id).maybeSingle();
     const firstName = (profileRow?.name ?? "").split(" ")[0] || null;
@@ -99,7 +114,7 @@ export async function POST(request: Request) {
     }
   }
 
-  if (coverLetterText.trim() || coverLetterFileName) {
+  if (coverLetterFileName) {
     const { error: coverLetterError } = await supabase.from("master_cover_letters").insert({
       user_id: user.id,
       file_name: coverLetterFileName,
@@ -109,6 +124,18 @@ export async function POST(request: Request) {
 
     if (coverLetterError) {
       return NextResponse.json({ error: coverLetterError.message }, { status: 400 });
+    }
+  } else if (coverLetterText.trim()) {
+    const { data: existingCoverLetter } = await supabase
+      .from("master_cover_letters")
+      .select("id")
+      .eq("user_id", user.id)
+      .not("file_name", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (existingCoverLetter) {
+      await supabase.from("master_cover_letters").update({ cover_letter_text: coverLetterText }).eq("id", existingCoverLetter.id);
     }
   }
 
