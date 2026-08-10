@@ -155,23 +155,33 @@ async function extractKeywords(resumeText: string, provider: "anthropic" | "open
 async function scoreJobs(
   resumeText: string,
   jobs: { id: string; title: string; company: string; description: string }[],
-  provider: "anthropic" | "openai"
+  provider: "anthropic" | "openai",
+  targetJobTitle?: string
 ) {
   const jobList = jobs
     .map((j) => `ID:${j.id}\nTitle: ${j.title} at ${j.company}\n${j.description.slice(0, 600)}`)
     .join("\n---\n");
 
+  const targetLine = targetJobTitle?.trim()
+    ? `\nThe candidate is targeting: "${targetJobTitle}". Any job in a clearly different role category should score 0–15.`
+    : "";
+
   const userMsg = `You are a strict recruiter scoring job-resume fit from 0–100.
 
 Scoring guide:
-- 80–100: Strong match — title aligns, most key skills present, right seniority level
-- 60–79: Reasonable match — related field, some gaps in skills or level
-- 40–59: Partial match — different specialisation or seniority, some transferable skills
-- 0–39: Weak match — different field, missing core requirements
+- 80–100: Strong match — title aligns exactly, most key skills present, right seniority level
+- 60–79: Reasonable match — closely related role, some skill gaps but same field
+- 40–59: Partial match — different specialisation or seniority but same broad industry
+- 20–39: Weak match — adjacent industry, mostly transferable skills only
+- 0–19: Wrong field — completely different industry or requiring qualifications the candidate clearly does not have
 
-Be conservative. Most scores should fall in the 40–70 range. Only award 80+ when there is clear evidence across title, experience level, AND key skills.
+CRITICAL RULES (apply these first, before anything else):
+- If the job is in a completely different industry from the candidate (e.g. healthcare vs retail, IT vs hospitality, law vs construction, nursing vs sales), score 0–15 regardless of any shared keywords like "customer service" or "communication".
+- If the job requires a professional licence or degree the candidate clearly does not have (registered nurse, doctor, lawyer, engineer, teacher registration, etc.), score 0–10.
+- Generic transferable skills (communication, teamwork, customer service) must NOT push a score above 20 if the core role is a different field.
+- Be conservative. Genuinely related jobs should mostly score 30–65. Reserve 80+ for clear title + skill + seniority alignment.${targetLine}
 
-Resume (summary):\n${resumeText.slice(0, 6000)}\n\nJobs to score:\n${jobList}`;
+Resume:\n${resumeText.slice(0, 6000)}\n\nJobs to score:\n${jobList}`;
 
   if (provider === "anthropic") {
     if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured.");
@@ -533,8 +543,11 @@ export async function GET(request: Request) {
     .eq("user_id", user.id)
     .in("external_id", allJobs.map((j) => j.id));
 
+  // Exclude fallback-scored entries so they get properly rescored next time AI is available
   const cachedScoreMap = new Map(
-    (existingCached ?? []).map((row) => [row.external_id, { score: row.match_score as number, reason: row.match_reason as string }])
+    (existingCached ?? [])
+      .filter((row) => row.match_reason !== "Match scoring unavailable.")
+      .map((row) => [row.external_id, { score: row.match_score as number, reason: row.match_reason as string }])
   );
 
   // Only call AI for jobs we haven't scored before; cap at 20 to keep scoring fast
@@ -546,9 +559,9 @@ export async function GET(request: Request) {
   let newScores: { id: string; score: number; reason: string }[] = [];
   if (jobsNeedingScore.length > 0) {
     try {
-      newScores = await scoreJobs(masterResume.resume_text, jobsNeedingScore, provider);
+      newScores = await scoreJobs(masterResume.resume_text, jobsNeedingScore, provider, keywords.jobTitle || undefined);
     } catch {
-      newScores = jobsNeedingScore.map((j) => ({ id: j.id, score: 50, reason: "Match scoring unavailable." }));
+      newScores = jobsNeedingScore.map((j) => ({ id: j.id, score: 30, reason: "Match scoring unavailable." }));
     }
   }
 
@@ -564,7 +577,8 @@ export async function GET(request: Request) {
 
   results.sort((a, b) => b.matchScore - a.matchScore);
 
-  const topResults = results.slice(0, 20);
+  // Drop clearly irrelevant jobs (wrong field) before caching — keeps the list clean
+  const topResults = results.filter((r) => r.matchScore >= 25).slice(0, 20);
   const fetchedAt = new Date().toISOString();
 
   await supabase.from("cached_grabbed_jobs").delete().eq("user_id", user.id);
