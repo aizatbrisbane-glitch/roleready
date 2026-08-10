@@ -164,7 +164,7 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
     generate === "true" &&
     !hasDocuments &&
     !!masterResume &&
-    job.description.trim().length > 0 &&
+    job.description.trim().length >= 800 &&
     access.canGenerate;
   const showWelcomeGuide = hasDocuments;
 
