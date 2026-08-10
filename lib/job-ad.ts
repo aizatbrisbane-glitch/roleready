@@ -351,8 +351,14 @@ async function fetchJobWithScrapeDo(url: string): Promise<JobAdDetails | null> {
     if (!res.ok) return null;
 
     const html = await res.text();
-    if (!html || html.trim().length < 300) return null;
-    if (looksLikeBlockedPage(html)) return null;
+    if (!html || html.trim().length < 300) {
+      console.warn(`[job-ad] Scrape.do returned empty/short content (${html?.trim().length ?? 0} chars) for ${url}`);
+      return null;
+    }
+    if (looksLikeBlockedPage(html)) {
+      console.warn(`[job-ad] Scrape.do returned a blocked/challenge page for ${url}`);
+      return null;
+    }
 
     const structured = scriptJson(html);
     const nd = nextDataJob(html);
@@ -474,7 +480,7 @@ async function fetchJobWithFirecrawl(url: string): Promise<JobAdDetails | null> 
         onlyMainContent: true,
         timeout: 60000,
       }),
-      signal: AbortSignal.timeout(45000),
+      signal: AbortSignal.timeout(57000),
     });
 
     if (!res.ok) {
