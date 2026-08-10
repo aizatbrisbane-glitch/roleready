@@ -140,7 +140,7 @@ export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFil
             Paste a job link and we&apos;ll tailor your resume and cover letter in seconds.
           </p>
           <p className="mt-2 hidden text-xs text-slate-400 sm:block">
-            Works best with <span className="font-semibold text-slate-500">SEEK</span> and <span className="font-semibold text-slate-500">LinkedIn</span>. For Indeed or Jora, paste the job description.
+            Works best with <span className="font-semibold text-slate-500">SEEK</span>, <span className="font-semibold text-slate-500">LinkedIn</span>, <span className="font-semibold text-slate-500">Reed</span> and <span className="font-semibold text-slate-500">JobStreet</span>. For Indeed or Jora, paste the job description.
           </p>
         </div>
 
