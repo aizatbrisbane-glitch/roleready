@@ -11,7 +11,7 @@ type JobAdDetails = {
 
 // Job boards that commonly block server-side requests.
 // "seek.com" catches both au.seek.com (new domain) and any other seek.com subdomains.
-const BLOCKED_DOMAINS = ["seek.com.au", "seek.co.nz", "seek.com", "linkedin.com", "indeed.com", "jora.com", "jora.com.au"];
+const BLOCKED_DOMAINS = ["seek.com.au", "seek.co.nz", "seek.com", "linkedin.com", "indeed.com", "jora.com", "jora.com.au", "jobstreet.com.my", "jobstreet.com.sg", "jobstreet.com"];
 
 // Normalise job board URLs so search-results-page URLs become direct listing URLs.
 // e.g. SEEK adds ?jobId=92726265 to search URLs when viewing a job in the side panel.
@@ -780,7 +780,7 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
   // fire all available extractors in parallel — takes whichever succeeds first.
   if (isBlockedJobBoard(jobUrl)) {
     const hostname = new URL(jobUrl).hostname;
-    const isSeek = hostname.includes("seek.");
+    const isSeek = hostname.includes("seek.") || hostname.includes("jobstreet.");
     const isLinkedIn = hostname.includes("linkedin.com");
 
     if (isSeek) {
