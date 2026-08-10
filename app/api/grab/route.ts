@@ -213,6 +213,7 @@ async function fetchAdzunaJobs({
   appKey,
   query,
   where,
+  country = "au",
   workTypes,
   salaryMin,
   maxDaysOld,
@@ -223,6 +224,7 @@ async function fetchAdzunaJobs({
   appKey: string;
   query: string;
   where?: string;
+  country?: string;
   workTypes?: string;
   salaryMin?: number;
   maxDaysOld: number;
@@ -251,7 +253,7 @@ async function fetchAdzunaJobs({
   }
   if (salaryMin) params.set("salary_min", String(salaryMin));
 
-  const res = await fetch(`https://api.adzuna.com/v1/api/jobs/au/search/1?${params}`, {
+  const res = await fetch(`https://api.adzuna.com/v1/api/jobs/${country}/search/1?${params}`, {
     headers: { Accept: "application/json" },
     cache: "no-store",
     signal: AbortSignal.timeout(10000),
@@ -259,14 +261,6 @@ async function fetchAdzunaJobs({
   if (!res.ok) throw new Error(`Adzuna returned HTTP ${res.status}`);
   const data = (await res.json()) as { results?: AdzunaJob[] };
   return data.results ?? [];
-}
-
-const AU_GEO_TERMS = ["australia", "nsw", "vic", "qld", "wa", "sa", "act", "tas", "nt",
-  "sydney", "melbourne", "brisbane", "perth", "adelaide", "canberra", "hobart", "darwin"];
-
-function isAustralianLocation(loc: string): boolean {
-  const l = loc.toLowerCase();
-  return AU_GEO_TERMS.some((t) => l.includes(t));
 }
 
 // State abbreviations and full names for each capital — used to broaden city matches
@@ -280,6 +274,79 @@ const CITY_STATE_MAP: Record<string, string[]> = {
   hobart:     ["tas", "tasmania"],
   darwin:     ["nt", "northern territory"],
 };
+
+type CountryInfo = {
+  adzunaCode: string | null; // null = Adzuna doesn't cover this country
+  joobleCountry: string;     // sent as Jooble location param
+  geoTerms: string[];        // used to filter Jooble results to this country
+};
+
+const COUNTRY_RULES: { pattern: RegExp; info: CountryInfo }[] = [
+  {
+    pattern: /\b(uk|united kingdom|england|scotland|wales|northern ireland|london|manchester|birmingham|leeds|glasgow|edinburgh|bristol|liverpool|sheffield|coventry|leicester|cardiff)\b/i,
+    info: { adzunaCode: "gb", joobleCountry: "United Kingdom", geoTerms: ["uk", "united kingdom", "england", "scotland", "wales", "london", "manchester", "birmingham", "leeds", "glasgow", "bristol"] },
+  },
+  {
+    pattern: /\b(usa?|united states|america|new york|los angeles|chicago|houston|phoenix|philadelphia|san francisco|seattle|boston|miami|denver|atlanta|dallas|austin|portland|san diego)\b/i,
+    info: { adzunaCode: "us", joobleCountry: "United States", geoTerms: ["united states", "usa", "new york", "los angeles", "chicago", "houston", "san francisco", "seattle", "boston", "miami", "dallas"] },
+  },
+  {
+    pattern: /\b(canada|toronto|vancouver|montreal|calgary|ottawa|edmonton|winnipeg)\b/i,
+    info: { adzunaCode: "ca", joobleCountry: "Canada", geoTerms: ["canada", "toronto", "vancouver", "montreal", "calgary", "ottawa", "edmonton"] },
+  },
+  {
+    pattern: /\b(malaysia|kuala lumpur|\bkl\b|penang|johor|petaling jaya|\bpj\b|subang|klang|ipoh|kota kinabalu|kuching|cyberjaya|putrajaya)\b/i,
+    info: { adzunaCode: null, joobleCountry: "Malaysia", geoTerms: ["malaysia", "kuala lumpur", "penang", "johor", "petaling", "subang", "klang", "ipoh", "cyberjaya", "putrajaya"] },
+  },
+  {
+    pattern: /\b(singapore)\b/i,
+    info: { adzunaCode: "sg", joobleCountry: "Singapore", geoTerms: ["singapore"] },
+  },
+  {
+    pattern: /\b(new zealand|\bnz\b|auckland|wellington|christchurch|hamilton|tauranga|dunedin)\b/i,
+    info: { adzunaCode: "nz", joobleCountry: "New Zealand", geoTerms: ["new zealand", "auckland", "wellington", "christchurch", "hamilton", "dunedin"] },
+  },
+  {
+    pattern: /\b(india|bangalore|bengaluru|mumbai|delhi|hyderabad|chennai|pune|kolkata|noida|gurugram|gurgaon)\b/i,
+    info: { adzunaCode: "in", joobleCountry: "India", geoTerms: ["india", "bangalore", "bengaluru", "mumbai", "delhi", "hyderabad", "chennai", "pune", "kolkata"] },
+  },
+  {
+    pattern: /\b(germany|deutschland|berlin|munich|münchen|hamburg|frankfurt|cologne|düsseldorf|stuttgart)\b/i,
+    info: { adzunaCode: "de", joobleCountry: "Germany", geoTerms: ["germany", "deutschland", "berlin", "munich", "hamburg", "frankfurt", "cologne"] },
+  },
+  {
+    pattern: /\b(france|paris|lyon|marseille|toulouse|nice|nantes|bordeaux|strasbourg)\b/i,
+    info: { adzunaCode: "fr", joobleCountry: "France", geoTerms: ["france", "paris", "lyon", "marseille", "toulouse"] },
+  },
+  {
+    pattern: /\b(netherlands|holland|amsterdam|rotterdam|the hague|den haag|utrecht|eindhoven)\b/i,
+    info: { adzunaCode: "nl", joobleCountry: "Netherlands", geoTerms: ["netherlands", "holland", "amsterdam", "rotterdam", "utrecht"] },
+  },
+  {
+    pattern: /\b(south africa|johannesburg|cape town|durban|pretoria|port elizabeth|bloemfontein)\b/i,
+    info: { adzunaCode: "za", joobleCountry: "South Africa", geoTerms: ["south africa", "johannesburg", "cape town", "durban", "pretoria"] },
+  },
+];
+
+const AU_COUNTRY: CountryInfo = {
+  adzunaCode: "au",
+  joobleCountry: "Australia",
+  geoTerms: ["australia", "nsw", "vic", "qld", "wa", "sa", "act", "tas", "nt", "sydney", "melbourne", "brisbane", "perth", "adelaide", "canberra", "hobart", "darwin"],
+};
+
+function inferCountry(locations: string[]): CountryInfo {
+  const combined = locations.filter(Boolean).join(" ");
+  if (!combined.trim()) return AU_COUNTRY;
+  for (const { pattern, info } of COUNTRY_RULES) {
+    if (pattern.test(combined)) return info;
+  }
+  return AU_COUNTRY;
+}
+
+function isCountryLocation(loc: string, countryInfo: CountryInfo): boolean {
+  const l = loc.toLowerCase();
+  return countryInfo.geoTerms.some((t) => l.includes(t));
+}
 
 function matchesRequestedLocation(jobLoc: string, requested: string): boolean {
   const j = jobLoc.toLowerCase();
@@ -302,16 +369,16 @@ async function fetchJoobleJobs({
   apiKey,
   query,
   location,
+  countryInfo,
 }: {
   apiKey: string;
   query: string;
   location?: string;
+  countryInfo: CountryInfo;
 }): Promise<GrabResult[]> {
-  // Always search all of Australia so Jooble returns maximum results.
+  // Search by country so Jooble returns maximum results for that market.
   // City-level filtering is applied post-fetch via matchesRequestedLocation.
-  // Sending a specific city to Jooble causes it to return far fewer results than
-  // searching broadly and filtering ourselves.
-  const body: Record<string, string | number> = { keywords: query, location: "Australia", page: 1 };
+  const body: Record<string, string | number> = { keywords: query, location: countryInfo.joobleCountry, page: 1 };
 
   const res = await fetch(`https://jooble.org/api/${apiKey}`, {
     method: "POST",
@@ -326,7 +393,7 @@ async function fetchJoobleJobs({
   return (data.jobs ?? [])
     .filter((j) => {
       if (!j.location) return true;
-      if (!isAustralianLocation(j.location)) return false;
+      if (!isCountryLocation(j.location, countryInfo)) return false;
       // If a specific city/location was requested, enforce it at the city level
       if (location) return matchesRequestedLocation(j.location, location);
       return true;
@@ -400,6 +467,12 @@ export async function GET(request: Request) {
   const salaryMinParam = url.searchParams.get("salary_min") ? Number(url.searchParams.get("salary_min")) : undefined;
   const forceRefresh = url.searchParams.get("refresh") === "true" || Boolean(manualQuery) || Boolean(explicitLocation) || Boolean(workTypeParam) || Boolean(salaryMinParam);
 
+  // Infer the user's country from their preferred locations (falls back to Australia)
+  const countryInfo = inferCountry([
+    ...(profile?.preferred_locations ?? []),
+    ...(locationParam ? [locationParam] : []),
+  ]);
+
   if (!forceRefresh) {
     const { data: cachedRows } = await supabase
       .from("cached_grabbed_jobs")
@@ -437,12 +510,15 @@ export async function GET(request: Request) {
 
   let actualSearchQuery = keywords.searchQuery;
   const joobleApiKey = process.env.JOOBLE_API_KEY;
+  const adzunaCountry = countryInfo.adzunaCode; // null = not covered by Adzuna
 
-  // Run Adzuna + Jooble in parallel
+  // Run Adzuna + Jooble in parallel (skip Adzuna if country not covered)
   const [adzunaSettled, joobleSettled] = await Promise.allSettled([
-    fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, where: locationParam, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 30, resultsPerPage: 50 }),
+    adzunaCountry
+      ? fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, where: locationParam, country: adzunaCountry, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 30, resultsPerPage: 50 })
+      : Promise.resolve([]),
     joobleApiKey
-      ? fetchJoobleJobs({ apiKey: joobleApiKey, query: actualSearchQuery, location: locationParam })
+      ? fetchJoobleJobs({ apiKey: joobleApiKey, query: actualSearchQuery, location: locationParam, countryInfo })
       : Promise.resolve([]),
   ]);
 
@@ -452,9 +528,9 @@ export async function GET(request: Request) {
   if (joobleSettled.status === "rejected") console.error("[grab] Jooble fetch failed:", joobleSettled.reason);
 
   // If Adzuna city-scoped search returned nothing, retry nationwide and rely on post-hoc filter
-  if (adzunaJobs.length === 0 && locationParam) {
+  if (adzunaCountry && adzunaJobs.length === 0 && locationParam) {
     try {
-      adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 30, resultsPerPage: 50 });
+      adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, country: adzunaCountry, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 30, resultsPerPage: 50 });
     } catch (e) {
       console.error("[grab] Adzuna nationwide primary fetch failed:", e);
     }
@@ -464,23 +540,25 @@ export async function GET(request: Request) {
   // First try with location, then without (relying on post-hoc filtering) if still empty.
   if (adzunaJobs.length === 0 && joobleJobs.length === 0 && keywords.jobTitle.trim()) {
     actualSearchQuery = keywords.jobTitle.trim();
-    try {
-      adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, where: locationParam, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 60, resultsPerPage: 50 });
-    } catch (e) {
-      console.error("[grab] Adzuna fallback fetch failed:", e);
-    }
-    // If city-scoped search still empty, broaden to nationwide and rely on post-hoc filter
-    if (adzunaJobs.length === 0) {
+    if (adzunaCountry) {
       try {
-        adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 60, resultsPerPage: 50 });
+        adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, where: locationParam, country: adzunaCountry, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 60, resultsPerPage: 50 });
       } catch (e) {
-        console.error("[grab] Adzuna nationwide fallback fetch failed:", e);
+        console.error("[grab] Adzuna fallback fetch failed:", e);
+      }
+      // If city-scoped search still empty, broaden to nationwide and rely on post-hoc filter
+      if (adzunaJobs.length === 0) {
+        try {
+          adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, country: adzunaCountry, workTypes: workTypeParam, salaryMin: salaryMinParam, maxDaysOld: 60, resultsPerPage: 50 });
+        } catch (e) {
+          console.error("[grab] Adzuna nationwide fallback fetch failed:", e);
+        }
       }
     }
     // Retry Jooble with title too
     if (joobleApiKey) {
       try {
-        joobleJobs = await fetchJoobleJobs({ apiKey: joobleApiKey, query: actualSearchQuery, location: locationParam });
+        joobleJobs = await fetchJoobleJobs({ apiKey: joobleApiKey, query: actualSearchQuery, location: locationParam, countryInfo });
       } catch (e) {
         console.error("[grab] Jooble fallback fetch failed:", e);
       }
@@ -488,9 +566,9 @@ export async function GET(request: Request) {
   }
 
   // Last resort: OR-mode search so ANY keyword word matches — AI scoring filters out irrelevant results
-  if (adzunaJobs.length === 0 && joobleJobs.length === 0) {
+  if (adzunaCountry && adzunaJobs.length === 0 && joobleJobs.length === 0) {
     try {
-      adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, where: locationParam, maxDaysOld: 60, resultsPerPage: 50, orMode: true });
+      adzunaJobs = await fetchAdzunaJobs({ appId, appKey, query: actualSearchQuery, where: locationParam, country: adzunaCountry, maxDaysOld: 60, resultsPerPage: 50, orMode: true });
     } catch (e) {
       console.error("[grab] Adzuna OR-mode fallback failed:", e);
     }
