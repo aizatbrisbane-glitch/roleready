@@ -39,8 +39,8 @@ export default async function DashboardPage() {
   if (supabase && user) {
     const [{ data }, { data: resume }, { data: coverLetter }, { data: profile }, { data: cachedMatches }, { data: savedApps }, access, { data: enterpriseMembership }] = await Promise.all([
       supabase.from("applications").select("*, jobs(*)").eq("user_id", user.id).neq("status", "Saved").order("created_at", { ascending: false }),
-      supabase.from("master_resumes").select("id, file_name").eq("user_id", user.id).limit(1).maybeSingle(),
-      supabase.from("master_cover_letters").select("id, file_name").eq("user_id", user.id).limit(1).maybeSingle(),
+      supabase.from("master_resumes").select("id, file_name").eq("user_id", user.id).not("file_name", "is", null).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("master_cover_letters").select("id, file_name").eq("user_id", user.id).not("file_name", "is", null).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("profiles").select("name, location").eq("id", user.id).maybeSingle(),
       supabase.from("cached_grabbed_jobs").select("*").eq("user_id", user.id).order("match_score", { ascending: false }).limit(15),
       supabase.from("applications").select("id, jobs(job_url)").eq("user_id", user.id).eq("status", "Saved"),
