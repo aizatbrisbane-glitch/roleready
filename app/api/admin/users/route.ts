@@ -100,8 +100,16 @@ export async function GET(request: Request) {
     const source = searchParams.get("source") ?? "(direct)";
     users = users.filter((u) => {
       const prof = profileById[u.id];
-      if (!prof?.attrLandedAt) return false; // no attribution captured
-      return source === "(direct)" ? !u.attrSource : u.attrSource === source;
+      if (source === "(direct)") {
+        // Include users with no source — both fully attributed direct users and
+        // untracked signups (attr_landed_at null but no UTM source recorded either).
+        // UTM-tagged signups always get source written server-side at the auth callback,
+        // so no-source reliably means direct or not-yet-tracked (effectively the same).
+        return !u.attrSource;
+      }
+      // For named sources, require attribution data to have actually been captured
+      if (!prof?.attrLandedAt) return false;
+      return u.attrSource === source;
     });
   }
 
