@@ -656,7 +656,7 @@ export function KeywordSidePanel({
                 onClick={() => {
                   try { localStorage.removeItem(pendingKey); } catch {}
                   setHasPendingScore(false);
-                  startRefresh(() => { router.refresh(); });
+                  startRefresh(async () => { await router.refresh(); });
                 }}
                 className="inline-flex items-center gap-1 rounded-full bg-green-600 px-2 py-0.5 text-[10px] font-semibold text-white transition hover:bg-green-700 disabled:opacity-60"
               >
@@ -715,7 +715,7 @@ export function KeywordSidePanel({
                       e.stopPropagation();
                       try { localStorage.removeItem(pendingKey); } catch {}
                       setHasPendingScore(false);
-                      startRefresh(() => { router.refresh(); });
+                      startRefresh(async () => { await router.refresh(); });
                     }}
                     className="shrink-0 inline-flex items-center gap-1 rounded-full bg-green-600 px-2 py-0.5 text-[10px] font-semibold text-white transition hover:bg-green-700 disabled:opacity-60"
                   >
