@@ -19,6 +19,7 @@ import { SetupNotice } from "@/components/SetupNotice";
 import { StatusSelector } from "@/components/StatusSelector";
 import { getAccessState } from "@/lib/entitlements";
 import { isSupabaseConfigured } from "@/lib/env";
+import { computeAdjustedScore } from "@/lib/score";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ApplicationStatus, ApplicationWithJob } from "@/types/database";
 
@@ -26,12 +27,6 @@ type Props = {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ generate?: string }>;
 };
-
-function adjustedScore(base: number | null, total: number, strengthened: number): number | null {
-  if (base === null) return null;
-  if (total === 0) return base;
-  return Math.min(100, Math.round(base + strengthened * (100 - base) / total));
-}
 
 function scoreTone(score: number | null) {
   if (score === null) return { label: "Match pending", className: "text-slate-500", pill: "bg-slate-100 text-slate-600" };
@@ -180,10 +175,12 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
   const missingKeywords = application.missing_keywords ?? [];
   const jobDescriptionLooksShort = job.description.trim().length < 800;
   const status = (application.status ?? "New") as ApplicationStatus;
-  const effectiveMatchScore = adjustedScore(
+  const effectiveMatchScore = computeAdjustedScore(
     application.match_score,
-    application.missing_keywords?.length ?? 0,
-    application.strengthened_keywords?.length ?? 0,
+    application.missing_keywords ?? [],
+    application.keyword_importance ?? {},
+    application.strengthened_keywords ?? [],
+    application.skipped_keywords ?? [],
   );
   const score = scoreTone(effectiveMatchScore);
   const guidance = statusGuidance(status, hasDocuments);

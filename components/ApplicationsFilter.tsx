@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, ChevronDown, Loader2, MapPin, Search, SlidersHorizontal, Sparkles, Trash2, Undo2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { computeAdjustedScore } from "@/lib/score";
 import type { ApplicationStatus, ApplicationWithJob } from "@/types/database";
 
 type Filter = "All" | ApplicationStatus;
@@ -15,12 +16,13 @@ const EMPTY = "-";
 const UNDO_DELAY_MS = 5000;
 
 function effectiveScore(app: ApplicationWithJob): number | null {
-  const base = app.match_score;
-  if (base === null) return null;
-  const total = app.missing_keywords?.length ?? 0;
-  const strengthened = app.strengthened_keywords?.length ?? 0;
-  if (total === 0) return base;
-  return Math.min(100, Math.round(base + strengthened * (100 - base) / total));
+  return computeAdjustedScore(
+    app.match_score,
+    app.missing_keywords ?? [],
+    (app.keyword_importance as Record<string, string>) ?? {},
+    app.strengthened_keywords ?? [],
+    app.skipped_keywords ?? [],
+  );
 }
 
 function scoreStyle(score: number | null) {

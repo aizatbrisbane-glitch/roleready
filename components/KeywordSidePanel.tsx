@@ -8,6 +8,7 @@ import type { EntitlementPlanType } from "@/types/database";
 import type { DocumentUpdate } from "@/components/ApplicationDetailClient";
 import { KeywordUpsellModal } from "@/components/KeywordUpsellModal";
 import { SCORE_UPDATE_EVENT } from "@/components/ScoreDisplay";
+import { computeAdjustedScore } from "@/lib/score";
 
 type Target = "resume" | "cover_letter";
 
@@ -164,9 +165,8 @@ export function KeywordSidePanel({
 
   const totalKeywords = sortedKeywords.length;
   const base = matchScore ?? 0;
-  const effectiveStrengthened = Math.max(0, strengthenedKeywords.length + sessionDelta);
-  const pageLoadScore = totalKeywords === 0 ? base : Math.min(100, Math.round(base + strengthenedKeywords.length * (100 - base) / totalKeywords));
-  const liveScore = totalKeywords === 0 ? base : Math.min(100, Math.round(base + effectiveStrengthened * (100 - base) / totalKeywords));
+  const pageLoadScore = computeAdjustedScore(base, missingKeywords, keywordImportance, strengthenedKeywords, skippedKeywords) ?? base;
+  const liveScore = computeAdjustedScore(base, missingKeywords, keywordImportance, accumulatedRef.current.keywords, skippedRef.current) ?? base;
   const scoreImproved = liveScore > pageLoadScore || hasPendingScore;
 
   function getState(kw: string): KeywordState { return states[kw] ?? { phase: "idle" }; }
@@ -319,7 +319,7 @@ export function KeywordSidePanel({
         // Delay modal so user sees the keyword go green and score tick up first
         if (!isPremium) {
           const scoreWas = pageLoadScore;
-          const scoreNow = totalKeywords === 0 ? base : Math.min(100, Math.round(base + (strengthenedKeywords.length + 1) * (100 - base) / totalKeywords));
+          const scoreNow = computeAdjustedScore(base, missingKeywords, keywordImportance, accumulatedRef.current.keywords, skippedRef.current) ?? base;
           const remaining = pendingCount - 1;
           setTimeout(() => {
             setUpsellModal({ scoreWas, scoreNow, remaining: Math.max(0, remaining) });
