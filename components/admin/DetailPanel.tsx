@@ -16,6 +16,7 @@ type AdminUser = {
   validUntil: string | null;
   monthlyGenerationsUsed: number;
   monthlyResetAt: string | null;
+  newsletterSubscribed: boolean;
   attrSource: string | null;
   attrMedium: string | null;
   attrCampaign: string | null;
@@ -155,7 +156,7 @@ function UserRow({ user }: { user: AdminUser }) {
         ) : (
           <div className="flex items-center gap-1 pt-0.5">
             <span className="text-[11px] text-gray-500">
-              <span className="font-semibold text-gray-700">{user.monthlyGenerationsUsed}</span>/1 free use this month
+              <span className="font-semibold text-gray-700">{user.monthlyGenerationsUsed}</span>/{user.newsletterSubscribed ? 2 : 1} free use this month
             </span>
             {user.monthlyResetAt && (
               <span className="text-[11px] text-gray-400">

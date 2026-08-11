@@ -301,6 +301,17 @@ export async function POST(request: Request, { params }: Props) {
   const access = await getAccessState(supabase, user.id);
 
   if (shouldConsumeCredit && !access.canGenerate) {
+    // Fallback: send limit email if it was missed during the successful generation (e.g. server error)
+    const profileData = profile as Profile | null;
+    const firstName = (profileData?.name ?? "").split(" ")[0] || null;
+    void sendLimitReachedEmail({
+      supabase,
+      userId: user.id,
+      email: user.email ?? "",
+      firstName,
+      applicationLimit: access.applicationLimit,
+      limitEmailSentAt: (profile as Record<string, unknown>)?.limit_email_sent_at as string | null ?? null,
+    });
     return NextResponse.json(
       { error: generationLimitMessage(access), applicationLimit: access.applicationLimit },
       { status: 402 }
