@@ -309,6 +309,7 @@ export function KeywordSidePanel({
       setSessionDelta(d => d + 1);
       try { localStorage.setItem(pendingKey, "1"); } catch {}
       setHasPendingScore(true);
+      router.refresh();
       // Delay modal so user sees the keyword go green and score tick up first
       if (!isPremium) {
         const scoreWas = pageLoadScore;
