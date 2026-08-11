@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { inferCountry, marketLabel } from "@/lib/country-inference";
 
 type Step = 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -359,17 +360,26 @@ export function OnboardingWizard() {
         {/* Step 6 — Location */}
         {step === 6 && (
           <>
-            <h2 className="text-2xl font-bold text-slate-900">Where is the job located?</h2>
-            <p className="mt-2 text-slate-500">So we can show you more local opportunities.</p>
+            <h2 className="text-2xl font-bold text-slate-900">Where are you looking for work?</h2>
+            <p className="mt-2 text-slate-500">We&apos;ll search the right job boards for your market.</p>
             <div className="mt-8">
               <input
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") handleFinish(); }}
-                placeholder="Sydney"
+                placeholder="e.g. Sydney, London, Kuala Lumpur, Jakarta"
                 className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:border-[#2200ff] focus:ring-2 focus:ring-[#d4ccff]"
               />
+              {location.trim() && (() => {
+                const info = inferCountry([location]);
+                const boards = marketLabel(info);
+                return (
+                  <p className="mt-2 text-sm text-[#2200ff]">
+                    Searching {boards} for {info.joobleCountry} jobs
+                  </p>
+                );
+              })()}
             </div>
             <div className="mt-6">
               <button

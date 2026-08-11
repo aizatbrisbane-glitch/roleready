@@ -1,18 +1,45 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { AtsChecker } from "@/components/tools/AtsChecker";
 import { BlogResumeCTA } from "@/components/blog/BlogResumeCTA";
 import { NewsletterSignup } from "@/components/blog/NewsletterSignup";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { inferCountry } from "@/lib/country-inference";
 
-export const metadata: Metadata = {
-  title: "Free ATS Resume Checker for Australian Job Seekers | Koalapply",
-  description:
-    "Check your resume against a job description in seconds. See your keyword match score and what's missing before you apply.",
+// Maps Vercel IP country codes → display adjective for job seeker copy
+const COUNTRY_ADJECTIVES: Record<string, string> = {
+  AU: "Australian", GB: "UK", US: "US", CA: "Canadian",
+  MY: "Malaysian", SG: "Singaporean", ID: "Indonesian", PH: "Philippine",
+  NZ: "New Zealand", IN: "Indian", DE: "German", FR: "French",
+  NL: "Dutch", ZA: "South African",
 };
+
+async function detectMarketAdjective(profileLocation?: string | null): Promise<string> {
+  // Logged-in user: derive from their saved location
+  if (profileLocation?.trim()) {
+    const info = inferCountry([profileLocation]);
+    const code = info.adzunaCode?.toUpperCase() ?? null;
+    if (code && COUNTRY_ADJECTIVES[code]) return COUNTRY_ADJECTIVES[code];
+  }
+  // Anonymous user: use Vercel's IP geolocation header
+  const headersList = await headers();
+  const ipCountry = headersList.get("x-vercel-ip-country")?.toUpperCase() ?? "";
+  return COUNTRY_ADJECTIVES[ipCountry] ?? "";
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const adj = await detectMarketAdjective();
+  const qualifier = adj ? `for ${adj} Job Seekers ` : "";
+  return {
+    title: `Free ATS Resume Checker ${qualifier}| Koalapply`,
+    description:
+      "Check your resume against a job description in seconds. See your keyword match score and what's missing before you apply.",
+  };
+}
 
 const whatAtsChecks = [
   "Keyword overlap between your resume and the job description",
@@ -35,7 +62,7 @@ const faqs = [
   },
   {
     q: "Which ATS systems does this check against?",
-    a: "The checker is based on the core parsing and keyword-matching logic shared across the major platforms used in Australia, including PageUp, JobAdder and Workday, rather than any single vendor's exact algorithm.",
+    a: "The checker is based on the core parsing and keyword-matching logic shared across the major platforms — including PageUp, JobAdder and Workday — rather than any single vendor's exact algorithm.",
   },
   {
     q: "Does a perfect ATS score guarantee an interview?",
@@ -52,6 +79,12 @@ export default async function AtsCheckerPage() {
   const {
     data: { user },
   } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+
+  const profileLocation = user && supabase
+    ? (await supabase.from("profiles").select("location").eq("id", user.id).maybeSingle())?.data?.location ?? null
+    : null;
+  const marketAdj = await detectMarketAdjective(profileLocation);
+  const jobSeekerLabel = marketAdj ? `${marketAdj} Job Seekers` : "Job Seekers";
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900">
@@ -110,7 +143,7 @@ export default async function AtsCheckerPage() {
             <span>4 min read</span>
           </div>
           <h1 className="mt-5 text-4xl font-black leading-tight tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
-            Free ATS Resume Checker for Australian Job Seekers
+            Free ATS Resume Checker for {jobSeekerLabel}
           </h1>
           <p className="mt-5 text-lg leading-8 text-slate-600">
             Paste your resume text and the job description below to see how well they match, and which keywords are missing before you hit apply.
@@ -136,7 +169,7 @@ export default async function AtsCheckerPage() {
                   What ATS Actually Checks For
                 </h2>
                 <p className="mt-4 text-base leading-8 text-slate-600">
-                  Applicant Tracking Systems don't reject resumes based on vibes. Most systems used by Australian employers, including PageUp, JobAdder, Workday and SmartRecruiters, score applications primarily on:
+                  Applicant Tracking Systems don't reject resumes based on vibes. Most systems used by {marketAdj ? `${marketAdj} employers` : "employers"}, including PageUp, JobAdder, Workday and SmartRecruiters, score applications primarily on:
                 </p>
                 <ul className="mt-5 space-y-3">
                   {whatAtsChecks.map((item) => (

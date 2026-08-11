@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { QuickApplyForm } from "@/components/QuickApplyForm";
 import { GRAB_PREFILL_STORAGE_KEY } from "@/components/landing/HomepageOnboardingModal";
+import { inferCountry, currencySymbol, marketLabel } from "@/lib/country-inference";
 import type { GrabResult } from "@/app/api/grab/route";
 import type { ApplicationWithJob, CachedGrabbedJob } from "@/types/database";
 
@@ -50,10 +51,10 @@ function firstName(name?: string | null) {
 }
 
 function matchLabel(score: number | null) {
-  if (score === null) return "Medium match";
-  if (score >= 70) return "High match";
-  if (score >= 45) return "Medium match";
-  return "Low match";
+  if (score === null) return "Relevant";
+  if (score >= 65) return "Highly relevant";
+  if (score >= 35) return "Relevant";
+  return "Broadly relevant";
 }
 
 function cachedMatchToGrabResult(row: CachedGrabbedJob): GrabResult {
@@ -83,8 +84,8 @@ function formatSalary(min?: number, max?: number) {
 }
 
 function matchPillClass(score: number) {
-  if (score >= 70) return "bg-[#d4ccff] text-[#1a00cc]";
-  if (score >= 45) return "bg-amber-100 text-amber-700";
+  if (score >= 65) return "bg-[#d4ccff] text-[#1a00cc]";
+  if (score >= 35) return "bg-amber-100 text-amber-700";
   return "bg-slate-100 text-slate-500";
 }
 
@@ -94,6 +95,7 @@ function getGreeting(): string {
   if (h < 17) return "Good afternoon";
   return "Good evening";
 }
+
 
 function formatAccessDate(value: string | null) {
   if (!value) return null;
@@ -242,6 +244,7 @@ export function DashboardTabs({
   const [saved, setSaved] = useState<Record<string, string>>(savedByUrl); // jobUrl â†' applicationId
   const [showAllMatches, setShowAllMatches] = useState(false);
   const [mobilePreferencesOpen, setMobilePreferencesOpen] = useState(false);
+  const [matchMarket, setMatchMarket] = useState<string | null>(null);
 
   const importedByUrl = useMemo(() => {
     const map: Record<string, string> = {};
@@ -298,9 +301,10 @@ export function DashboardTabs({
       const nextMatches = payload.jobs ?? [];
       setMatches(nextMatches);
       setShowAllMatches(false);
+      if (payload.market) setMatchMarket(payload.market);
       setMatchNotice(
         nextMatches.length > 0
-          ? `Found ${nextMatches.length} fresh ${nextMatches.length === 1 ? "match" : "matches"} for "${payload.searchQuery}".`
+          ? `Found ${nextMatches.length} fresh ${nextMatches.length === 1 ? "match" : "matches"} for "${payload.searchQuery}"${payload.market ? ` via ${payload.market}` : ""}.`
           : `No fresh matches found${payload.searchQuery ? ` for "${payload.searchQuery}"` : ""}. Try different keywords.`
       );
     } catch {
@@ -436,7 +440,7 @@ export function DashboardTabs({
       </div>
 
       <div className="min-w-0 space-y-6 md:space-y-8">
-        <QuickApplyForm resumeFileName={resumeFileName} coverLetterFileName={coverLetterFileName} />
+        <QuickApplyForm resumeFileName={resumeFileName} coverLetterFileName={coverLetterFileName} profileLocation={profileLocation} />
 
         {/* Fresh opportunities */}
         <section>
@@ -446,7 +450,7 @@ export function DashboardTabs({
               Find jobs that match your resume ✨
             </h2>
             <p className="mt-1 text-sm leading-6 text-slate-500">
-              Jobs sorted by estimated fit. Exact match score shown after you generate your tailored resume.
+              Sorted by keyword relevance to your resume. Tailor a job to unlock your true match score.
             </p>
 
             {/* Filter bar */}
@@ -468,7 +472,6 @@ export function DashboardTabs({
                 <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Job location</p>
                 <div className="relative">
                   <input
-                    list="au-locations"
                     className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 pr-8 text-sm text-slate-900 shadow-sm outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
                     placeholder="e.g. Sydney"
                     value={locationQuery}
@@ -493,24 +496,35 @@ export function DashboardTabs({
                     </button>
                   )}
                 </div>
-                <datalist id="au-locations">
-                  <option value="Brisbane" />
-                  <option value="Sydney" />
-                  <option value="Melbourne" />
-                  <option value="Perth" />
-                  <option value="Adelaide" />
-                  <option value="Canberra" />
-                  <option value="Hobart" />
-                  <option value="Darwin" />
-                  <option value="Australia" />
-                </datalist>
+                {locationQuery && (
+                  <p className="mt-1.5 text-xs text-[#2200ff]">
+                    Searching {marketLabel(inferCountry([locationQuery]))}
+                  </p>
+                )}
+                {!locationQuery && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {["Sydney", "Melbourne", "London", "Kuala Lumpur", "Jakarta", "Manila", "Singapore", "New York"].map((city) => (
+                      <button
+                        key={city}
+                        type="button"
+                        onClick={() => {
+                          setLocationQuery(city);
+                          window.localStorage.setItem("koalapply_search_location", city);
+                        }}
+                        className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500 transition hover:border-[#d4ccff] hover:text-[#2200ff]"
+                      >
+                        {city}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Salary */}
               <div className="col-span-2 sm:col-span-1">
                 <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Min. salary</p>
                 <div className="flex items-center gap-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm focus-within:ring-2 focus-within:ring-[#d4ccff]">
-                  <span className="pl-4 text-sm font-medium text-slate-400">$</span>
+                  <span className="pl-4 text-sm font-medium text-slate-400">{currencySymbol(inferCountry([locationQuery || profileLocation || ""]))}</span>
                   <input
                     type="number"
                     className="min-w-0 flex-1 bg-transparent px-2 py-2.5 text-sm text-slate-900 outline-none placeholder:text-slate-400"

@@ -41,7 +41,9 @@ export async function POST(request: Request) {
   };
 
   try {
+    console.log(`[import] fetching job ad: ${body.jobUrl}`);
     const fetched = await fetchJobAdDetails(body.jobUrl);
+    console.log(`[import] fetched description length: ${fetched.description.trim().length}, snippet length: ${body.description.trim().length}`);
     // Only use fetched data when we got a meaningfully longer description
     if (fetched.description.trim().length > body.description.trim().length) {
       jobDetails = {
@@ -55,8 +57,9 @@ export async function POST(request: Request) {
     } else {
       jobDetails.expiresAt = fetched.expiresAt ?? null;
     }
-  } catch {
-    // Fall back to the Adzuna snippet — the application page will prompt the user to paste the full ad
+  } catch (e) {
+    console.warn(`[import] fetchJobAdDetails failed for ${body.jobUrl}:`, e instanceof Error ? e.message : e);
+    // Fall back to the snippet — the application page will prompt the user to paste the full ad
   }
 
   const { data: job, error: jobError } = await supabase

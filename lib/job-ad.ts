@@ -11,7 +11,7 @@ type JobAdDetails = {
 
 // Job boards that commonly block server-side requests.
 // "seek.com" catches both au.seek.com (new domain) and any other seek.com subdomains.
-const BLOCKED_DOMAINS = ["seek.com.au", "seek.co.nz", "seek.com", "linkedin.com", "indeed.com", "jora.com", "jora.com.au", "jobstreet.com.my", "jobstreet.com.sg", "jobstreet.com"];
+const BLOCKED_DOMAINS = ["seek.com.au", "seek.co.nz", "seek.com", "linkedin.com", "indeed.com", "jora.com", "jora.com.au", "jobstreet.com.my", "jobstreet.com.sg", "jobstreet.com", "jooble.org"];
 
 // Normalise job board URLs so search-results-page URLs become direct listing URLs.
 // e.g. SEEK adds ?jobId=92726265 to search URLs when viewing a job in the side panel.
@@ -102,6 +102,7 @@ function decodeHtml(value: string) {
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
+    .replace(/\\([[\](){}*_#`~>|])/g, "$1") // strip markdown escape backslashes
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -830,8 +831,11 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
       if (linkedInResult) return linkedInResult;
     }
 
-    const fetchers: Promise<JobAdDetails | null>[] = [fetchJobWithJina(jobUrl)];
-    if (!isSeek) fetchers.push(fetchJobWithBrowser(jobUrl));
+    const fetchers: Promise<JobAdDetails | null>[] = [
+      fetchJobWithJina(jobUrl),
+      fetchJobWithFirecrawl(jobUrl),
+      fetchJobWithBrowser(jobUrl),
+    ];
 
     const result = await Promise.any(
       fetchers.map((p) => p.then((r) => { if (!r) throw new Error("no result"); return r; }))
@@ -843,8 +847,7 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
 
   const response = await fetch(jobUrl, {
     headers: {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
       Accept:
         "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
       "Accept-Language": "en-AU,en-US;q=0.9,en;q=0.8",
@@ -979,12 +982,11 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
     throw new Error(blockedJobBoardMessage(effectiveUrl));
   }
 
-  // Adzuna redirect URLs often don't forward server-side — the fetch stays on Adzuna's
-  // own page (not a blocked domain) but returns only the same snippet. If the description
-  // is still short, try Jina/Firecrawl which render JS and follow redirects properly.
-  const isAdzunaOrigin = jobUrl.includes("adzuna.");
-  if (isAdzunaOrigin && result.description.trim().length < 800) {
-    console.log(`[job-ad] Adzuna short description (${result.description.trim().length} chars), trying Jina/Firecrawl…`);
+  // If the description is still short after a direct fetch (Adzuna redirect, Jooble link
+  // landing on a company site, etc.), try Jina/Firecrawl/browser which handle JS rendering
+  // and redirects more reliably.
+  if (result.description.trim().length < 800) {
+    console.log(`[job-ad] short description (${result.description.trim().length} chars) from ${jobUrl}, trying Jina/Firecrawl…`);
     const jinaResult = await fetchJobWithJina(jobUrl);
     if (jinaResult && jinaResult.description.trim().length > result.description.trim().length) return jinaResult;
     const firecrawlResult = await fetchJobWithFirecrawl(jobUrl);

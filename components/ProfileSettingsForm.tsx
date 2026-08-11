@@ -4,6 +4,7 @@ import { Camera, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import type { Profile } from "@/types/database";
+import { inferCountry, marketLabel } from "@/lib/country-inference";
 
 type Props = {
   profile: Profile | null;
@@ -15,6 +16,7 @@ export function ProfileSettingsForm({ profile, userEmail }: Props) {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [locationValue, setLocationValue] = useState(profile?.location ?? "");
   const initials = useMemo(() => {
     const source = profile?.name || userEmail || "Koalapply";
     return source
@@ -94,7 +96,21 @@ export function ProfileSettingsForm({ profile, userEmail }: Props) {
         </label>
         <label className="space-y-2">
           <span className="label">Location</span>
-          <input name="location" className="field" defaultValue={profile?.location ?? ""} />
+          <input
+            name="location"
+            className="field"
+            placeholder="e.g. Sydney, London, Kuala Lumpur"
+            value={locationValue}
+            onChange={(e) => setLocationValue(e.target.value)}
+          />
+          {locationValue.trim() && (() => {
+            const info = inferCountry([locationValue]);
+            return (
+              <p className="text-xs text-[#2200ff]">
+                Searching {marketLabel(info)} for {info.joobleCountry} jobs
+              </p>
+            );
+          })()}
         </label>
         <label className="space-y-2 md:col-span-2 2xl:col-span-1">
           <span className="label">LinkedIn URL</span>
@@ -114,7 +130,13 @@ export function ProfileSettingsForm({ profile, userEmail }: Props) {
         </label>
         <label className="space-y-2">
           <span className="label">Preferred locations</span>
-          <input name="preferred_locations" className="field" defaultValue={profile?.preferred_locations?.join(", ") ?? ""} />
+          <input
+            name="preferred_locations"
+            className="field"
+            placeholder="e.g. London, Manchester"
+            defaultValue={profile?.preferred_locations?.join(", ") ?? ""}
+          />
+          <p className="text-xs text-slate-400">Used to find jobs in the right market — changing this updates which job boards are searched.</p>
         </label>
         <label className="space-y-2">
           <span className="label">Job search status</span>

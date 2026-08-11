@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, ArrowRight, LinkIcon, Sparkles } from "lucide-react";
+import { inferCountry, boardsHint } from "@/lib/country-inference";
 
 const FETCH_STAGES = [
   { after: 0,  label: "Reading job ad..." },
@@ -76,9 +77,10 @@ const SEARCH_PAGE_PATTERNS: { test: (u: URL) => boolean; message: string }[] = [
 type Props = {
   resumeFileName: string | null;
   coverLetterFileName: string | null;
+  profileLocation?: string | null;
 };
 
-export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFileName: _coverLetterFileName }: Props) {
+export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFileName: _coverLetterFileName, profileLocation }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const fetchStageLabel = useFetchStage(loading);
@@ -189,9 +191,26 @@ export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFil
           <p className="mt-3 text-sm leading-6 text-slate-500">
             Paste a job link and we&apos;ll tailor your resume and cover letter in seconds.
           </p>
-          <p className="mt-2 hidden text-xs text-slate-400 sm:block">
-            Works best with <span className="font-semibold text-slate-500">SEEK</span>, <span className="font-semibold text-slate-500">LinkedIn</span>, <span className="font-semibold text-slate-500">Reed</span>, <span className="font-semibold text-slate-500">Totaljobs</span> and <span className="font-semibold text-slate-500">JobStreet</span>. For search pages, open the job in a new tab first.
-          </p>
+          {(() => {
+            if (!profileLocation?.trim()) return (
+              <p className="mt-2 hidden text-xs text-slate-400 sm:block">
+                Works best with <span className="font-semibold text-slate-500">SEEK</span>, <span className="font-semibold text-slate-500">LinkedIn</span>, <span className="font-semibold text-slate-500">Reed</span> and <span className="font-semibold text-slate-500">JobStreet</span>. For search pages, open the job in a new tab first.
+              </p>
+            );
+            const hint = boardsHint(inferCountry([profileLocation]));
+            const boardNames = hint.boards.split(/,? and |, /).map((b) => b.trim());
+            return (
+              <p className="mt-2 hidden text-xs text-slate-400 sm:block">
+                Works best with{" "}
+                {boardNames.map((b, i) => (
+                  <span key={b}>
+                    <span className="font-semibold text-slate-500">{b}</span>
+                    {i < boardNames.length - 1 ? ", " : ""}
+                  </span>
+                ))}. {hint.note}
+              </p>
+            );
+          })()}
         </div>
 
         {/* Right: inputs */}

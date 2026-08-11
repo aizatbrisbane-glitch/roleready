@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { htmlToText } from "@/lib/job-ad";
+import { AU_COUNTRY, COUNTRY_RULES, inferCountry, isCountryLocation, marketLabel, type CountryInfo } from "@/lib/country-inference";
 import type { CachedGrabbedJob } from "@/types/database";
 
 export const maxDuration = 60;
@@ -103,26 +104,6 @@ const keywordSchema = {
   }
 };
 
-const scoringSchema = {
-  type: "object" as const,
-  additionalProperties: false,
-  required: ["scores"],
-  properties: {
-    scores: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: ["id", "score", "reason"],
-        properties: {
-          id: { type: "string" },
-          score: { type: "integer" },
-          reason: { type: "string" }
-        }
-      }
-    }
-  }
-};
 
 async function extractKeywords(resumeText: string, provider: "anthropic" | "openai") {
   const userMsg = `Extract the candidate's primary job title and a short search query from this resume.
@@ -158,60 +139,30 @@ Resume:\n${resumeText.slice(0, 8000)}`;
   return JSON.parse(response.output_text) as { jobTitle: string; searchQuery: string };
 }
 
-async function scoreJobs(
-  resumeText: string,
-  jobs: { id: string; title: string; company: string; description: string }[],
-  provider: "anthropic" | "openai",
-  targetJobTitle?: string
-) {
-  const jobList = jobs
-    .map((j) => `ID:${j.id}\nTitle: ${j.title} at ${j.company}\n${j.description.slice(0, 1500)}`)
-    .join("\n---\n");
+const STOP_WORDS = new Set(["and", "or", "the", "a", "an", "in", "at", "for", "to", "of", "with", "on", "by", "as", "it", "is", "are", "be", "was", "has"]);
 
-  const targetLine = targetJobTitle?.trim()
-    ? `\nThe candidate is targeting: "${targetJobTitle}". Any job in a clearly different role category should score 0–15.`
-    : "";
+function toKeywords(jobTitle: string, searchQuery: string): string[] {
+  return [...new Set(
+    `${jobTitle} ${searchQuery}`.toLowerCase().split(/\W+/).filter((w) => w.length > 2 && !STOP_WORDS.has(w))
+  )];
+}
 
-  const userMsg = `You are a strict recruiter scoring job-resume fit from 0–100.
-
-Scoring guide:
-- 80–100: Strong match — title aligns exactly, most key skills present, right seniority level
-- 60–79: Reasonable match — closely related role, some skill gaps but same field
-- 40–59: Partial match — different specialisation or seniority but same broad industry
-- 20–39: Weak match — adjacent industry, mostly transferable skills only
-- 0–19: Wrong field — completely different industry or requiring qualifications the candidate clearly does not have
-
-CRITICAL RULES (apply these first, before anything else):
-- If the job is in a completely different industry from the candidate (e.g. healthcare vs retail, IT vs hospitality, law vs construction, nursing vs sales), score 0–15 regardless of any shared keywords like "customer service" or "communication".
-- If the job requires a professional licence or degree the candidate clearly does not have (registered nurse, doctor, lawyer, engineer, teacher registration, etc.), score 0–10.
-- Generic transferable skills (communication, teamwork, customer service) must NOT push a score above 20 if the core role is a different field.
-- Be conservative. Genuinely related jobs should mostly score 30–65. Reserve 80+ for clear title + skill + seniority alignment.${targetLine}
-
-Resume:\n${resumeText.slice(0, 6000)}\n\nJobs to score:\n${jobList}`;
-
-  if (provider === "anthropic") {
-    if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured.");
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 0 });
-    const response = await client.messages.create({
-      model: "claude-3-5-haiku-20241022",
-      max_tokens: 2000,
-      tools: [{ name: "score_jobs", description: "Score job listings against a resume.", input_schema: scoringSchema as Anthropic.Tool.InputSchema }],
-      tool_choice: { type: "tool", name: "score_jobs" },
-      messages: [{ role: "user", content: userMsg }]
-    });
-    const block = response.content.find((b) => b.type === "tool_use");
-    if (!block || block.type !== "tool_use") throw new Error("No scoring result from Anthropic.");
-    return (block.input as { scores: { id: string; score: number; reason: string }[] }).scores;
-  }
-
-  if (!process.env.OPENAI_API_KEY) throw new Error("OPENAI_API_KEY is not configured.");
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  const response = await client.responses.create({
-    model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-    input: [{ role: "user", content: [{ type: "input_text", text: userMsg }] }],
-    text: { format: { type: "json_schema", name: "score_jobs", schema: scoringSchema, strict: true } }
-  } as OpenAI.Responses.ResponseCreateParamsNonStreaming);
-  return (JSON.parse(response.output_text) as { scores: { id: string; score: number; reason: string }[] }).scores;
+function keywordScore(kwList: string[], job: { title: string; description: string }): { score: number; reason: string } {
+  if (kwList.length === 0) return { score: 50, reason: "No keywords extracted." };
+  const title = job.title.toLowerCase();
+  const desc = job.description.toLowerCase();
+  const titleHits = kwList.filter((k) => title.includes(k));
+  const descHits = kwList.filter((k) => desc.includes(k));
+  const allHits = [...new Set([...titleHits, ...descHits])];
+  // Title match weighted 60%, description match 40%
+  const score = Math.round(
+    (titleHits.length / kwList.length) * 60 +
+    (descHits.length / kwList.length) * 40
+  );
+  const reason = allHits.length > 0
+    ? `Keywords matched: ${allHits.slice(0, 5).join(", ")}`
+    : "No keyword matches found.";
+  return { score, reason };
 }
 
 async function fetchAdzunaJobs({
@@ -281,12 +232,6 @@ const CITY_STATE_MAP: Record<string, string[]> = {
   darwin:     ["nt", "northern territory"],
 };
 
-type CountryInfo = {
-  adzunaCode: string | null; // null = Adzuna doesn't cover this country
-  joobleCountry: string;     // sent as Jooble location param
-  geoTerms: string[];        // used to filter Jooble results to this country
-};
-
 // Jooble source domains known to carry low-quality or niche job listings (crypto, scrapers, etc.)
 const JOOBLE_BLOCKED_DOMAINS = [
   "decentrajobs.com", "web3.career", "cryptocurrencyjobs.co", "cryptojobslist.com",
@@ -297,72 +242,6 @@ function isBlockedJoobleSource(jobUrl: string): boolean {
   return JOOBLE_BLOCKED_DOMAINS.some((d) => jobUrl.includes(d));
 }
 
-const COUNTRY_RULES: { pattern: RegExp; info: CountryInfo }[] = [
-  {
-    pattern: /\b(uk|united kingdom|england|scotland|wales|northern ireland|london|manchester|birmingham|leeds|glasgow|edinburgh|bristol|liverpool|sheffield|coventry|leicester|cardiff)\b/i,
-    info: { adzunaCode: "gb", joobleCountry: "United Kingdom", geoTerms: ["uk", "united kingdom", "england", "scotland", "wales", "london", "manchester", "birmingham", "leeds", "glasgow", "bristol"] },
-  },
-  {
-    pattern: /\b(usa?|united states|america|new york|los angeles|chicago|houston|phoenix|philadelphia|san francisco|seattle|boston|miami|denver|atlanta|dallas|austin|portland|san diego)\b/i,
-    info: { adzunaCode: "us", joobleCountry: "United States", geoTerms: ["united states", "usa", "new york", "los angeles", "chicago", "houston", "san francisco", "seattle", "boston", "miami", "dallas"] },
-  },
-  {
-    pattern: /\b(canada|toronto|vancouver|montreal|calgary|ottawa|edmonton|winnipeg)\b/i,
-    info: { adzunaCode: "ca", joobleCountry: "Canada", geoTerms: ["canada", "toronto", "vancouver", "montreal", "calgary", "ottawa", "edmonton"] },
-  },
-  {
-    pattern: /\b(malaysia|kuala lumpur|\bkl\b|penang|johor|petaling jaya|\bpj\b|subang|klang|ipoh|kota kinabalu|kuching|cyberjaya|putrajaya)\b/i,
-    info: { adzunaCode: null, joobleCountry: "Malaysia", geoTerms: ["malaysia", "kuala lumpur", "penang", "johor", "petaling", "subang", "klang", "ipoh", "cyberjaya", "putrajaya"] },
-  },
-  {
-    pattern: /\b(singapore)\b/i,
-    info: { adzunaCode: "sg", joobleCountry: "Singapore", geoTerms: ["singapore"] },
-  },
-  {
-    pattern: /\b(new zealand|\bnz\b|auckland|wellington|christchurch|hamilton|tauranga|dunedin)\b/i,
-    info: { adzunaCode: "nz", joobleCountry: "New Zealand", geoTerms: ["new zealand", "auckland", "wellington", "christchurch", "hamilton", "dunedin"] },
-  },
-  {
-    pattern: /\b(india|bangalore|bengaluru|mumbai|delhi|hyderabad|chennai|pune|kolkata|noida|gurugram|gurgaon)\b/i,
-    info: { adzunaCode: "in", joobleCountry: "India", geoTerms: ["india", "bangalore", "bengaluru", "mumbai", "delhi", "hyderabad", "chennai", "pune", "kolkata"] },
-  },
-  {
-    pattern: /\b(germany|deutschland|berlin|munich|münchen|hamburg|frankfurt|cologne|düsseldorf|stuttgart)\b/i,
-    info: { adzunaCode: "de", joobleCountry: "Germany", geoTerms: ["germany", "deutschland", "berlin", "munich", "hamburg", "frankfurt", "cologne"] },
-  },
-  {
-    pattern: /\b(france|paris|lyon|marseille|toulouse|nice|nantes|bordeaux|strasbourg)\b/i,
-    info: { adzunaCode: "fr", joobleCountry: "France", geoTerms: ["france", "paris", "lyon", "marseille", "toulouse"] },
-  },
-  {
-    pattern: /\b(netherlands|holland|amsterdam|rotterdam|the hague|den haag|utrecht|eindhoven)\b/i,
-    info: { adzunaCode: "nl", joobleCountry: "Netherlands", geoTerms: ["netherlands", "holland", "amsterdam", "rotterdam", "utrecht"] },
-  },
-  {
-    pattern: /\b(south africa|johannesburg|cape town|durban|pretoria|port elizabeth|bloemfontein)\b/i,
-    info: { adzunaCode: "za", joobleCountry: "South Africa", geoTerms: ["south africa", "johannesburg", "cape town", "durban", "pretoria"] },
-  },
-];
-
-const AU_COUNTRY: CountryInfo = {
-  adzunaCode: "au",
-  joobleCountry: "Australia",
-  geoTerms: ["australia", "nsw", "vic", "qld", "wa", "sa", "act", "tas", "nt", "sydney", "melbourne", "brisbane", "perth", "adelaide", "canberra", "hobart", "darwin"],
-};
-
-function inferCountry(locations: string[]): CountryInfo {
-  const combined = locations.filter(Boolean).join(" ");
-  if (!combined.trim()) return AU_COUNTRY;
-  for (const { pattern, info } of COUNTRY_RULES) {
-    if (pattern.test(combined)) return info;
-  }
-  return AU_COUNTRY;
-}
-
-function isCountryLocation(loc: string, countryInfo: CountryInfo): boolean {
-  const l = loc.toLowerCase();
-  return countryInfo.geoTerms.some((t) => l.includes(t));
-}
 
 function matchesRequestedLocation(jobLoc: string, requested: string): boolean {
   const j = jobLoc.toLowerCase();
@@ -419,7 +298,7 @@ async function fetchJoobleJobs({
       title: j.title,
       company: j.company ?? "",
       location: j.location ?? "",
-      description: [j.title, j.company, j.snippet].filter(Boolean).join(" — "),
+      description: htmlToText([j.title, j.company, j.snippet].filter(Boolean).join(" — ")),
       jobUrl: j.link,
       salary: j.salary || undefined,
       matchScore: 0,
@@ -483,12 +362,14 @@ export async function GET(request: Request) {
   const salaryMinParam = url.searchParams.get("salary_min") ? Number(url.searchParams.get("salary_min")) : undefined;
   const forceRefresh = url.searchParams.get("refresh") === "true" || Boolean(manualQuery) || Boolean(explicitLocation) || Boolean(workTypeParam) || Boolean(salaryMinParam);
 
-  // Infer country from preferred_locations, profile location, and explicit location param
-  const countryInfo = inferCountry([
-    ...(profile?.preferred_locations ?? []),
-    ...((profile as { location?: string } | null)?.location ? [(profile as { location?: string }).location!] : []),
-    ...(locationParam ? [locationParam] : []),
-  ]);
+  // Explicit location filter takes priority for country detection — a Malaysian user searching
+  // "Sydney" should hit Adzuna AU, not be locked to their profile's country.
+  const countryInfo = explicitLocation
+    ? inferCountry([explicitLocation])
+    : inferCountry([
+        ...(profile?.preferred_locations ?? []),
+        ...((profile as { location?: string } | null)?.location ? [(profile as { location?: string }).location!] : []),
+      ]);
 
   if (!forceRefresh) {
     const { data: cachedRows } = await supabase
@@ -631,49 +512,17 @@ export async function GET(request: Request) {
     });
   }
 
-  // Reuse any scores already stored for these job IDs so scores stay consistent across refreshes
-  const { data: existingCached } = await supabase
-    .from("cached_grabbed_jobs")
-    .select("external_id, match_score, match_reason")
-    .eq("user_id", user.id)
-    .in("external_id", allJobs.map((j) => j.id));
-
-  // Exclude fallback-scored entries so they get properly rescored next time AI is available
-  const cachedScoreMap = new Map(
-    (existingCached ?? [])
-      .filter((row) => row.match_reason !== "Match scoring unavailable.")
-      .map((row) => [row.external_id, { score: row.match_score as number, reason: row.match_reason as string }])
-  );
-
-  // Only call AI for jobs we haven't scored before; cap at 40 to keep scoring fast
-  const jobsNeedingScore = allJobs
-    .filter((j) => !cachedScoreMap.has(j.id))
-    .slice(0, 40)
-    .map((j) => ({ id: j.id, title: j.title, company: j.company, description: j.description }));
-
-  let newScores: { id: string; score: number; reason: string }[] = [];
-  if (jobsNeedingScore.length > 0) {
-    try {
-      newScores = await scoreJobs(masterResume.resume_text, jobsNeedingScore, provider, keywords.jobTitle || undefined);
-    } catch {
-      newScores = jobsNeedingScore.map((j) => ({ id: j.id, score: 30, reason: "Match scoring unavailable." }));
-    }
-  }
-
-  const scoreMap = new Map<string, { score: number; reason: string }>([
-    ...cachedScoreMap.entries(),
-    ...newScores.map((s) => [s.id, { score: s.score, reason: s.reason }] as [string, { score: number; reason: string }]),
-  ]);
-
+  // Keyword-based scoring: fast, deterministic, no extra API call
+  const kwList = toKeywords(keywords.jobTitle, keywords.searchQuery);
   const results: GrabResult[] = allJobs.map((j) => {
-    const s = scoreMap.get(j.id) ?? { score: 50, reason: "" };
-    return { ...j, matchScore: Math.max(0, Math.min(100, Math.round(s.score))), matchReason: s.reason };
+    const { score, reason } = keywordScore(kwList, j);
+    return { ...j, matchScore: score, matchReason: reason };
   });
 
   results.sort((a, b) => b.matchScore - a.matchScore);
 
-  // Drop clearly irrelevant jobs (wrong field) before caching — keeps the list clean
-  const topResults = results.filter((r) => r.matchScore >= 25).slice(0, 20);
+  // Drop jobs with zero keyword overlap — genuinely unrelated to the search
+  const topResults = results.filter((r) => r.matchScore > 0).slice(0, 30);
   const fetchedAt = new Date().toISOString();
 
   await supabase.from("cached_grabbed_jobs").delete().eq("user_id", user.id);
@@ -687,8 +536,8 @@ export async function GET(request: Request) {
         company: job.company,
         location: job.location,
         salary: job.salary ?? formatSalary(job.salaryMin, job.salaryMax),
-        salary_min: job.salaryMin ?? null,
-        salary_max: job.salaryMax ?? null,
+        salary_min: job.salaryMin != null ? Math.round(job.salaryMin) : null,
+        salary_max: job.salaryMax != null ? Math.round(job.salaryMax) : null,
         job_url: job.jobUrl,
         description: job.description,
         match_score: job.matchScore,
@@ -710,6 +559,7 @@ export async function GET(request: Request) {
     jobs: topResults.map((job) => ({ ...job, fetchedAt })),
     searchQuery: actualSearchQuery,
     jobTitle: keywords.jobTitle,
+    market: marketLabel(countryInfo),
     cached: false,
     fetchedAt,
   });
