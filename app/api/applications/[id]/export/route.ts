@@ -52,7 +52,10 @@ export async function GET(request: Request, { params }: Props) {
 
   const title = type === "resume" ? "Tailored Resume" : "Cover Letter";
   const docLabel = type === "resume" ? "resume" : "cover-letter";
-  const baseName = slugifyFileName(`${firstName}-${lastName}-${application.jobs.title}-${application.jobs.company}-${date}-${docLabel}`);
+  const PLACEHOLDER_COMPANY = "Company from job ad";
+  const company = application.jobs.company === PLACEHOLDER_COMPANY ? "" : application.jobs.company;
+  const fileNameParts = [firstName, lastName, application.jobs.title, company, date, docLabel].filter(Boolean);
+  const baseName = slugifyFileName(fileNameParts.join("-"));
   const fileName = `${baseName}.${format}`;
 
   if (format === "docx") {
