@@ -117,7 +117,12 @@ function looksLikeBlockedPage(text: string): boolean {
     "captcha",
     "unusual traffic",
     "verify you are human",
-    "blocked our request"
+    "blocked our request",
+    "sign in to view",
+    "log in to apply",
+    "create an account to",
+    "please log in",
+    "session expired",
   ].some((phrase) => normalized.includes(phrase));
 }
 
@@ -646,8 +651,9 @@ async function fetchJobWithBrowser(url: string): Promise<JobAdDetails | null> {
     // load and render without also waiting for all images/fonts/etc.
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 20000 });
 
-    // Wait for SEEK/Indeed job detail content — up to 25 s to allow SEEK's React
-    // app to fetch job data from the SEEK API and render it into the DOM.
+    // Wait for job content to render — covers SEEK/Indeed data-automation attrs,
+    // popular ATS platforms (Greenhouse, Lever, Workday, BambooHR, SmartRecruiters, Ashby),
+    // and generic company career page selectors. 15s timeout is enough for most CSR apps.
     const descSelector =
       [
         '[data-automation="jobAdDetails"]',
@@ -657,9 +663,24 @@ async function fetchJobWithBrowser(url: string): Promise<JobAdDetails | null> {
         '[data-testid="job-detail-description"]',
         "#jobDescriptionText",
         '[data-testid="jobDescriptionText"]',
-        '[data-testid="jobsearch-jobDescriptionText"]'
+        '[data-testid="jobsearch-jobDescriptionText"]',
+        ".posting-description",
+        "#job-description",
+        ".job-description",
+        '[data-automation-id="jobPostingDescription"]',
+        ".BambooHR-ATS-body",
+        ".job-sections",
+        "[data-ash-block]",
+        '[class*="job-description"]',
+        '[id*="job-description"]',
+        '[class*="job-details"]',
+        '[id*="job-details"]',
+        "article.job",
+        'article[class*="job"]',
+        "main article",
+        "main .content",
       ].join(", ");
-    await page.waitForSelector(descSelector, { timeout: 30000 }).catch(() => {});
+    await page.waitForSelector(descSelector, { timeout: 15000 }).catch(() => {});
 
     const renderedHtml = await page.content();
     const renderedNextData = nextDataJob(renderedHtml);
@@ -704,7 +725,27 @@ async function fetchJobWithBrowser(url: string): Promise<JobAdDetails | null> {
         document.querySelector('[data-testid="job-detail-description"]') ??
         document.querySelector("#jobDescriptionText") ??
         document.querySelector('[data-testid="jobDescriptionText"]') ??
-        document.querySelector('[data-testid="jobsearch-jobDescriptionText"]');
+        document.querySelector('[data-testid="jobsearch-jobDescriptionText"]') ??
+        // ATS platforms
+        document.querySelector(".posting-description") ??
+        document.querySelector("#job-description") ??
+        document.querySelector(".job-description") ??
+        document.querySelector('[data-automation-id="jobPostingDescription"]') ??
+        document.querySelector(".BambooHR-ATS-body") ??
+        document.querySelector(".job-sections") ??
+        document.querySelector("[data-ash-block]") ??
+        // Generic career pages
+        document.querySelector('[class*="job-description"]') ??
+        document.querySelector('[id*="job-description"]') ??
+        document.querySelector('[class*="job-details"]') ??
+        document.querySelector('[id*="job-details"]') ??
+        document.querySelector("article.job") ??
+        document.querySelector('article[class*="job"]') ??
+        document.querySelector("main article") ??
+        document.querySelector("main .content") ??
+        // Last resort: scoped container before full-page body dump
+        document.querySelector("main") ??
+        document.querySelector("article");
 
       const description = descEl ? (descEl.innerHTML || descEl.textContent || "") : "";
 
@@ -985,7 +1026,7 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
   // If the description is still short after a direct fetch (Adzuna redirect, Jooble link
   // landing on a company site, etc.), try Jina/Firecrawl/browser which handle JS rendering
   // and redirects more reliably.
-  if (result.description.trim().length < 800) {
+  if (result.description.trim().length < 500) {
     console.log(`[job-ad] short description (${result.description.trim().length} chars) from ${jobUrl}, trying Jina/Firecrawl…`);
     const jinaResult = await fetchJobWithJina(jobUrl);
     if (jinaResult && jinaResult.description.trim().length > result.description.trim().length) return jinaResult;
