@@ -282,6 +282,12 @@ export function KeywordSidePanel({
     const finalResume = aiResume ? applyChange(tailoredResume, aiResume) : null;
     const finalCover = aiCover ? applyChange(coverLetter, aiCover) : null;
 
+    // A keyword from keywordsAddressed at generation time is already in strengthened_keywords
+    // (and therefore already counted in the score formula). Detect this before the Set merge
+    // so we don't inflate sessionDelta — which would make the in-session score read higher
+    // than what's actually stored, then silently drop on back-navigation.
+    const isNewKeyword = !accumulatedRef.current.keywords.includes(kw);
+
     accumulatedRef.current = {
       keywords: [...new Set([...accumulatedRef.current.keywords, kw])],
       snippets: { ...accumulatedRef.current.snippets, [kw]: editedSnippet },
@@ -306,19 +312,21 @@ export function KeywordSidePanel({
       });
       onDocumentUpdate({ resume: finalResume ?? null, cover: finalCover ?? null, keyword: kw, snippet: editedSnippet });
       setState(kw, { phase: "success", target: state.target, snippet: editedSnippet, originalSnippet });
-      setSessionDelta(d => d + 1);
-      try { localStorage.setItem(pendingKey, "1"); } catch {}
-      setHasPendingScore(true);
-      router.refresh();
-      // Delay modal so user sees the keyword go green and score tick up first
-      if (!isPremium) {
-        const scoreWas = pageLoadScore;
-        const scoreNow = totalKeywords === 0 ? base : Math.min(100, Math.round(base + (strengthenedKeywords.length + 1) * (100 - base) / totalKeywords));
-        const remaining = pendingCount - 1;
-        setTimeout(() => {
-          setUpsellModal({ scoreWas, scoreNow, remaining: Math.max(0, remaining) });
-        }, 10000);
+      if (isNewKeyword) {
+        setSessionDelta(d => d + 1);
+        try { localStorage.setItem(pendingKey, "1"); } catch {}
+        setHasPendingScore(true);
+        // Delay modal so user sees the keyword go green and score tick up first
+        if (!isPremium) {
+          const scoreWas = pageLoadScore;
+          const scoreNow = totalKeywords === 0 ? base : Math.min(100, Math.round(base + (strengthenedKeywords.length + 1) * (100 - base) / totalKeywords));
+          const remaining = pendingCount - 1;
+          setTimeout(() => {
+            setUpsellModal({ scoreWas, scoreNow, remaining: Math.max(0, remaining) });
+          }, 10000);
+        }
       }
+      router.refresh();
     } catch {
       setState(kw, { phase: "error", message: "Failed to save. Please try again." });
     }
