@@ -100,7 +100,7 @@ export function currencySymbol(info: CountryInfo): string {
 export function boardsHint(info: CountryInfo): { boards: string; note: string } {
   const c = info.adzunaCode;
   if (c === "gb") return { boards: "Reed, Totaljobs and LinkedIn", note: "For search pages, open the job in a new tab first." };
-  if (c === "au" || c === "nz") return { boards: "SEEK and LinkedIn", note: "For Indeed or Jora, paste the job description." };
+  if (c === "au" || c === "nz") return { boards: "SEEK and LinkedIn", note: "For Indeed, Jora or government portals, paste the job description." };
   if (c === "us" || c === "ca") return { boards: "LinkedIn", note: "For Indeed, paste the job description." };
   if (["Malaysia", "Singapore", "Indonesia", "Philippines"].includes(info.joobleCountry)) {
     return { boards: "JobStreet and LinkedIn", note: "For search pages, open the job in a new tab first." };

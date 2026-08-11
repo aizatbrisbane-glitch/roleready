@@ -930,12 +930,22 @@ export async function fetchJobAdDetails(jobUrl: string): Promise<JobAdDetails> {
         const browserResult = await fetchJobWithBrowser(effectiveUrl);
         if (browserResult) return browserResult;
       }
+      throw new Error(blockedJobBoardMessage(effectiveUrl, response.status));
     }
-    throw new Error(
-      isBlockedJobBoard(effectiveUrl)
-        ? blockedJobBoardMessage(effectiveUrl, response.status)
-        : `Could not read this job link. The site returned HTTP ${response.status}.`
-    );
+
+    // For any other site returning 4xx/5xx, try Jina + browser before giving up
+    if (response.status === 403 || response.status === 401 || response.status >= 500) {
+      const jinaResult = await fetchJobWithJina(effectiveUrl);
+      if (jinaResult) return jinaResult;
+      const browserResult = await fetchJobWithBrowser(effectiveUrl);
+      if (browserResult) return browserResult;
+    }
+
+    const host = (() => { try { return new URL(effectiveUrl).hostname; } catch { return "This site"; } })();
+    const pasteHint = response.status === 403 || response.status === 401
+      ? ` ${host} requires a login or blocks automated access — paste the job description below instead.`
+      : ` Paste the job description below instead.`;
+    throw new Error(`Could not read this job link (HTTP ${response.status}).${pasteHint}`);
   }
 
   const html = await response.text();

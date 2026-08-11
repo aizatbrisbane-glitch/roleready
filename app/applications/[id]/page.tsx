@@ -11,6 +11,7 @@ import {
 import { AuthPanel } from "@/components/AuthPanel";
 import { JobExpiryEditor } from "@/components/JobExpiryEditor";
 import { ApplicationDetailClient } from "@/components/ApplicationDetailClient";
+import { ScoreDisplay } from "@/components/ScoreDisplay";
 import { GenerateButton } from "@/components/GenerateButton";
 import { JobDescriptionEditor } from "@/components/JobDescriptionEditor";
 import { PostGenerationGuide } from "@/components/PostGenerationGuide";
@@ -243,12 +244,7 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
                     {hasDocuments ? <CheckCircle2 className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
                   </span>
                   <div className="flex flex-col gap-1.5">
-                    <div className="flex items-baseline gap-2">
-                      <span className={`text-5xl font-bold tabular-nums ${score.className}`}>
-                        {effectiveMatchScore === null ? "—" : `${effectiveMatchScore}%`}
-                      </span>
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${score.pill}`}>{score.label}</span>
-                    </div>
+                    <ScoreDisplay initialScore={effectiveMatchScore} />
                     <div className="w-52">
                       <StatusSelector applicationId={application.id} currentStatus={status} showLabel={false} />
                     </div>

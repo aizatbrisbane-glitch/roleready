@@ -7,6 +7,7 @@ import { AlertTriangle, CheckCircle2, ChevronDown, Lightbulb, Loader2, Lock, Ref
 import type { EntitlementPlanType } from "@/types/database";
 import type { DocumentUpdate } from "@/components/ApplicationDetailClient";
 import { KeywordUpsellModal } from "@/components/KeywordUpsellModal";
+import { SCORE_UPDATE_EVENT } from "@/components/ScoreDisplay";
 
 type Target = "resume" | "cover_letter";
 
@@ -656,7 +657,8 @@ export function KeywordSidePanel({
                 onClick={() => {
                   try { localStorage.removeItem(pendingKey); } catch {}
                   setHasPendingScore(false);
-                  startRefresh(async () => { await router.refresh(); });
+                  window.dispatchEvent(new CustomEvent(SCORE_UPDATE_EVENT, { detail: liveScore }));
+                  startRefresh(() => { router.refresh(); });
                 }}
                 className="inline-flex items-center gap-1 rounded-full bg-green-600 px-2 py-0.5 text-[10px] font-semibold text-white transition hover:bg-green-700 disabled:opacity-60"
               >
@@ -715,7 +717,8 @@ export function KeywordSidePanel({
                       e.stopPropagation();
                       try { localStorage.removeItem(pendingKey); } catch {}
                       setHasPendingScore(false);
-                      startRefresh(async () => { await router.refresh(); });
+                      window.dispatchEvent(new CustomEvent(SCORE_UPDATE_EVENT, { detail: liveScore }));
+                      startRefresh(() => { router.refresh(); });
                     }}
                     className="shrink-0 inline-flex items-center gap-1 rounded-full bg-green-600 px-2 py-0.5 text-[10px] font-semibold text-white transition hover:bg-green-700 disabled:opacity-60"
                   >
