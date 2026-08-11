@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AlertTriangle, CheckCircle2, ChevronDown, Lightbulb, Loader2, Lock, RefreshCw, RotateCcw, Sparkles } from "lucide-react";
@@ -107,7 +107,7 @@ export function KeywordSidePanel({
   const pendingKey = `koala_score_pending_${applicationId}`;
   const [sessionDelta, setSessionDelta] = useState(0);
   const [hasPendingScore, setHasPendingScore] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const [refreshPending, startRefresh] = useTransition();
 
   useEffect(() => {
     try {
@@ -652,18 +652,16 @@ export function KeywordSidePanel({
             {scoreImproved && (
               <button
                 type="button"
-                disabled={refreshing}
+                disabled={refreshPending}
                 onClick={() => {
                   try { localStorage.removeItem(pendingKey); } catch {}
                   setHasPendingScore(false);
-                  setRefreshing(true);
-                  router.refresh();
-                  setTimeout(() => setRefreshing(false), 1500);
+                  startRefresh(() => { router.refresh(); });
                 }}
                 className="inline-flex items-center gap-1 rounded-full bg-green-600 px-2 py-0.5 text-[10px] font-semibold text-white transition hover:bg-green-700 disabled:opacity-60"
               >
-                <RefreshCw className={`h-2.5 w-2.5 ${refreshing ? "animate-spin" : ""}`} />
-                {refreshing ? "Updating…" : "Update score"}
+                <RefreshCw className={`h-2.5 w-2.5 ${refreshPending ? "animate-spin" : ""}`} />
+                {refreshPending ? "Updating…" : "Update score"}
               </button>
             )}
           </div>
@@ -712,19 +710,17 @@ export function KeywordSidePanel({
                 {scoreImproved && (
                   <button
                     type="button"
-                    disabled={refreshing}
+                    disabled={refreshPending}
                     onClick={(e) => {
                       e.stopPropagation();
                       try { localStorage.removeItem(pendingKey); } catch {}
                       setHasPendingScore(false);
-                      setRefreshing(true);
-                      router.refresh();
-                      setTimeout(() => setRefreshing(false), 1500);
+                      startRefresh(() => { router.refresh(); });
                     }}
                     className="shrink-0 inline-flex items-center gap-1 rounded-full bg-green-600 px-2 py-0.5 text-[10px] font-semibold text-white transition hover:bg-green-700 disabled:opacity-60"
                   >
-                    <RefreshCw className={`h-2.5 w-2.5 ${refreshing ? "animate-spin" : ""}`} />
-                    {refreshing ? "Updating…" : "Update score"}
+                    <RefreshCw className={`h-2.5 w-2.5 ${refreshPending ? "animate-spin" : ""}`} />
+                    {refreshPending ? "Updating…" : "Update score"}
                   </button>
                 )}
               </div>
