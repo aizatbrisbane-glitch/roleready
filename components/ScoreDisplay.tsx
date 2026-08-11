@@ -20,6 +20,12 @@ export function ScoreDisplay({ initialScore }: Props) {
   const [score, setScore] = useState(initialScore);
   const tone = scoreTone(score);
 
+  // Sync when server re-renders with a real score (e.g. after generation completes
+  // and router.refresh() fires — useState(initialScore) only captures the mount value).
+  useEffect(() => {
+    if (initialScore !== null) setScore(initialScore);
+  }, [initialScore]);
+
   useEffect(() => {
     function handler(e: Event) {
       const newScore = (e as CustomEvent<number>).detail;
