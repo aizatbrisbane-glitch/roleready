@@ -21,6 +21,7 @@ type KeywordState =
   | { phase: "present" }
   | { phase: "skipped" }
   | { phase: "not_found" }
+  | { phase: "patch_failed" }
   | { phase: "fallback" }
   | { phase: "no_master_resume" }
   | { phase: "free_limit" }
@@ -203,6 +204,7 @@ export function KeywordSidePanel({
 
   async function fetchStrengthen(kw: string, t: Target, evidence?: string): Promise<
     | { phase: "not_found" }
+    | { phase: "patch_failed" }
     | { phase: "no_master_resume" }
     | { phase: "free_limit" }
     | { phase: "error"; message: string }
@@ -215,7 +217,9 @@ export function KeywordSidePanel({
       if (r.data.error === "free_limit_reached") return { phase: "free_limit" };
       return { phase: "error", message: r.data.error ?? "Something went wrong." };
     }
-    if (!r.data.hasRelevantExperience) return { phase: "not_found" };
+    if (!r.data.hasRelevantExperience) {
+      return r.data.reason === "patch_failed" ? { phase: "patch_failed" } : { phase: "not_found" };
+    }
     return {
       tailoredResume: r.data.tailoredResume ?? null,
       coverLetter: r.data.coverLetter ?? null,
@@ -399,10 +403,11 @@ export function KeywordSidePanel({
           const isReviewing = state.phase === "reviewing";
           const isSaving = state.phase === "saving";
           const isNotFound = state.phase === "not_found";
+          const isPatchFailed = state.phase === "patch_failed";
           const isFallback = state.phase === "fallback";
           const isNoMasterResume = state.phase === "no_master_resume";
           const isError = state.phase === "error";
-          const isExpanded = isReviewing || isSaving || isNotFound || isFallback || isNoMasterResume;
+          const isExpanded = isReviewing || isSaving || isNotFound || isPatchFailed || isFallback || isNoMasterResume;
 
           return (
             <div
@@ -571,6 +576,31 @@ export function KeywordSidePanel({
                     </button>
                     <button type="button" onClick={() => handleSkip(kw)} className="text-[10px] text-slate-400 underline underline-offset-2 hover:text-slate-600">
                       Skip
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Expanded: patch failed */}
+              {isPatchFailed && (
+                <div className="mt-2 space-y-2">
+                  <p className="text-[10px] leading-4 text-slate-500">Found relevant experience but couldn&rsquo;t apply the change. Try again?</p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleAutoStrengthen(kw)}
+                      disabled={anyBusy || freeLimitReached}
+                      className="inline-flex items-center gap-1 rounded-full border border-[#2200ff]/20 bg-white px-2.5 py-1 text-[10px] font-semibold text-[#2200ff] hover:bg-[#ece8ff] disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <RefreshCw className="h-2.5 w-2.5" />
+                      Try again
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setState(kw, { phase: "fallback" })}
+                      className="text-[10px] text-slate-400 underline underline-offset-2 hover:text-slate-600"
+                    >
+                      Add my own note
                     </button>
                   </div>
                 </div>

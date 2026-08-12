@@ -305,7 +305,7 @@ export async function POST(request: Request, { params }: Props) {
   }
 
   if (!result.hasRelevantExperience) {
-    return NextResponse.json({ ok: true, hasRelevantExperience: false, tailoredResume: null, coverLetter: null, changedSnippet: "", originalSnippet: "" });
+    return NextResponse.json({ ok: true, hasRelevantExperience: false, reason: "no_experience", tailoredResume: null, coverLetter: null, changedSnippet: "", originalSnippet: "" });
   }
 
   const original = result.originalSnippet ?? "";
@@ -321,11 +321,11 @@ export async function POST(request: Request, { params }: Props) {
     : null;
 
   // If the patch could not be applied, the AI hallucinated an originalSnippet.
-  // Treat this the same as "no relevant experience found" so the user sees the normal
-  // "not found" state (with the option to add their own evidence) rather than an error.
+  // Return a distinct reason so the UI can offer a retry rather than the
+  // "no experience" message (which would be misleading — experience was found).
   if ((target !== "cover_letter" && effectiveResume && !patchedResume) ||
       (target !== "resume" && effectiveCover && !patchedCover)) {
-    return NextResponse.json({ ok: true, hasRelevantExperience: false, tailoredResume: null, coverLetter: null, changedSnippet: "", originalSnippet: "" });
+    return NextResponse.json({ ok: true, hasRelevantExperience: false, reason: "patch_failed", tailoredResume: null, coverLetter: null, changedSnippet: "", originalSnippet: "" });
   }
 
   const cleanedResume = patchedResume ? cleanDocument(patchedResume) : null;
