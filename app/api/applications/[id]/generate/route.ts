@@ -225,6 +225,20 @@ function normalizeProvider(value: unknown) {
   return value === "anthropic" || value === "openai" ? value : null;
 }
 
+function sanitizeKeywordImportance(raw: unknown): Record<string, "required" | "preferred" | "unspecified"> {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const result: Record<string, "required" | "preferred" | "unspecified"> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (value === "required" || value === "preferred" || value === "unspecified") {
+      result[key] = value;
+    } else {
+      console.warn(`[generate] keywordImportance: invalid value for "${key}": ${JSON.stringify(value)} — coerced to "unspecified"`);
+      result[key] = "unspecified";
+    }
+  }
+  return result;
+}
+
 function hasUsableJobDescription(job: NonNullable<ApplicationWithJob["jobs"]>) {
   const description = String(job.description ?? "").trim();
   const title = String(job.title ?? "").trim().toLowerCase();
@@ -352,7 +366,7 @@ export async function POST(request: Request, { params }: Props) {
         match_score: generated.matchScore,
         match_explanation: generated.matchExplanation,
         missing_keywords: generated.missingKeywords,
-        keyword_importance: generated.keywordImportance ?? {},
+        keyword_importance: sanitizeKeywordImportance(generated.keywordImportance),
         tailored_resume: generated.tailoredResume,
         cover_letter: generated.coverLetter,
         generated_by: provider,
