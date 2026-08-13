@@ -49,6 +49,7 @@ export async function POST(request: Request) {
         ...(attr.referrer     ? { attr_referrer:  attr.referrer }     : {}),
         ...(attr.fbp          ? { attr_fbp:       attr.fbp }          : {}),
         ...(attr.fbc          ? { attr_fbc:       attr.fbc }          : {}),
+        ...(attr.li_fat_id    ? { attr_li_fat_id: attr.li_fat_id }    : {}),
       },
       success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}&guest=true&plan=${planKey}&value=${plan.amountAud}`,
       cancel_url: `${appUrl}/pricing`,

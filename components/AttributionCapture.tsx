@@ -58,6 +58,7 @@ export function AttributionCapture({ isAuthenticated }: { isAuthenticated: boole
         ga_client_id: gaCookie ?? undefined,
         fbp:          getCookie("_fbp"),
         fbc:          getCookie("_fbc") ?? (fbclid ? `fb.1.${Date.now()}.${fbclid}` : undefined),
+        li_fat_id:    params.get("li_fat_id") ?? undefined,
       };
 
       const hasData = Object.values(attr).some(Boolean);

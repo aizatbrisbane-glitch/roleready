@@ -47,6 +47,7 @@ export type Profile = {
   attr_ga_client_id: string | null;
   attr_fbp:          string | null;
   attr_fbc:          string | null;
+  attr_li_fat_id:    string | null;
   attr_landed_at:    string | null;
 };
 

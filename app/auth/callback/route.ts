@@ -62,6 +62,7 @@ export async function GET(request: Request) {
               attr_ga_client_id: truncate(attribution.ga_client_id),
               attr_fbp:          truncate(attribution.fbp),
               attr_fbc:          truncate(attribution.fbc),
+              attr_li_fat_id:    truncate(attribution.li_fat_id),
               attr_landed_at:    new Date().toISOString(),
             }).eq("id", user.id).is("attr_landed_at", null);
 

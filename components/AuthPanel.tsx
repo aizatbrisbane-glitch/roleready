@@ -70,6 +70,7 @@ export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
       ga_client_id: gaCookie ? gaCookie.split(".").slice(2).join(".") : undefined,
       fbp:          getCookie("_fbp"),
       fbc:          getCookie("_fbc") ?? (fbclid ? `fb.1.${Date.now()}.${fbclid}` : undefined),
+      li_fat_id:    params.get("li_fat_id") ?? undefined,
     };
   }
 

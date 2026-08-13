@@ -114,7 +114,8 @@ const LINKEDIN_PURCHASE_CONVERSION_ID = process.env.LINKEDIN_PURCHASE_CONVERSION
 async function sendLinkedInConversion(
   email: string,
   conversionId: string,
-  conversionValue?: { valueCents: number; currency: string }
+  conversionValue?: { valueCents: number; currency: string },
+  liFatId?: string
 ) {
   if (!LINKEDIN_ACCESS_TOKEN) {
     console.warn("[server-analytics] LinkedIn CAPI: LINKEDIN_ACCESS_TOKEN not set — skipping");
@@ -126,12 +127,16 @@ async function sendLinkedInConversion(
     : "";
   console.log(`[server-analytics] LinkedIn CAPI: sending conversion ${conversionId}${valueLabel}`);
 
+  const userIds: Array<{ idType: string; idValue: string }> = [
+    { idType: "SHA256_EMAIL", idValue: sha256(email) },
+  ];
+  if (liFatId) {
+    userIds.push({ idType: "LINKEDIN_FIRST_PARTY_ADS_TRACKING_UUID", idValue: liFatId });
+  }
   const body: Record<string, unknown> = {
     conversion: `urn:lla:llaPartnerConversion:${conversionId}`,
     conversionHappenedAt: Date.now(),
-    user: {
-      userIds: [{ idType: "SHA256_EMAIL", idValue: sha256(email) }],
-    },
+    user: { userIds },
   };
 
   if (conversionValue) {
@@ -194,6 +199,8 @@ export type AttributionData = {
   fbp?: string;
   /** Meta _fbc cookie or constructed from fbclid param */
   fbc?: string;
+  /** LinkedIn click ID — li_fat_id URL param appended by LinkedIn ads */
+  li_fat_id?: string;
 };
 
 export async function trackSignupServerSide(opts: {
@@ -265,7 +272,7 @@ export async function trackSignupServerSide(opts: {
     ]),
 
     LINKEDIN_SIGNUP_CONVERSION_ID
-      ? sendLinkedInConversion(opts.email, LINKEDIN_SIGNUP_CONVERSION_ID)
+      ? sendLinkedInConversion(opts.email, LINKEDIN_SIGNUP_CONVERSION_ID, undefined, attr.li_fat_id)
       : Promise.resolve(),
   ]);
 
@@ -288,6 +295,7 @@ export async function trackPurchaseServerSide(opts: {
   attrReferrer?: string;
   attrFbp?: string;
   attrFbc?: string;
+  attrLiFatId?: string;
 }) {
   console.log(`[server-analytics] trackPurchaseServerSide: txn=${opts.transactionId} userId=${opts.userId} source=${opts.attrSource ?? "(none)"} medium=${opts.attrMedium ?? "(none)"} campaign=${opts.attrCampaign ?? "(none)"}`);
   const eventTime = Math.floor(Date.now() / 1000);
@@ -361,7 +369,7 @@ export async function trackPurchaseServerSide(opts: {
       ? sendLinkedInConversion(opts.email, LINKEDIN_PURCHASE_CONVERSION_ID, {
           valueCents: opts.valueCents,
           currency: opts.currency,
-        })
+        }, opts.attrLiFatId)
       : Promise.resolve(),
   ]);
 

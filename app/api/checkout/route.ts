@@ -55,7 +55,7 @@ export async function POST(request: Request) {
   // Read first-touch attribution and existing Stripe customer ID from the user's profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("stripe_customer_id,attr_source,attr_medium,attr_campaign,attr_content,attr_term,attr_referrer,attr_ga_client_id,attr_fbp,attr_fbc")
+    .select("stripe_customer_id,attr_source,attr_medium,attr_campaign,attr_content,attr_term,attr_referrer,attr_ga_client_id,attr_fbp,attr_fbc,attr_li_fat_id")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -108,6 +108,7 @@ export async function POST(request: Request) {
         ...(profile?.attr_referrer     ? { attr_referrer:   profile.attr_referrer }     : {}),
         ...(profile?.attr_fbp          ? { attr_fbp:        profile.attr_fbp }          : {}),
         ...(profile?.attr_fbc          ? { attr_fbc:        profile.attr_fbc }          : {}),
+        ...(profile?.attr_li_fat_id    ? { attr_li_fat_id:  profile.attr_li_fat_id }    : {}),
       },
       customer: stripeCustomerId,
       success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}&plan=${plan.planType}&value=${plan.amountAud}`,

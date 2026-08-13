@@ -25,6 +25,7 @@ export async function POST(request: Request) {
     attr_ga_client_id:  truncate(body.ga_client_id),
     attr_fbp:           truncate(body.fbp),
     attr_fbc:           truncate(body.fbc),
+    attr_li_fat_id:     truncate(body.li_fat_id),
     attr_landed_at:     new Date().toISOString(),
   };
 

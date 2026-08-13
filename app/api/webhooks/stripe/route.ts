@@ -197,6 +197,7 @@ export async function POST(request: Request) {
     attrReferrer:  session.metadata?.attr_referrer ?? undefined,
     attrFbp:       session.metadata?.attr_fbp      ?? undefined,
     attrFbc:       session.metadata?.attr_fbc      ?? undefined,
+    attrLiFatId:   session.metadata?.attr_li_fat_id ?? undefined,
   });
 
   return NextResponse.json({ received: true });
