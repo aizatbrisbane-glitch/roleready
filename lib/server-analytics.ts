@@ -147,7 +147,7 @@ async function sendLinkedInConversion(
       method: "POST",
       headers: {
         Authorization: `Bearer ${LINKEDIN_ACCESS_TOKEN}`,
-        "LinkedIn-Version": "202407",
+        "LinkedIn-Version": "202607",
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
