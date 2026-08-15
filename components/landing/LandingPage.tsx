@@ -239,7 +239,7 @@ export function LandingPage() {
               Pricing
             </Link>
             <a
-              href="#how-it-works"
+              href="#walkthrough"
               onClick={() => setMobileNavOpen(false)}
               className="flex items-center rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-[#2200ff]"
             >
@@ -326,7 +326,7 @@ export function LandingPage() {
               </Link>
 
               <nav className="hidden items-center gap-9 text-sm font-medium text-slate-700 md:flex">
-                <a href="#how-it-works" className="transition hover:text-[#2200ff]">How it works</a>
+                <a href="#walkthrough" className="transition hover:text-[#2200ff]">How it works</a>
                 <a href="#how-it-works" className="transition hover:text-[#2200ff]">Features</a>
                 <Link href="/pricing"      className="transition hover:text-[#2200ff]">Pricing</Link>
                 <Link href="/blog"         className="transition hover:text-[#2200ff]">Blog</Link>
