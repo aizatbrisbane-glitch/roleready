@@ -371,12 +371,12 @@ export function LandingPage() {
 
             {/* Headline — spans full width */}
             <h1 className="text-center text-[1.65rem] font-black leading-[1.1] tracking-tight text-slate-900 sm:text-[2.7rem] lg:text-[1.5rem] xl:text-[2rem]">
-              You don't have to suffer. <span className="text-[#2200ff]">Tailor your CV and cover letter to any job.</span>
+              Tailor applications in seconds. <span className="text-[#2200ff]">Track and prep in one place.</span>
             </h1>
 
             {/* Subheading */}
             <p className="mt-4 text-center text-lg font-semibold leading-snug text-slate-600 sm:text-3xl lg:mt-3 lg:text-lg">
-              Turn one CV into a tailored application for every job. Take seconds, not hours.
+              Make your whole job search feel lighter.
             </p>
 
             {/* Two-column: photo left, resume card right */}
