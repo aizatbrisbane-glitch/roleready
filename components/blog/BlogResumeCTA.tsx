@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ShieldCheck, Zap } from "lucide-react";
+import { ArrowRight, ShieldCheck, Zap } from "lucide-react";
 import { HomepageOnboardingModal } from "@/components/landing/HomepageOnboardingModal";
 import { analytics } from "@/lib/analytics";
 
@@ -9,10 +9,12 @@ export function BlogResumeCTA({
   sourceSlug = "unknown",
   heading = "Tailor your CV and cover letter to any job.",
   subtext = "Drop your resume here now. See what it could look like.",
+  variant = "full",
 }: {
   sourceSlug?: string;
   heading?: string;
   subtext?: string;
+  variant?: "full" | "inline";
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -25,6 +27,50 @@ export function BlogResumeCTA({
     setModalOpen(true);
   }
 
+  const fileInput = (
+    <input
+      ref={inputRef}
+      type="file"
+      accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      className="hidden"
+      onChange={(e) => handleFile(e.target.files?.[0])}
+    />
+  );
+
+  if (variant === "inline") {
+    return (
+      <>
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => { e.preventDefault(); handleFile(e.dataTransfer.files?.[0]); }}
+          onClick={() => inputRef.current?.click()}
+          className="cursor-pointer rounded-2xl bg-gradient-to-br from-[#ece8ff] to-[#f5f3ff] p-5 transition hover:from-[#e0d9ff] hover:to-[#ede9ff] sm:p-6"
+        >
+          {fileInput}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-base font-black tracking-tight text-slate-900 sm:text-lg">{heading}</p>
+              <p className="mt-1 text-sm leading-6 text-slate-600">{subtext}</p>
+            </div>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); analytics.blogCtaClick({ sourceSlug, placement: "cta_button" }); inputRef.current?.click(); }}
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#2200ff] px-5 py-2.5 text-sm font-bold text-white shadow-[0_8px_24px_rgba(34,0,255,0.28)] transition hover:bg-[#1a00cc]"
+            >
+              Try free <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <HomepageOnboardingModal
+          open={modalOpen}
+          initialResumeFile={pendingFile}
+          onClose={() => setModalOpen(false)}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       <section className="px-5 pb-10 pt-2 sm:px-8 lg:px-10">
@@ -35,13 +81,7 @@ export function BlogResumeCTA({
             onClick={() => inputRef.current?.click()}
             className="flex cursor-pointer flex-col items-center justify-center rounded-[1.5rem] border-2 border-dashed border-[#b9adff] bg-white p-6 text-center shadow-[0_28px_90px_rgba(34,0,255,0.16)] transition hover:-translate-y-0.5 hover:border-[#2200ff] sm:rounded-[2.25rem] sm:p-12"
           >
-            <input
-              ref={inputRef}
-              type="file"
-              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-              className="hidden"
-              onChange={(e) => handleFile(e.target.files?.[0])}
-            />
+            {fileInput}
             <p className="mt-4 text-2xl font-black tracking-tight text-slate-900 sm:mt-6 sm:text-4xl">{heading}</p>
             <p className="mt-2 text-lg font-semibold tracking-tight text-slate-500 sm:text-2xl">{subtext}</p>
             <p className="mt-3 text-base font-semibold text-slate-500">PDF or DOCX · Max 4 MB</p>

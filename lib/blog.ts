@@ -2238,7 +2238,6 @@ export const blogArticles: BlogArticle[] = [
     title: "Should You Apply If You Only Meet 70% of the Requirements?",
     excerpt: "You find a job that looks perfect, then you hit the requirements and close the tab. Before you do that, here is something worth remembering.",
     category: "Job Search",
-    featured: true,
     author: "Koalapply",
     publishDate: "8 Aug 2026",
     readingTime: "6 min read",
@@ -2343,6 +2342,113 @@ export const blogArticles: BlogArticle[] = [
               "And sometimes the best candidate never gets considered because they saw three things they did not have, convinced themselves everyone else would be better and closed the tab.",
               "Don't make rejection your job. The employer already has someone for that.",
               "Found a role where you meet most, but not all, of the requirements? Run it through [Koalapply](/) and see how well your experience actually matches before you talk yourself out of applying.",
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "where-the-jobs-are-growing-in-2026",
+    title: "Where the Jobs Are Growing in 2026",
+    excerpt: "Australia's job market is competitive, but some industries are hiring far more than others. Here's where SEEK data and ACS Digital Pulse 2026 point to growing demand.",
+    category: "Job Market",
+    featured: true,
+    author: "Koalapply",
+    publishDate: "15 Aug 2026",
+    readingTime: "5 min read",
+    image: "/blog/where-jobs-are-growing-2026.png",
+    imageAlt: "Job market growth across Australian industries in 2026",
+    relatedSlugs: [
+      "why-youre-not-getting-interviews-even-with-experience",
+      "goldman-sachs-aussie-companies-job-cuts",
+      "should-you-apply-if-you-only-meet-70-percent-of-requirements",
+    ],
+    midCta: {
+      afterSectionId: "dont-write-off-tech",
+      heading: "Want to know how your resume matches the roles that are actually hiring?",
+      subtext: "Drop it in and Koalapply will tailor it to the specific job in minutes — free to try.",
+    },
+    sections: [
+      {
+        id: "where-demand-is-growing",
+        title: "Where Demand Is Growing",
+        paragraphs: [
+          "If you're looking for work, considering a career change or wondering what skills to learn next, it pays to know where demand is growing. Australia's job market is competitive, but [SEEK's latest data](https://au.seek.com/about/news/article/seek-employment-report-july26) shows some industries are performing considerably better than others.",
+          "[ACS Australia's Digital Pulse 2026 report](https://www.acs.org.au/campaign/digital-pulse.html) also points to where longer-term opportunities could emerge as technology changes jobs across the economy. Here are a few areas worth putting on your radar.",
+        ],
+      },
+      {
+        id: "engineering-construction-resources",
+        title: "Engineering, Construction and Resources Are Hiring",
+        paragraphs: [
+          "Over the past year, SEEK job ads have increased 12.3% in Engineering, 12.2% in Construction, and 10.8% in Mining, Resources and Energy.",
+          "These sectors need more than engineers and tradespeople. They also employ project managers, coordinators, procurement specialists, operations staff, safety professionals, finance teams and technology workers.",
+          "**Jobseeker tip:** Instead of searching only within your current industry, try searching for your existing role inside sectors that are growing.",
+        ],
+      },
+      {
+        id: "data-centres",
+        title: "Data Centres Are One to Watch",
+        paragraphs: [
+          "Australian job ads mentioning data centres have increased 109.5% over the past year, according to SEEK. Demand includes data technicians, project managers, engineers and HVAC technicians, with opportunities spanning construction, electrical and mechanical systems, facilities management, networking and technology infrastructure.",
+          "This also fits a bigger trend identified in ACS Australia's Digital Pulse 2026: Australia's digital economy continues to grow even as the technology workforce has contracted. Digital skills contributed $476 billion to the Australian economy in 2025, while the technology sector itself contributed $142 billion.",
+          "**Jobseeker tip:** With continued investment in AI and the infrastructure needed to support it, skills around cloud infrastructure, networking, data-centre operations, electrical systems and project delivery are worth watching.",
+        ],
+      },
+      {
+        id: "dont-write-off-tech",
+        title: "Don't Write Off Tech",
+        paragraphs: [
+          "ICT job ads fell another 0.9% in July, so people trying to enter traditional technology roles may be feeling the slowdown. But that doesn't mean demand for technology skills is disappearing. It is becoming more specialised.",
+          "ACS Digital Pulse 2026 estimates Australia will need 259,000 additional technology workers by 2035 — around twice the expected growth rate of employment across the wider labour market. And those people won't all work for technology companies.",
+          "The report points to technology demand across the economy: banks need cybersecurity specialists, hospitals need data professionals, governments need digital transformation capability and manufacturers need automation expertise.",
+          "If you're interested in tech, consider looking beyond 'tech companies'. Some areas worth investigating include:",
+        ],
+        bullets: [
+          "AI implementation and governance",
+          "Cybersecurity",
+          "Data and analytics",
+          "Cloud and infrastructure",
+          "Automation",
+          "Digital transformation",
+        ],
+      },
+      {
+        id: "ai-quality-assurance",
+        title: "AI Quality Assurance and Risk",
+        paragraphs: [
+          "As AI becomes more embedded in organisations, Digital Pulse expects demand to grow in areas including AI design, governance, implementation and quality assurance.",
+        ],
+      },
+      {
+        id: "you-may-not-need-another-degree",
+        title: "You May Not Need Another Degree",
+        paragraphs: [
+          "There's also encouraging news for career changers. Around 40% of people entering technology roles over the past five years came through alternative pathways, including workplace learning, industry credentials and self-directed learning.",
+          "That doesn't mean qualifications aren't important. It means a career pivot may not require going back to university for several years.",
+          "**Jobseeker tip:** Before paying for a course, look at 20 or 30 current job ads for the type of role you want. Note the skills, certifications and platforms that keep appearing. Then upskill with a destination in mind.",
+        ],
+      },
+      {
+        id: "follow-the-demand",
+        title: "Follow the Demand, Not the Hype",
+        paragraphs: [
+          "You don't need to abandon your career every time the employment market changes. Instead, look at where investment and hiring are growing and ask: where could my existing experience fit?",
+        ],
+        bullets: [
+          "A project manager can move between industries",
+          "A marketer can develop AI capability",
+          "An electrician may find opportunities in data centres",
+          "An IT professional might specialise in cyber, cloud or AI governance",
+          "A business analyst can move into digital transformation",
+        ],
+        items: [
+          {
+            heading: "",
+            paragraphs: [
+              "The goal isn't to predict the one 'safe' career of the future. It's to spot where demand is heading early enough to give yourself options. Sometimes you don't need an entirely new career. You just need to move your existing skills closer to where the jobs are being created.",
+              "Found roles in these sectors you'd like to apply for? Use [Koalapply](/) to match your resume to the job description and strengthen your application before you send it.",
             ],
           },
         ],

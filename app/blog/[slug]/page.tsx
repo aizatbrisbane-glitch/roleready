@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { BlogArticleCard } from "@/components/blog/BlogArticleCard";
 import { BlogResumeCTA } from "@/components/blog/BlogResumeCTA";
 import { NewsletterSignup } from "@/components/blog/NewsletterSignup";
-import { blogArticles, getArticleBySlug, getRelatedArticles } from "@/lib/blog";
+import { blogArticles, getArticleBySlug, getRelatedArticles, type ArticleSection as ArticleSectionType } from "@/lib/blog";
 import { renderInlineLinks } from "@/lib/renderInlineLinks";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -43,6 +43,49 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: [article.image],
     },
   };
+}
+
+function ArticleSection({ section }: { section: ArticleSectionType }) {
+  return (
+    <section id={section.id} className="scroll-mt-8">
+      <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">{section.title}</h2>
+      <div className="mt-4 space-y-4">
+        {section.paragraphs?.map((paragraph) => (
+          <p key={paragraph} className="text-base leading-8 text-slate-600">{renderInlineLinks(paragraph)}</p>
+        ))}
+      </div>
+      {section.items?.map((item) => (
+        <div key={item.heading} className="mt-6">
+          <h3 className="text-lg font-bold text-slate-900">{item.heading}</h3>
+          <div className="mt-2 space-y-3">
+            {item.paragraphs.map((p) => (
+              <p key={p} className="text-base leading-8 text-slate-600">{renderInlineLinks(p)}</p>
+            ))}
+          </div>
+        </div>
+      ))}
+      {section.bullets ? (
+        <ul className="mt-5 space-y-3">
+          {section.bullets.map((bullet) => (
+            <li key={bullet} className="flex gap-3 text-base leading-7 text-slate-600">
+              <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2200ff]" />
+              <span>{renderInlineLinks(bullet)}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {section.faqs ? (
+        <div className="mt-5 space-y-5">
+          {section.faqs.map(({ q, a }) => (
+            <div key={q} className="border-b border-slate-100 pb-5 last:border-0 last:pb-0">
+              <p className="font-semibold text-slate-900">{q}</p>
+              <p className="mt-2 text-base leading-8 text-slate-600">{renderInlineLinks(a)}</p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
 }
 
 export default async function BlogArticlePage({ params }: Props) {
@@ -121,108 +164,25 @@ export default async function BlogArticlePage({ params }: Props) {
             <div className="rounded-[2rem] border border-slate-100 bg-white px-6 py-8 shadow-sm sm:px-8 lg:px-12 lg:py-12">
               <div className="space-y-10">
                 {sectionsBefore.map((section) => (
-                  <section key={section.id} id={section.id} className="scroll-mt-8">
-                    <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">{section.title}</h2>
-                    <div className="mt-4 space-y-4">
-                      {section.paragraphs?.map((paragraph) => (
-                        <p key={paragraph} className="text-base leading-8 text-slate-600">{renderInlineLinks(paragraph)}</p>
-                      ))}
-                    </div>
-                    {section.items?.map((item) => (
-                      <div key={item.heading} className="mt-6">
-                        <h3 className="text-lg font-bold text-slate-900">{item.heading}</h3>
-                        <div className="mt-2 space-y-3">
-                          {item.paragraphs.map((p) => (
-                            <p key={p} className="text-base leading-8 text-slate-600">{renderInlineLinks(p)}</p>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                    {section.bullets ? (
-                      <ul className="mt-5 space-y-3">
-                        {section.bullets.map((bullet) => (
-                          <li key={bullet} className="flex gap-3 text-base leading-7 text-slate-600">
-                            <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2200ff]" />
-                            <span>{renderInlineLinks(bullet)}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
-                    {section.faqs ? (
-                      <div className="mt-5 space-y-5">
-                        {section.faqs.map(({ q, a }) => (
-                          <div key={q} className="border-b border-slate-100 pb-5 last:border-0 last:pb-0">
-                            <p className="font-semibold text-slate-900">{q}</p>
-                            <p className="mt-2 text-base leading-8 text-slate-600">{renderInlineLinks(a)}</p>
-                          </div>
-                        ))}
-                      </div>
-                    ) : null}
-                  </section>
+                  <ArticleSection key={section.id} section={section} />
+                ))}
+
+                {article.midCta && !user && (
+                  <BlogResumeCTA
+                    variant="inline"
+                    sourceSlug={slug}
+                    heading={article.midCta.heading}
+                    subtext={article.midCta.subtext}
+                  />
+                )}
+
+                {sectionsAfter.map((section) => (
+                  <ArticleSection key={section.id} section={section} />
                 ))}
               </div>
             </div>
           </div>
         </section>
-
-        {article.midCta && !user && (
-          <BlogResumeCTA
-            sourceSlug={slug}
-            heading={article.midCta.heading}
-            subtext={article.midCta.subtext}
-          />
-        )}
-
-        {sectionsAfter.length > 0 && (
-          <section className="px-5 pb-6 sm:px-8 lg:px-10 lg:pb-8">
-            <div className="mx-auto max-w-4xl">
-              <div className="rounded-[2rem] border border-slate-100 bg-white px-6 py-8 shadow-sm sm:px-8 lg:px-12 lg:py-12">
-                <div className="space-y-10">
-                  {sectionsAfter.map((section) => (
-                    <section key={section.id} id={section.id} className="scroll-mt-8">
-                      <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">{section.title}</h2>
-                      <div className="mt-4 space-y-4">
-                        {section.paragraphs?.map((paragraph) => (
-                          <p key={paragraph} className="text-base leading-8 text-slate-600">{renderInlineLinks(paragraph)}</p>
-                        ))}
-                      </div>
-                      {section.items?.map((item) => (
-                        <div key={item.heading} className="mt-6">
-                          <h3 className="text-lg font-bold text-slate-900">{item.heading}</h3>
-                          <div className="mt-2 space-y-3">
-                            {item.paragraphs.map((p) => (
-                              <p key={p} className="text-base leading-8 text-slate-600">{renderInlineLinks(p)}</p>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                      {section.bullets ? (
-                        <ul className="mt-5 space-y-3">
-                          {section.bullets.map((bullet) => (
-                            <li key={bullet} className="flex gap-3 text-base leading-7 text-slate-600">
-                              <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2200ff]" />
-                              <span>{renderInlineLinks(bullet)}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : null}
-                      {section.faqs ? (
-                        <div className="mt-5 space-y-5">
-                          {section.faqs.map(({ q, a }) => (
-                            <div key={q} className="border-b border-slate-100 pb-5 last:border-0 last:pb-0">
-                              <p className="font-semibold text-slate-900">{q}</p>
-                              <p className="mt-2 text-base leading-8 text-slate-600">{renderInlineLinks(a)}</p>
-                            </div>
-                          ))}
-                        </div>
-                      ) : null}
-                    </section>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
       </article>
 
       {!user && <BlogResumeCTA sourceSlug={slug} />}
