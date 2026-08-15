@@ -9,8 +9,8 @@ import { analytics } from "@/lib/analytics";
 
 type Mode = "signin" | "signup" | "forgot";
 
-export function AuthPanel({ redirectTo = "/" }: { redirectTo?: string }) {
-  const [mode, setMode] = useState<Mode>("signin");
+export function AuthPanel({ redirectTo = "/", initialMode = "signin" }: { redirectTo?: string; initialMode?: Mode }) {
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");

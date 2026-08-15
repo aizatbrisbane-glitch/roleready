@@ -264,7 +264,7 @@ export function LandingPage() {
           {/* Auth CTAs */}
           <div className="border-t border-slate-100 px-4 py-5 space-y-3">
             <Link
-              href="/login"
+              href="/login?mode=signup"
               onClick={() => setMobileNavOpen(false)}
               className="flex w-full items-center justify-center rounded-full bg-[#2200ff] px-6 py-3.5 text-sm font-bold text-white shadow-[0_8px_24px_rgba(34,0,255,0.28)] transition hover:bg-[#1a00cc]"
             >
@@ -357,7 +357,7 @@ export function LandingPage() {
                   Log in
                 </Link>
                 <Link
-                  href="/login"
+                  href="/login?mode=signup"
                   className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#2200ff] px-4 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(34,0,255,0.3)] transition hover:-translate-y-0.5 hover:bg-[#1a00cc] sm:min-h-11 sm:px-6"
                 >
                   Start free
@@ -665,7 +665,7 @@ export function LandingPage() {
             </p>
             <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
               <Link
-                href="/login"
+                href="/login?mode=signup"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-[#c8ff00] px-8 py-4 text-base font-bold text-slate-900 shadow-[0_12px_32px_rgba(200,255,0,0.35)] transition hover:-translate-y-0.5 hover:bg-[#d4ff33]"
               >
                 Start free today <ArrowRight className="h-5 w-5" />
@@ -688,7 +688,7 @@ export function LandingPage() {
               </p>
               <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
                 <Link
-                  href="/login"
+                  href="/login?mode=signup"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-[#2200ff] px-8 py-4 text-base font-semibold text-white shadow-[0_22px_55px_rgba(34,0,255,0.24)] transition duration-300 hover:-translate-y-1 hover:bg-[#1a00cc] hover:shadow-[0_28px_65px_rgba(34,0,255,0.28)]"
                 >
                   Get started free <ArrowRight className="h-5 w-5" />

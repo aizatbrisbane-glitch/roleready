@@ -223,7 +223,7 @@ export default async function PricingPage() {
                 Log in
               </Link>
               <Link
-                href="/login"
+                href="/login?mode=signup"
                 className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#2200ff] px-4 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(34,0,255,0.3)] transition hover:-translate-y-0.5 hover:bg-[#1a00cc] sm:min-h-11 sm:px-6"
               >
                 Start free
@@ -292,7 +292,7 @@ export default async function PricingPage() {
                 </ul>
 
                 <Link
-                  href={plan.planType ? `/checkout/guest?plan=${plan.planType}` : "/login"}
+                  href={plan.planType ? `/checkout/guest?plan=${plan.planType}` : "/login?mode=signup"}
                   className={`mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition ${
                     plan.highlighted
                       ? "bg-[#2200ff] text-white shadow-[0_16px_35px_rgba(34,0,255,0.24)] hover:-translate-y-0.5 hover:bg-[#1a00cc]"

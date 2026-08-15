@@ -25,13 +25,14 @@ const benefits = [
   },
 ];
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ plan?: string; redirect?: string; message?: string }> }) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ plan?: string; redirect?: string; message?: string; mode?: string }> }) {
   const supabase = isSupabaseConfigured() ? await createSupabaseServerClient() : null;
   const { data: { user } } = supabase
     ? await supabase.auth.getUser()
     : { data: { user: null } };
-  const { plan, redirect: redirectParam, message } = await searchParams;
+  const { plan, redirect: redirectParam, message, mode } = await searchParams;
   const redirectTo = plan ? `/checkout/initiate?plan=${plan}` : (redirectParam ?? "/");
+  const initialMode = mode === "signup" ? "signup" : "signin";
   if (user) redirect(redirectTo);
   return (
     <main className="relative min-h-screen overflow-hidden bg-slate-50 px-5 py-12 text-slate-900 sm:px-8 lg:px-12">
@@ -44,13 +45,13 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
               <div className="mb-6 rounded-2xl border border-[#d4ccff] bg-[#ece8ff] px-6 py-4 text-center text-base font-bold text-[#2200ff] shadow-sm">
                 {message}
               </div>
-              <AuthPanel redirectTo={redirectTo} />
+              <AuthPanel redirectTo={redirectTo} initialMode={initialMode} />
             </div>
           </section>
         ) : (
           <section className="grid flex-1 items-center gap-8 py-4 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:py-10">
             <div className="mx-auto w-full max-w-[610px] lg:order-2">
-              <AuthPanel redirectTo={redirectTo} />
+              <AuthPanel redirectTo={redirectTo} initialMode={initialMode} />
             </div>
 
             <div className="mx-auto w-full max-w-xl lg:order-1 lg:mx-0">

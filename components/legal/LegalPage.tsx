@@ -21,7 +21,7 @@ export function LegalPage({ title, intro, sections }: LegalPageProps) {
           <Link href="/" className="inline-flex items-center">
             <img src="/brand/koalapply-logo.png" alt="Koalapply" className="h-12 w-auto sm:h-14" />
           </Link>
-          <Link href="/login" className="rounded-full bg-[#2200ff] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1a00cc]">
+          <Link href="/login?mode=signup" className="rounded-full bg-[#2200ff] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1a00cc]">
             Start free
           </Link>
         </div>

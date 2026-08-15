@@ -118,7 +118,7 @@ export default async function AtsCheckerPage() {
                 Log in
               </Link>
               <Link
-                href="/login"
+                href="/login?mode=signup"
                 className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#2200ff] px-4 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(34,0,255,0.3)] transition hover:-translate-y-0.5 hover:bg-[#1a00cc] sm:min-h-11 sm:px-6"
               >
                 Start free
@@ -214,7 +214,7 @@ export default async function AtsCheckerPage() {
                 <p className="text-base leading-7 text-slate-700">
                   <span className="font-bold">Want your resume fully tailored, not just checked?</span>{" "}
                   Koalapply rewrites your resume against the specific job description, not just a keyword count.{" "}
-                  <a href="/login" className="font-semibold text-[#2200ff] hover:underline">Try it free →</a>
+                  <a href="/login?mode=signup" className="font-semibold text-[#2200ff] hover:underline">Try it free →</a>
                 </p>
               </div>
 
