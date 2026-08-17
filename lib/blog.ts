@@ -52,6 +52,119 @@ export const blogCategories: BlogCategory[] = [
 
 export const blogArticles: BlogArticle[] = [
   {
+    slug: "fake-recruiters-before-you-reply-to-that-dm",
+    title: "Fake Recruiters: Before You Reply to That DM",
+    excerpt: "That exciting LinkedIn message about a new job opportunity might deserve a closer look. Here's how to tell whether the recruiter in your inbox is real.",
+    category: "Job Search",
+    featured: true,
+    author: "Koalapply",
+    publishDate: "17 Aug 2026",
+    readingTime: "5 min read",
+    image: "/blog/fake-recruiters-linkedin-dm.jpg",
+    imageAlt: "LinkedIn DM messages from suspicious recruiters",
+    relatedSlugs: [
+      "where-the-jobs-are-growing-in-2026",
+      "why-youre-not-getting-interviews-even-with-experience",
+      "should-you-apply-if-you-only-meet-70-percent-of-requirements",
+    ],
+    midCta: {
+      afterSectionId: "investigate-their-linkedin",
+      heading: "Already found roles you want to apply for?",
+      subtext: "Upload your resume to Koalapply and we'll tailor it to the job description in minutes — free to try.",
+    },
+    sections: [
+      {
+        id: "intro",
+        title: "",
+        paragraphs: [
+          "That exciting LinkedIn message about a new job opportunity might deserve a closer look. [Recent Scamwatch data](https://www.scamwatch.gov.au/types-of-scams/jobs-employment-scams) shows reports of job and employment scams jumped 102.5% in Australia in 2025. Reported losses climbed 81.5% to $24.8 million in just one year.",
+          "For job seekers, it adds another layer of anxiety to a process that can already involve rejection, ghosting and uncertainty. The last thing someone looking for work needs is to also wonder whether the recruiter offering them an opportunity is even real.",
+          "And fake recruitment can be surprisingly convincing. Scammers can pose as recruiters from recognised companies and recruitment agencies, offering attractive roles before trying to obtain money or personal information. So, how do you tell whether the recruiter who just appeared in your inbox is real?",
+        ],
+      },
+      {
+        id: "check-where-theyre-based",
+        title: "1. Check Where They're Based",
+        paragraphs: [
+          "A recruiter can absolutely work internationally. But if they're supposedly recruiting for an Australian role and their location, employment history and company presence don't seem to line up, investigate further.",
+        ],
+      },
+      {
+        id: "ask-them-to-email-you",
+        title: "2. Ask Them to Email You",
+        paragraphs: [
+          "Check the domain carefully. If someone claims to work directly for a major company but can only contact you from Gmail, Outlook or another free email account, that's worth questioning.",
+        ],
+      },
+      {
+        id: "ask-specific-questions",
+        title: "3. Ask Specific Questions About the Job",
+        paragraphs: [
+          "Who does the role report to? Why is the position available? Where is the role advertised? What's the interview process? Who is the hiring manager? A recruiter should be able to talk about the opportunity because it is in their best interest to sell you the job. If they repeatedly avoid your questions and instead tell you to click a link, that's a red flag. A legitimate recruiter would take the time to understand if you are a good match for the role.",
+        ],
+      },
+      {
+        id: "dont-let-them-rush-you",
+        title: "4. Don't Let Them Rush You",
+        paragraphs: [
+          "Watch for messages creating artificial urgency. This tactic gives you less time to stop and verify who you're dealing with:",
+        ],
+        bullets: [
+          '"I need your response."',
+          '"Apply immediately."',
+          '"Complete this form now."',
+          '"Download this."',
+          '"Move to WhatsApp or Telegram."',
+        ],
+      },
+      {
+        id: "investigate-their-linkedin",
+        title: "5. Investigate Their LinkedIn Profile",
+        paragraphs: [
+          "Go beyond the headshot and job title. Check their connections, posts, and comments. If they are real recruiters they would have more than four connections and LinkedIn activity over a significant number of years. The success of their role depends on a good network and interacting with potential talent. Check their employment history and whether people from the company actually interact with them. Then search for them independently through the recruitment agency or employer they claim to represent.",
+        ],
+      },
+      {
+        id: "find-the-job-yourself",
+        title: "6. Find the Job Yourself",
+        paragraphs: [
+          "Instead of clicking their link, go directly to the company's official careers page and search for the vacancy. Can't find it? Ask why.",
+        ],
+      },
+      {
+        id: "be-wary-of-incredible-salary",
+        title: "7. Be Wary of an Incredible Salary for a Strangely Vague Job",
+        paragraphs: [
+          "If you've barely spoken, there has been no interview and they're already talking about an unusually generous package, slow down.",
+        ],
+      },
+      {
+        id: "dont-hand-over-sensitive-info",
+        title: "8. Don't Hand Over Sensitive Information Too Early",
+        paragraphs: [
+          "Be cautious about providing passports, driver's licences, Medicare details, banking information or other identity documents before you've established who you're dealing with.",
+        ],
+      },
+      {
+        id: "never-pay-to-get-the-job",
+        title: "9. Never Pay to Get the Job",
+        paragraphs: [
+          "Recruitment fees, training deposits, equipment payments, crypto transfers — some even attempt to charge \"processing fees.\" Stop there.",
+        ],
+      },
+      {
+        id: "the-simplest-test",
+        title: "The Simplest Test",
+        paragraphs: [
+          "Perhaps the simplest test is this: Does this person seem interested in finding out whether you're actually right for the job, or are they mainly interested in getting you to take the next action?",
+          "A genuine recruiter shouldn't have a problem with you asking questions and verifying who they are.",
+          "With Australians already losing [millions each year to job and employment scams](https://www.scamwatch.gov.au/types-of-scams/jobs-employment-scams), five minutes of detective work before clicking could be very well spent.",
+          "**Did you know?** Once you've uploaded your resume into [Koalapply](/), we show you daily opportunities you can explore.",
+        ],
+      },
+    ],
+  },
+  {
     slug: "why-youre-not-getting-interviews-even-with-experience",
     title: "Why You're Not Getting Interviews (Even With Experience)",
     excerpt: "If your inbox is quiet despite strong experience, the problem is usually not your background. It is your job search process.",
@@ -2353,7 +2466,6 @@ export const blogArticles: BlogArticle[] = [
     title: "Where the Jobs Are Growing in 2026",
     excerpt: "Australia's job market is competitive, but some industries are hiring far more than others. Here's where SEEK data and ACS Digital Pulse 2026 point to growing demand.",
     category: "Job Market",
-    featured: true,
     author: "Koalapply",
     publishDate: "15 Aug 2026",
     readingTime: "5 min read",
