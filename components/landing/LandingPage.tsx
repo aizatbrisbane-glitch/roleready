@@ -352,13 +352,13 @@ export function LandingPage() {
                 </button>
                 <Link
                   href="/login"
-                  className="hidden text-sm font-semibold text-slate-700 transition hover:text-[#2200ff] md:inline-flex"
+                  className="text-sm font-semibold text-slate-700 transition hover:text-[#2200ff]"
                 >
                   Log in
                 </Link>
                 <Link
                   href="/login?mode=signup"
-                  className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#2200ff] px-4 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(34,0,255,0.3)] transition hover:-translate-y-0.5 hover:bg-[#1a00cc] sm:min-h-11 sm:px-6"
+                  className="hidden min-h-10 items-center justify-center rounded-full bg-[#2200ff] px-4 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(34,0,255,0.3)] transition hover:-translate-y-0.5 hover:bg-[#1a00cc] md:inline-flex md:min-h-11 md:px-6"
                 >
                   Start free
                 </Link>
