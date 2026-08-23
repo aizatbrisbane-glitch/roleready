@@ -580,6 +580,10 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
   function continueFromJobStep() {
     setMessage("");
     if (!validateJobIntent()) return;
+    if (jobMode === "browse") {
+      if (!targetRole.trim()) setTargetRole(browseKeywords.trim());
+      if (!locationInput.trim()) setLocationInput(browseLocation.trim());
+    }
     saveDraft(currentDraft);
     setStep(4);
   }
