@@ -924,42 +924,46 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                     </button>
                   ))}
                 </div>
-                <div className="mt-6">
-                  <label className="block text-sm font-semibold text-slate-700">
-                    What role are you looking for?
-                  </label>
-                  <input
-                    type="text"
-                    value={targetRole}
-                    onChange={(e) => setTargetRole(e.target.value)}
-                    placeholder="e.g. Project Manager"
-                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
-                  />
-                  <p className="mt-1.5 text-xs text-slate-400">We use this to find the most relevant jobs for you on the dashboard.</p>
-                </div>
-                <div className="mt-5">
-                  <label className="block text-sm font-semibold text-slate-700">
-                    Where are you looking for work?
-                  </label>
-                  <input
-                    type="text"
-                    value={locationInput}
-                    onChange={(e) => setLocationInput(e.target.value)}
-                    placeholder="e.g. Sydney, London, Kuala Lumpur, Jakarta"
-                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
-                  />
-                  {locationInput.trim() && (() => {
-                    const info = inferCountry([locationInput]);
-                    return (
-                      <p className="mt-1.5 text-xs text-[#2200ff]">
-                        Searching {marketLabel(info)} for {info.joobleCountry} jobs
-                      </p>
-                    );
-                  })()}
-                  {!locationInput.trim() && (
-                    <p className="mt-1.5 text-xs text-slate-400">We&apos;ll search the right job boards for your market.</p>
-                  )}
-                </div>
+                {jobMode !== "browse" && (
+                  <>
+                    <div className="mt-6">
+                      <label className="block text-sm font-semibold text-slate-700">
+                        What role are you looking for?
+                      </label>
+                      <input
+                        type="text"
+                        value={targetRole}
+                        onChange={(e) => setTargetRole(e.target.value)}
+                        placeholder="e.g. Project Manager"
+                        className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
+                      />
+                      <p className="mt-1.5 text-xs text-slate-400">We use this to find the most relevant jobs for you on the dashboard.</p>
+                    </div>
+                    <div className="mt-5">
+                      <label className="block text-sm font-semibold text-slate-700">
+                        Where are you looking for work?
+                      </label>
+                      <input
+                        type="text"
+                        value={locationInput}
+                        onChange={(e) => setLocationInput(e.target.value)}
+                        placeholder="e.g. Sydney, London, Kuala Lumpur, Jakarta"
+                        className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
+                      />
+                      {locationInput.trim() && (() => {
+                        const info = inferCountry([locationInput]);
+                        return (
+                          <p className="mt-1.5 text-xs text-[#2200ff]">
+                            Searching {marketLabel(info)} for {info.joobleCountry} jobs
+                          </p>
+                        );
+                      })()}
+                      {!locationInput.trim() && (
+                        <p className="mt-1.5 text-xs text-slate-400">We&apos;ll search the right job boards for your market.</p>
+                      )}
+                    </div>
+                  </>
+                )}
                 {message && <p className="mt-4 text-sm text-rose-600">{message}</p>}
                 <div className="mt-6 flex items-center justify-between">
                   <button type="button" onClick={() => setStep(3)} className="text-sm font-medium text-slate-400 hover:text-slate-600">
