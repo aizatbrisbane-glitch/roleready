@@ -83,11 +83,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" className={inter.className}>
       <body className="overflow-x-hidden">
         <Script src="https://www.googletagmanager.com/gtag/js?id=G-R1ZFGNBD6D" strategy="afterInteractive" />
+        <Script src="https://www.googletagmanager.com/gtag/js?id=AW-18405510825" strategy="afterInteractive" />
         <Script id="ga-init" strategy="afterInteractive">{`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
           gtag('config', 'G-R1ZFGNBD6D');
+          gtag('config', 'AW-18405510825');
         `}</Script>
 
         {/* Meta Pixel — base code, fires PageView on every page. Two pixels share one script load. */}
