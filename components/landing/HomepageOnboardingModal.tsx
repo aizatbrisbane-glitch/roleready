@@ -134,6 +134,8 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
   const [browseLocation, setBrowseLocation] = useState(initialDraft?.browse?.location ?? "");
   const [browseWorkType, setBrowseWorkType] = useState(initialDraft?.browse?.workType ?? "");
   const [browseSalaryMin, setBrowseSalaryMin] = useState(initialDraft?.browse?.salaryMin ?? "");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState(initialDraft?.email ?? "");
   const [password, setPassword] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
@@ -271,11 +273,13 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
   async function submitAuthenticated() {
     setMessage("");
 
-    if (jobSearchIntent || targetRole.trim() || locationInput.trim()) {
+    const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+    if (jobSearchIntent || targetRole.trim() || locationInput.trim() || fullName) {
       await fetch("/api/profile/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          ...(fullName ? { name: fullName } : {}),
           ...(jobSearchIntent ? { job_search_intent: jobSearchIntent } : {}),
           ...(targetRole.trim() ? { target_job_titles: [targetRole.trim()] } : {}),
           ...(locationInput.trim() ? { location: locationInput.trim() } : {}),
@@ -407,10 +411,14 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       }
 
       // New user (or wrong password for returning user) — attempt sign-up.
+      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/` },
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/`,
+          data: fullName ? { full_name: fullName } : undefined,
+        },
       });
 
       if (signUpError) {
@@ -972,6 +980,16 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                   Create a free account to save your resume and generate your first tailored application for free.
                 </p>
                 <form onSubmit={handleAccountGate} className="mt-6 space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="block">
+                      <span className="mb-2 block text-sm font-semibold text-slate-600">First name</span>
+                      <input type="text" required className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-[#d4ccff]" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Jane" autoComplete="given-name" />
+                    </label>
+                    <label className="block">
+                      <span className="mb-2 block text-sm font-semibold text-slate-600">Last name</span>
+                      <input type="text" required className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-[#d4ccff]" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Smith" autoComplete="family-name" />
+                    </label>
+                  </div>
                   <label className="block">
                     <span className="mb-2 block text-sm font-semibold text-slate-600">Email</span>
                     <input type="email" required className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-[#d4ccff]" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
