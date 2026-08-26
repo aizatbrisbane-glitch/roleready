@@ -130,8 +130,6 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
   const [jobMode, setJobMode] = useState<JobMode>(initialDraft?.jobMode === "browse" ? "browse" : "url");
   const [jobUrl, setJobUrl] = useState(initialDraft?.jobUrl ?? "");
   const [jobDescription, setJobDescription] = useState(initialDraft?.jobDescription ?? "");
-  const [browseKeywords, setBrowseKeywords] = useState(initialDraft?.browse?.keywords ?? "");
-  const [browseLocation, setBrowseLocation] = useState(initialDraft?.browse?.location ?? "");
   const [browseWorkType, setBrowseWorkType] = useState(initialDraft?.browse?.workType ?? "");
   const [browseSalaryMin, setBrowseSalaryMin] = useState(initialDraft?.browse?.salaryMin ?? "");
   const [firstName, setFirstName] = useState("");
@@ -149,7 +147,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
   const [showPassword, setShowPassword] = useState(false);
   const [newsletterOptIn, setNewsletterOptIn] = useState(true);
   const [jobSearchIntent, setJobSearchIntent] = useState(initialDraft?.jobSearchIntent ?? "");
-  const [targetRole, setTargetRole] = useState("");
+  const [targetRole, setTargetRole] = useState(initialDraft?.browse?.keywords ?? "");
   const [locationInput, setLocationInput] = useState(initialDraft?.browse?.location ?? "");
 
   useEffect(() => {
@@ -209,15 +207,13 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       jobUrl,
       jobSearchIntent,
       browse: {
-        keywords: browseKeywords,
-        location: browseLocation,
+        keywords: targetRole,
+        location: locationInput,
         workType: browseWorkType,
         salaryMin: browseSalaryMin,
       },
     }),
     [
-      browseKeywords,
-      browseLocation,
       browseSalaryMin,
       browseWorkType,
       coverLetterFile,
@@ -228,8 +224,10 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       jobMode,
       jobSearchIntent,
       jobUrl,
+      locationInput,
       resumeFile,
       resumeFileKey,
+      targetRole,
     ]
   );
 
@@ -263,7 +261,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       setMessage("Paste the job description first.");
       return false;
     }
-    if (jobMode === "browse" && !browseKeywords.trim()) {
+    if (jobMode === "browse" && !targetRole.trim()) {
       setMessage("Add at least a keyword so we can prepare your job search.");
       return false;
     }
@@ -311,8 +309,8 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       window.localStorage.setItem(
         GRAB_PREFILL_STORAGE_KEY,
         JSON.stringify({
-          keywords: browseKeywords,
-          location: browseLocation,
+          keywords: targetRole,
+          location: locationInput,
           workType: browseWorkType,
           salaryMin: browseSalaryMin,
         })
@@ -580,10 +578,6 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
   function continueFromJobStep() {
     setMessage("");
     if (!validateJobIntent()) return;
-    if (jobMode === "browse") {
-      if (!targetRole.trim()) setTargetRole(browseKeywords.trim());
-      if (!locationInput.trim()) setLocationInput(browseLocation.trim());
-    }
     saveDraft(currentDraft);
     setStep(4);
   }
@@ -841,13 +835,13 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                   <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     <label className="block">
                       <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Keywords</span>
-                      <input className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-[#d4ccff]" value={browseKeywords} onChange={(e) => setBrowseKeywords(e.target.value)} placeholder="Governance manager" />
+                      <input className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-[#d4ccff]" value={targetRole} onChange={(e) => setTargetRole(e.target.value)} placeholder="Governance manager" />
                     </label>
                     <label className="block">
                       <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Preferred location</span>
-                      <input className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-[#d4ccff]" value={browseLocation} onChange={(e) => setBrowseLocation(e.target.value)} placeholder="e.g. Sydney, London, Jakarta" />
-                      {browseLocation.trim() && (() => {
-                        const info = inferCountry([browseLocation]);
+                      <input className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-[#d4ccff]" value={locationInput} onChange={(e) => setLocationInput(e.target.value)} placeholder="e.g. Sydney, London, Jakarta" />
+                      {locationInput.trim() && (() => {
+                        const info = inferCountry([locationInput]);
                         return (
                           <p className="mt-1.5 text-xs text-[#2200ff]">
                             Searching {marketLabel(info)} for {info.joobleCountry} jobs
