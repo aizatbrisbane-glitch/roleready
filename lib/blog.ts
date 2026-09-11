@@ -56,7 +56,6 @@ export const blogArticles: BlogArticle[] = [
     title: "Fake Recruiters: Before You Reply to That DM",
     excerpt: "That exciting LinkedIn message about a new job opportunity might deserve a closer look. Here's how to tell whether the recruiter in your inbox is real.",
     category: "Job Search",
-    featured: true,
     author: "Koalapply",
     publishDate: "17 Aug 2026",
     readingTime: "5 min read",
@@ -2566,6 +2565,149 @@ export const blogArticles: BlogArticle[] = [
         ],
       },
     ],
+  },
+  {
+    slug: "ats-keywords-what-they-are-where-to-put-them",
+    title: "ATS Keywords: What They Are, Where to Put Them and What Not to Do",
+    excerpt: "Your resume might have the right experience but still not get noticed. Here is how ATS keywords work, where to use them, and the mistakes that are quietly hurting your chances.",
+    category: "Resumes",
+    author: "Koalapply Team",
+    publishDate: "11 Sep 2026",
+    readingTime: "5 min read",
+    image: "/blog/ats-keywords-what-they-are-where-to-put-them.png",
+    imageAlt: "ATS Keywords: What They Are, Where to Put Them and What Not to Do",
+    featured: true,
+    sections: [
+      {
+        id: "what-are-ats-keywords",
+        title: "What are ATS keywords?",
+        paragraphs: [
+          "You find a job you want, update your resume, hit Apply… and hear nothing.",
+          "Sometimes the issue is not your experience. It is that your resume does not make the match obvious enough. That is where ATS keywords come in.",
+          "ATS stands for Applicant Tracking System. Employers use these systems to manage applications, and recruiters may search resumes using specific skills, job titles, qualifications or experience. ATS keywords are the words and phrases that describe what the employer is looking for, such as:",
+        ],
+        bullets: [
+          "Job titles",
+          "Technical skills",
+          "Software and platforms",
+          "Qualifications and certifications",
+          "Industry terminology",
+          "Responsibilities",
+          "Soft skills",
+        ],
+      },
+      {
+        id: "keyword-example",
+        title: "",
+        paragraphs: [
+          "For example, if a Digital Marketing Manager role asks for SEO, paid search, Google Analytics and HubSpot, and you genuinely have those skills, say so clearly. Instead of, \"Managed digital marketing activities and worked with internal teams,\" write, \"Managed SEO and paid search campaigns using Google Analytics and HubSpot.\" Same experience. Much clearer match.",
+          "Not sure whether your resume is picking up the right keywords? Koalapply's free ATS Checker can compare your resume with a job description and show where your match could be stronger.",
+        ],
+      },
+      {
+        id: "where-to-find-keywords",
+        title: "Where do you find the right keywords?",
+        paragraphs: [
+          "Start with the job ad. Look for:",
+        ],
+        bullets: [
+          "Skills that appear more than once",
+          "Essential requirements",
+          "Specific software or systems",
+          "Qualifications and certifications",
+          "Key responsibilities",
+          "Industry terminology",
+        ],
+      },
+      {
+        id: "keyword-language",
+        title: "",
+        paragraphs: [
+          "If the ad asks for Power BI and you use Power BI, say Power BI. \"Experienced with reporting tools\" is much less useful.",
+          "The same applies to language. If you wrote \"worked with different teams\" but the employer uses \"cross-functional stakeholder management\", use the more specific wording if it accurately describes your experience.",
+        ],
+      },
+      {
+        id: "where-to-put-keywords",
+        title: "Where should you put ATS keywords?",
+        paragraphs: [
+          "Use them naturally throughout your resume.",
+        ],
+        items: [
+          {
+            heading: "Your professional summary",
+            paragraphs: [
+              "Instead of, \"Experienced marketing professional with strong communication skills,\" try, \"Digital Marketing Manager with seven years' experience across SEO, paid search, content strategy and Google Analytics.\"",
+            ],
+          },
+          {
+            heading: "Your skills section",
+            paragraphs: [
+              "Keep it simple: SEO | Paid Search | Google Analytics | HubSpot | Campaign Management.",
+            ],
+          },
+          {
+            heading: "Your work experience",
+            paragraphs: [
+              "This is where you show how you used the skill.",
+              "Instead of, \"Responsible for project management,\" try, \"Managed technology projects using Agile and Jira, coordinating timelines, risks and stakeholders.\"",
+            ],
+          },
+          {
+            heading: "Your achievements",
+            paragraphs: [
+              "Keywords are stronger when paired with results. For example: \"Led SEO optimisation across 120 product pages, contributing to a 32% increase in organic traffic.\"",
+            ],
+          },
+        ],
+      },
+      {
+        id: "exact-wording",
+        title: "Should you use the exact wording from the job ad?",
+        paragraphs: [
+          "Yes, only when it is accurate. If the employer asks for stakeholder management and you have that experience, use the words \"stakeholder management\". You do not get bonus points for making it harder for recruiters to understand what you do.",
+          "Just do not add skills you do not have. Tailoring your resume means highlighting relevant experience, not inventing it. Because inventing experience may not end well.",
+        ],
+      },
+      {
+        id: "what-not-to-do",
+        title: "What not to do",
+        bullets: [
+          "Don't keyword-stuff — \"Project Manager with project management experience managing projects using project management methodologies\" is not helping anyone. Use the keyword where it makes sense, then move on.",
+          "Don't copy the job ad — Some jobseekers paste the job description into their resume or hide it in tiny white text. Just don't. Your resume should explain why you suit the role, not secretly contain the employer's own advertisement.",
+          "Don't claim skills you do not have — If the job asks for Python and you have never used Python, adding it to your resume will not guarantee you the job. If you are learning it, say so accurately.",
+          "Don't obsess over an ATS score — There is no universal ATS score used by every employer. A match score can be useful guidance, but it is not a guarantee of an interview.",
+          "Don't forget the human reader — Your resume still needs to sound natural and make sense to a recruiter. If you have forced so many keywords into it that it reads like a robot wrote it, you have gone too far.",
+        ],
+      },
+      {
+        id: "quick-check",
+        title: "The quick ATS keyword check",
+        paragraphs: [
+          "Before you apply, ask:",
+        ],
+        bullets: [
+          "What are the most important skills in the job ad?",
+          "Which of those do I genuinely have?",
+          "Are they clearly visible in my resume?",
+          "Have I used the employer's terminology where appropriate?",
+          "Have I shown evidence of those skills?",
+        ],
+      },
+      {
+        id: "conclusion",
+        title: "",
+        paragraphs: [
+          "That is really the point of ATS keywords — not tricking software, and not chasing a magic score. It's all about making it easier for the employer to see why your experience matches the job. Koalapply can help you check your ATS match, find relevant keywords and tailor your resume before you apply.",
+          "Because the goal is not to impress a robot. It is to make it easier for the right human to put you on the shortlist.",
+        ],
+      },
+    ],
+    midCta: {
+      afterSectionId: "keyword-example",
+      heading: "See how your resume matches the job",
+      subtext: "Koalapply's free ATS Checker compares your resume to any job description and shows you exactly where to improve your keyword match.",
+    },
   },
 ];
 
