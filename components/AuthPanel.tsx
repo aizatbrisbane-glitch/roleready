@@ -125,6 +125,13 @@ export function AuthPanel({ redirectTo = "/", initialMode = "signin" }: { redire
       return;
     }
 
+    // Supabase returns 200 with empty identities when the email is already registered
+    if (data.user && (!data.user.identities || data.user.identities.length === 0)) {
+      setMessage("An account with this email already exists. Please sign in instead.");
+      setLoading(false);
+      return;
+    }
+
     if (data.session) {
       if (newsletterOptIn) {
         fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }), keepalive: true }).catch(() => {});
