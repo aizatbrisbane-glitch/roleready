@@ -383,7 +383,7 @@ async function fetchJobWithScrapeDo(url: string): Promise<JobAdDetails | null> {
 
   try {
     const res = await fetch(
-      `https://api.scrape.do?token=${token}&url=${encodeURIComponent(url)}&render=true&geoCode=${geoCode}&waitFor=${waitFor}`,
+      `https://api.scrape.do?token=${token}&url=${encodeURIComponent(url)}&super=true&geoCode=${geoCode}&waitFor=${waitFor}`,
       { signal: AbortSignal.timeout(90000) }
     );
 
