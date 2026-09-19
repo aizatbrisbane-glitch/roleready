@@ -369,9 +369,11 @@ async function fetchJobWithScrapeDo(url: string): Promise<JobAdDetails | null> {
   const token = process.env.SCRAPE_DO_TOKEN;
   if (!token) return null;
 
+  const geoCode = process.env.SCRAPE_DO_GEO_CODE ?? "au";
+
   try {
     const res = await fetch(
-      `https://api.scrape.do?token=${token}&url=${encodeURIComponent(url)}&render=true`,
+      `https://api.scrape.do?token=${token}&url=${encodeURIComponent(url)}&render=true&geoCode=${geoCode}`,
       { signal: AbortSignal.timeout(45000) }
     );
 
@@ -396,7 +398,12 @@ async function fetchJobWithScrapeDo(url: string): Promise<JobAdDetails | null> {
       (structured?.description ? htmlToText(String(structured.description)) : "") ||
       meta(html, ["description", "og:description"]);
 
-    if (!description || description.trim().length < 100) return null;
+    if (!description || description.trim().length < 100) {
+      console.warn(
+        `[job-ad] Scrape.do 2xx but no job extracted — status: ${res.status}, body: ${html.length} chars, preview: ${html.slice(0, 500)}`
+      );
+      return null;
+    }
 
     const rawTitle =
       nd?.title ||
