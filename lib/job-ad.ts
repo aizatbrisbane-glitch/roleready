@@ -903,6 +903,8 @@ async function fetchSeekDirectApi(url: string): Promise<JobAdDetails | null> {
     if (!res.ok) return null;
 
     const data = await res.json();
+    console.log(`[job-ad] SEEK API raw title: ${JSON.stringify(String(data.title ?? "").slice(0, 120))}`);
+    console.log(`[job-ad] SEEK API raw company: ${JSON.stringify(String(data.companyReview?.companyName ?? data.advertiser?.description ?? "").slice(0, 120))}`);
 
     const description = typeof data.jobAdDetails === "string"
       ? htmlToText(data.jobAdDetails)
