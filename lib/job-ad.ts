@@ -867,10 +867,86 @@ async function fetchWithScrapingFallbacks(url: string): Promise<JobAdDetails | n
   ).catch(() => null);
 }
 
+// ─── SEEK Chalice direct API ────────────────────────────────────────────────
+// SEEK loads job details client-side from their Chalice API. Calling it directly
+// avoids browser rendering entirely and is orders of magnitude faster.
+
+function extractSeekJobId(url: string): string | null {
+  try {
+    const match = new URL(url).pathname.match(/\/job\/(\d+)/);
+    return match?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchSeekDirectApi(url: string): Promise<JobAdDetails | null> {
+  const jobId = extractSeekJobId(url);
+  if (!jobId) return null;
+
+  try {
+    const res = await fetch(
+      `https://chalice-experience-api.cloud.seek.com.au/job/${jobId}?zone=anz-1&locale=AU&isSourcrEnabled=true`,
+      {
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+          "sec-fetch-mode": "cors",
+          "sec-fetch-site": "same-origin",
+        },
+        signal: AbortSignal.timeout(10000),
+      }
+    );
+
+    console.log(`[job-ad] SEEK direct API HTTP ${res.status}`);
+    if (!res.ok) return null;
+
+    const data = await res.json();
+
+    const description = typeof data.jobAdDetails === "string"
+      ? htmlToText(data.jobAdDetails)
+      : "";
+    if (!description || description.trim().length < 100) return null;
+
+    const title = firstString(data.title, "Job from SEEK");
+    const company = firstString(
+      data.companyReview?.companyName,
+      data.advertiser?.description,
+      "Company from job ad"
+    );
+    const location = firstString(
+      data.locationHierarchy?.suburb,
+      data.locationHierarchy?.city,
+      data.locationHierarchy?.area,
+      data.locationHierarchy?.state,
+      ""
+    );
+    const salary = firstString(data.salary, "");
+
+    console.log(`[job-ad] SEEK direct API ok — title: "${title}", desc length: ${description.length}`);
+    return {
+      title,
+      company,
+      location,
+      salary,
+      description: description.slice(0, 30000),
+      expiresAt: null,
+    };
+  } catch (e) {
+    console.warn("[job-ad] SEEK direct API failed:", e);
+    return null;
+  }
+}
+
 // ─── Main export ────────────────────────────────────────────────────────────
 
 async function fetchSeekWithFallbacks(url: string): Promise<JobAdDetails | null> {
-  // Race Scrape.do (Cloudflare bypass, up to 45s) and Firecrawl (45s) in parallel.
+  // 1. Try SEEK's Chalice API directly — no browser, returns in < 1s.
+  const direct = await fetchSeekDirectApi(url);
+  if (direct) return direct;
+
+  // 2. Race Scrape.do (super=true, residential AU proxy) and Firecrawl.
   const result = await Promise.any(
     [fetchJobWithScrapeDo(url), fetchJobWithFirecrawl(url)].map((p) =>
       p.then((r) => { if (!r) throw new Error("no result"); return r; })
@@ -879,7 +955,7 @@ async function fetchSeekWithFallbacks(url: string): Promise<JobAdDetails | null>
 
   if (result) return result;
 
-  // Skip Jina for SEEK — it can't bypass Cloudflare and only returns the og:description snippet.
+  // 3. Skip Jina for SEEK — it can't bypass Cloudflare and only returns the og:description snippet.
   return fetchJobWithBrowser(url);
 }
 
