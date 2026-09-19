@@ -184,6 +184,15 @@ function nestedString(value: unknown, ...keys: string[]) {
   return firstString(current);
 }
 
+/** Extract text from the first element with a given data-automation value (for CSR-rendered pages). */
+function extractByDataAutomation(html: string, value: string, maxLen = 30000): string {
+  const idx = html.indexOf(`data-automation="${value}"`);
+  if (idx === -1) return "";
+  const tagEnd = html.indexOf('>', idx);
+  if (tagEnd === -1) return "";
+  return htmlToText(html.slice(tagEnd + 1, tagEnd + 1 + maxLen)).trim();
+}
+
 function scriptJson(html: string): any {
   const matches =
     html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi) ?? [];
@@ -370,11 +379,12 @@ async function fetchJobWithScrapeDo(url: string): Promise<JobAdDetails | null> {
   if (!token) return null;
 
   const geoCode = process.env.SCRAPE_DO_GEO_CODE ?? "au";
+  const waitFor = process.env.SCRAPE_DO_WAIT_FOR ?? "5000";
 
   try {
     const res = await fetch(
-      `https://api.scrape.do?token=${token}&url=${encodeURIComponent(url)}&render=true&geoCode=${geoCode}`,
-      { signal: AbortSignal.timeout(45000) }
+      `https://api.scrape.do?token=${token}&url=${encodeURIComponent(url)}&render=true&geoCode=${geoCode}&waitFor=${waitFor}`,
+      { signal: AbortSignal.timeout(55000) }
     );
 
     console.log(`[job-ad] Scrape.do HTTP ${res.status}`);
@@ -393,9 +403,17 @@ async function fetchJobWithScrapeDo(url: string): Promise<JobAdDetails | null> {
     const structured = scriptJson(html);
     const nd = nextDataJob(html);
 
+    // DOM-based extraction for CSR pages (e.g. SEEK loads job data via client API calls,
+    // so __NEXT_DATA__ and ld+json are absent — the content lives in rendered DOM elements)
+    const domDescription =
+      extractByDataAutomation(html, "jobAdDetails") ||
+      extractByDataAutomation(html, "job-detail-description") ||
+      extractByDataAutomation(html, "jobDescription");
+
     const description =
       nd?.description ||
       (structured?.description ? htmlToText(String(structured.description)) : "") ||
+      domDescription ||
       meta(html, ["description", "og:description"]);
 
     if (!description || description.trim().length < 100) {
@@ -415,10 +433,13 @@ async function fetchJobWithScrapeDo(url: string): Promise<JobAdDetails | null> {
       }
       const hasJobPosting = html.includes('"JobPosting"');
       const ogDesc = meta(html, ["og:description"]);
+      const domAutomationAttrs = ["jobAdDetails", "job-detail-description", "jobDescription", "job-detail-title", "advertiser-name"]
+        .filter(a => html.includes(`data-automation="${a}"`));
       console.warn(
         `[job-ad] Scrape.do 2xx but no job extracted — status: ${res.status}, body: ${html.length} chars` +
         `\n  __NEXT_DATA__: ${ndDiag}` +
         `\n  JobPosting ld+json: ${hasJobPosting}` +
+        `\n  data-automation attrs found: [${domAutomationAttrs.join(", ") || "none"}]` +
         `\n  og:description (${ogDesc.length} chars): "${ogDesc.slice(0, 300)}"`
       );
       return null;
@@ -427,6 +448,7 @@ async function fetchJobWithScrapeDo(url: string): Promise<JobAdDetails | null> {
     const rawTitle =
       nd?.title ||
       (structured?.title ? decodeHtml(String(structured.title)) : "") ||
+      extractByDataAutomation(html, "job-detail-title", 200) ||
       meta(html, ["og:title", "twitter:title"]) ||
       "";
     const title = rawTitle
@@ -436,17 +458,20 @@ async function fetchJobWithScrapeDo(url: string): Promise<JobAdDetails | null> {
     const company =
       nd?.company ||
       (structured?.hiringOrganization?.name ? decodeHtml(String(structured.hiringOrganization.name)) : "") ||
+      extractByDataAutomation(html, "advertiser-name", 200) ||
       "Company from job ad";
 
     const location =
       nd?.location ||
       (structured?.jobLocation?.address?.addressLocality
         ? decodeHtml(String(structured.jobLocation.address.addressLocality))
-        : "");
+        : "") ||
+      extractByDataAutomation(html, "job-detail-location", 200);
 
     const salary =
       nd?.salary ||
-      (structured?.baseSalary?.value?.value ? String(structured.baseSalary.value.value) : "");
+      (structured?.baseSalary?.value?.value ? String(structured.baseSalary.value.value) : "") ||
+      extractByDataAutomation(html, "job-detail-salary", 200);
 
     console.log(`[job-ad] Scrape.do ok — title: "${title}", desc length: ${description.length}`);
     return {
