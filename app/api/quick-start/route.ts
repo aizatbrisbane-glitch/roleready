@@ -3,7 +3,7 @@ import { extractTextFromFile } from "@/lib/file-text";
 import { fetchJobAdDetails, detectJobSource, isBlockedJobBoard, isSearchResultsPage, normaliseJobUrl } from "@/lib/job-ad";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 export const preferredRegion = ["syd1"];
 
 const JOB_TEXT_UNAVAILABLE = "JOB_TEXT_UNAVAILABLE";

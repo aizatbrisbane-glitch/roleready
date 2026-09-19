@@ -379,12 +379,12 @@ async function fetchJobWithScrapeDo(url: string): Promise<JobAdDetails | null> {
   if (!token) return null;
 
   const geoCode = process.env.SCRAPE_DO_GEO_CODE ?? "au";
-  const waitFor = process.env.SCRAPE_DO_WAIT_FOR ?? "5000";
+  const waitFor = process.env.SCRAPE_DO_WAIT_FOR ?? "2000";
 
   try {
     const res = await fetch(
       `https://api.scrape.do?token=${token}&url=${encodeURIComponent(url)}&render=true&geoCode=${geoCode}&waitFor=${waitFor}`,
-      { signal: AbortSignal.timeout(55000) }
+      { signal: AbortSignal.timeout(90000) }
     );
 
     console.log(`[job-ad] Scrape.do HTTP ${res.status}`);
