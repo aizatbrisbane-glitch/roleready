@@ -909,20 +909,28 @@ async function fetchSeekDirectApi(url: string): Promise<JobAdDetails | null> {
       : "";
     if (!description || description.trim().length < 100) return null;
 
-    const title = htmlToText(firstString(data.title, "")).trim() || "Job from SEEK";
-    const company = htmlToText(firstString(
+    // SEEK API embeds UI elements (buttons, SVG icons) directly in text fields,
+    // sometimes as unclosed tags that htmlToText's regex won't match. Slicing at
+    // the first '<' is safe — job titles and company names never contain '<'.
+    const seekText = (raw: string) => {
+      const s = htmlToText(raw).trim();
+      return s.includes('<') ? s.split('<')[0].trim() : s;
+    };
+
+    const title = seekText(firstString(data.title, "")) || "Job from SEEK";
+    const company = seekText(firstString(
       data.companyReview?.companyName,
       data.advertiser?.description,
       ""
-    )).trim() || "Company from job ad";
-    const location = htmlToText(firstString(
+    )) || "Company from job ad";
+    const location = seekText(firstString(
       data.locationHierarchy?.suburb,
       data.locationHierarchy?.city,
       data.locationHierarchy?.area,
       data.locationHierarchy?.state,
       ""
-    )).trim();
-    const salary = htmlToText(firstString(data.salary, "")).trim();
+    ));
+    const salary = seekText(firstString(data.salary, ""));
 
     console.log(`[job-ad] SEEK direct API ok — title: "${title}", desc length: ${description.length}`);
     return {
