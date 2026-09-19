@@ -909,20 +909,20 @@ async function fetchSeekDirectApi(url: string): Promise<JobAdDetails | null> {
       : "";
     if (!description || description.trim().length < 100) return null;
 
-    const title = firstString(data.title, "Job from SEEK");
-    const company = firstString(
+    const title = htmlToText(firstString(data.title, "")).trim() || "Job from SEEK";
+    const company = htmlToText(firstString(
       data.companyReview?.companyName,
       data.advertiser?.description,
-      "Company from job ad"
-    );
-    const location = firstString(
+      ""
+    )).trim() || "Company from job ad";
+    const location = htmlToText(firstString(
       data.locationHierarchy?.suburb,
       data.locationHierarchy?.city,
       data.locationHierarchy?.area,
       data.locationHierarchy?.state,
       ""
-    );
-    const salary = firstString(data.salary, "");
+    )).trim();
+    const salary = htmlToText(firstString(data.salary, "")).trim();
 
     console.log(`[job-ad] SEEK direct API ok — title: "${title}", desc length: ${description.length}`);
     return {
