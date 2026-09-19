@@ -399,8 +399,27 @@ async function fetchJobWithScrapeDo(url: string): Promise<JobAdDetails | null> {
       meta(html, ["description", "og:description"]);
 
     if (!description || description.trim().length < 100) {
+      const hasNextData = html.includes('id="__NEXT_DATA__"') || html.includes("id='__NEXT_DATA__'");
+      let ndDiag = "absent";
+      if (hasNextData) {
+        try {
+          const ndMatch = html.match(/<script[^>]+id=["']__NEXT_DATA__["'][^>]*>([\s\S]*?)<\/script>/i);
+          if (ndMatch?.[1]) {
+            const ndParsed = JSON.parse(ndMatch[1]);
+            const pp = ndParsed?.props?.pageProps;
+            ndDiag = pp
+              ? `present — pageProps keys: [${Object.keys(pp).slice(0, 20).join(", ")}]`
+              : `present — no pageProps (props keys: [${Object.keys(ndParsed?.props ?? {}).slice(0, 10).join(", ")}])`;
+          }
+        } catch { ndDiag = "present but JSON parse error"; }
+      }
+      const hasJobPosting = html.includes('"JobPosting"');
+      const ogDesc = meta(html, ["og:description"]);
       console.warn(
-        `[job-ad] Scrape.do 2xx but no job extracted — status: ${res.status}, body: ${html.length} chars, preview: ${html.slice(0, 500)}`
+        `[job-ad] Scrape.do 2xx but no job extracted — status: ${res.status}, body: ${html.length} chars` +
+        `\n  __NEXT_DATA__: ${ndDiag}` +
+        `\n  JobPosting ld+json: ${hasJobPosting}` +
+        `\n  og:description (${ogDesc.length} chars): "${ogDesc.slice(0, 300)}"`
       );
       return null;
     }
