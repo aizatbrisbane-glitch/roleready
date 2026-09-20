@@ -52,6 +52,92 @@ export const blogCategories: BlogCategory[] = [
 
 export const blogArticles: BlogArticle[] = [
   {
+    slug: "reconnecting-with-former-colleagues-job-search",
+    title: "Long Time, No Chat: Reconnecting With Former Colleagues During Your Job Search",
+    excerpt: "Reaching out to old colleagues can feel awkward when you're job hunting — but you don't need a perfect reason or an impressive update. Here's how to do it without the cringe.",
+    category: "Job Search",
+    featured: true,
+    author: "Koalapply",
+    publishDate: "20 Sep 2026",
+    readingTime: "4 min read",
+    image: "/blog/reconnecting-with-former-colleagues.jpg",
+    imageAlt: "Person typing a message to reconnect with a former colleague",
+    relatedSlugs: [
+      "fake-recruiters-before-you-reply-to-that-dm",
+      "why-youre-not-getting-interviews-even-with-experience",
+      "should-you-apply-if-you-only-meet-70-percent-of-requirements",
+    ],
+    midCta: {
+      afterSectionId: "help-them-understand",
+      heading: "Applying for roles at the same time?",
+      subtext: "Upload your resume to Koalapply and we'll tailor it to the job description in minutes — free to try.",
+    },
+    sections: [
+      {
+        id: "intro",
+        title: "",
+        paragraphs: [
+          "You've opened LinkedIn, found an old colleague and started typing.",
+          "Then comes the doubt. Will they think I'm only reaching out because I need a job?",
+          "So you delete the message.",
+          "If that sounds familiar, you're not alone. Reconnecting can feel awkward, especially when your job search has gone on longer than you expected. But you're allowed to get back in touch. You don't need a perfect reason or an impressive update.",
+        ],
+      },
+      {
+        id: "start-with-someone-you-liked",
+        title: "Start with someone you liked",
+        paragraphs: [
+          "Forget building a huge contact list. Think of three people you enjoyed working with: a teammate, a supportive manager or someone who helped you through a hectic project.",
+          "Start with whoever feels easiest to message.",
+        ],
+      },
+      {
+        id: "skip-the-big-apology",
+        title: "Skip the big apology",
+        paragraphs: [
+          "You don't need to explain every year you've been out of touch. Be warm, be honest and give them something easy to respond to.",
+          "\"Hi Sam! It's been ages. How have you been? I'm looking for my next role in [area] and thought I'd get back in touch. Would love to hear what you're up to. Fancy a quick catch-up sometime?\"",
+          "Yes, you can mention your job search. There's no need to spend six messages pretending you reached out about the weather.",
+        ],
+      },
+      {
+        id: "help-them-understand",
+        title: "Help them understand what you're looking for",
+        paragraphs: [
+          "When you need work, \"I'll take anything\" can feel pretty accurate. But it's hard for someone to act on.",
+          "Give them a little direction: \"I'm looking for customer service or operations roles where I can use my experience managing enquiries and keeping things organised. If anything comes to mind, I'd love to hear about it.\"",
+          "You're giving them something to remember when an opportunity comes up.",
+        ],
+      },
+      {
+        id: "make-it-a-conversation",
+        title: "Make it a conversation",
+        paragraphs: [
+          "Ask about their work and what's changed since you last spoke. You might discover they've moved industries, faced their own job search or ended up somewhere unexpected.",
+          "You don't have to turn the catch-up into a pitch. There's room to talk about your search and enjoy reconnecting with someone.",
+        ],
+      },
+      {
+        id: "send-one-follow-up",
+        title: "Send one follow-up, then leave the door open",
+        paragraphs: [
+          "No reply? Give it a week or two, then try: \"Hi Sam, just checking in in case this got buried. Would still be lovely to catch up when you have a moment.\"",
+          "After that, leave it there. People get busy. An unanswered message isn't a verdict on you.",
+        ],
+      },
+      {
+        id: "keep-the-connection-going",
+        title: "Keep the connection going",
+        paragraphs: [
+          "Thank them for their time. If their advice helped, tell them. Check in again occasionally, even when you don't need anything.",
+          "And if they mention a vacancy, ask how they'd prefer you to follow up before sending over your resume.",
+          "Your first message doesn't have to lead to a job to be worthwhile. Reopening a conversation is a good start.",
+          "Pick one person. Send the message. You don't need to have everything figured out first.",
+        ],
+      },
+    ],
+  },
+  {
     slug: "fake-recruiters-before-you-reply-to-that-dm",
     title: "Fake Recruiters: Before You Reply to That DM",
     excerpt: "That exciting LinkedIn message about a new job opportunity might deserve a closer look. Here's how to tell whether the recruiter in your inbox is real.",
