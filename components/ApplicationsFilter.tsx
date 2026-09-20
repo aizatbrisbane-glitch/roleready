@@ -307,8 +307,8 @@ function DesktopRow({ application, index, expanded, summaryState, onToggleSummar
           </span>
         </td>
 
-        <td className={`${tdBase} px-2 text-sm text-slate-600`}>
-          {application.hiring_manager || <span className="text-slate-300">{EMPTY}</span>}
+        <td className={`${tdBase} px-2`}>
+          <InlineStatusSelect applicationId={application.id} initialStatus={status as ApplicationStatus} />
         </td>
 
         <td className={`${tdBase} px-2 text-sm text-slate-600`}>
@@ -316,15 +316,11 @@ function DesktopRow({ application, index, expanded, summaryState, onToggleSummar
         </td>
 
         <td className={`${tdBase} px-2 text-sm text-slate-600`}>
-          {application.applied_at ? shortDate(application.applied_at) : <span className="text-slate-300">{EMPTY}</span>}
+          {application.hiring_manager || <span className="text-slate-300">{EMPTY}</span>}
         </td>
 
         <td className={`${tdBase} px-2 text-sm`}>
           {job?.expires_at ? <ExpiryBadge expiresAt={job.expires_at} /> : <span className="text-slate-300">{EMPTY}</span>}
-        </td>
-
-        <td className={`${tdBase} px-2`}>
-          <InlineStatusSelect applicationId={application.id} initialStatus={status as ApplicationStatus} />
         </td>
 
         <td className={`${tdBase} rounded-r-[1.2rem] pl-2 pr-4`}>
@@ -578,13 +574,12 @@ export function ApplicationsFilter({ applications }: { applications: Application
               <colgroup>
                 <col className="w-[44px]" />
                 <col />
-                <col className="w-[90px]" />
+                <col className="w-[80px]" />
                 <col className="w-[150px]" />
-                <col className="w-[120px]" />
-                <col className="w-[85px]" />
-                <col className="w-[100px]" />
-                <col className="w-[160px]" />
-                <col className="w-[125px]" />
+                <col className="w-[110px]" />
+                <col className="w-[110px]" />
+                <col className="w-[80px]" />
+                <col className="w-[110px]" />
               </colgroup>
               <thead>
                 <tr>
@@ -600,11 +595,10 @@ export function ApplicationsFilter({ applications }: { applications: Application
                   </th>
                   <th className="pb-1 pl-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-400" />
                   <th className="pb-1 px-2 text-center text-xs font-semibold uppercase tracking-wider text-slate-400">Match</th>
-                  <th className="pb-1 px-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Recruiter</th>
+                  <th className="pb-1 px-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Status</th>
                   <th className="pb-1 px-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Salary</th>
-                  <th className="pb-1 px-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Applied</th>
+                  <th className="pb-1 px-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Recruiter</th>
                   <th className="pb-1 px-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Closes</th>
-                  <th className="pb-1 px-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-400 min-w-[130px]">Status</th>
                   <th className="pb-1 pr-4" />
                 </tr>
               </thead>

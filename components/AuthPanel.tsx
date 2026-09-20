@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Eye } from "lucide-react";
+import { Eye } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { ErrorToast } from "@/components/ErrorToast";
 import { analytics } from "@/lib/analytics";
@@ -330,10 +330,28 @@ export function AuthPanel({ redirectTo = "/", initialMode = "signin" }: { redire
         <div className="flex justify-center">
           <Link href="/"><img src="/brand/koalapply-favicon-wordmark.png" alt="Koalapply" className="h-20 w-auto" /></Link>
         </div>
-        <h1 className="mt-7 text-3xl font-bold text-slate-900">
+        {mode !== "forgot" && (
+          <div className="mt-6 flex rounded-2xl bg-slate-100 p-1">
+            <button
+              type="button"
+              onClick={() => switchMode("signin")}
+              className={`flex-1 rounded-xl py-2.5 text-sm font-semibold transition-all ${isSignin ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+            >
+              Sign in
+            </button>
+            <button
+              type="button"
+              onClick={() => switchMode("signup")}
+              className={`flex-1 rounded-xl py-2.5 text-sm font-semibold transition-all ${isSignup ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+            >
+              Create account
+            </button>
+          </div>
+        )}
+        <h1 className="mt-6 text-2xl font-bold text-slate-900">
           {mode === "forgot" ? "Reset your password" : isSignup ? "Create your account" : "Welcome back! 👋"}
         </h1>
-        <p className="mt-3 text-base leading-7 text-slate-600">
+        <p className="mt-2 text-sm leading-6 text-slate-500">
           {mode === "forgot"
             ? "Enter your email and we'll send a reset link."
             : isSignup
@@ -439,23 +457,13 @@ export function AuthPanel({ redirectTo = "/", initialMode = "signin" }: { redire
         </button>
       </div>
 
-      <div className="mt-8 text-center text-base text-slate-500">
-        {mode === "signin" ? (
-          <>
-            New here?{" "}
-            <button className="inline-flex items-center gap-2 font-semibold text-[#2200ff] hover:text-[#1a00cc]" type="button" onClick={() => switchMode("signup")}>
-              Create an account <ArrowRight className="h-4 w-4" />
-            </button>
-          </>
-        ) : (
-          <>
-            Already have an account?{" "}
-            <button className="font-semibold text-[#2200ff] hover:text-[#1a00cc]" type="button" onClick={() => switchMode("signin")}>
-              Sign in
-            </button>
-          </>
-        )}
-      </div>
+      {mode === "forgot" && (
+        <div className="mt-6 text-center text-sm text-slate-500">
+          <button className="font-semibold text-[#2200ff] hover:text-[#1a00cc]" type="button" onClick={() => switchMode("signin")}>
+            ← Back to sign in
+          </button>
+        </div>
+      )}
 
     </div>
   );
