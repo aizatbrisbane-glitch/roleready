@@ -184,6 +184,17 @@ function nestedString(value: unknown, ...keys: string[]) {
   return firstString(current);
 }
 
+/**
+ * Strip HTML from a short text field (title, company, location).
+ * htmlToText removes complete tags; split('<') handles unclosed/partial tags
+ * that SEEK's API embeds (e.g. "<span class="..." without a closing ">").
+ * Safe because job titles and company names never legitimately contain "<".
+ */
+function plainTextField(s: string): string {
+  const stripped = htmlToText(s).trim();
+  return stripped.includes('<') ? stripped.split('<')[0].trim() : stripped;
+}
+
 /** Extract text from the first element with a given data-automation value (for CSR-rendered pages). */
 function extractByDataAutomation(html: string, value: string, maxLen = 30000): string {
   const idx = html.indexOf(`data-automation="${value}"`);
@@ -445,28 +456,30 @@ async function fetchJobWithScrapeDo(url: string): Promise<JobAdDetails | null> {
       return null;
     }
 
-    const rawTitle =
+    const rawTitle = plainTextField(
       nd?.title ||
       (structured?.title ? decodeHtml(String(structured.title)) : "") ||
       extractByDataAutomation(html, "job-detail-title", 200) ||
       meta(html, ["og:title", "twitter:title"]) ||
-      "";
+      ""
+    );
     const title = rawTitle
       .replace(/\s*[|–—\-]\s*(SEEK|LinkedIn|Indeed|Jora|Adzuna)[\s\S]*$/i, "")
       .trim() || "Job from link";
 
-    const company =
+    const company = plainTextField(
       nd?.company ||
       (structured?.hiringOrganization?.name ? decodeHtml(String(structured.hiringOrganization.name)) : "") ||
-      extractByDataAutomation(html, "advertiser-name", 200) ||
-      "Company from job ad";
+      extractByDataAutomation(html, "advertiser-name", 200)
+    ) || "Company from job ad";
 
-    const location =
+    const location = plainTextField(
       nd?.location ||
       (structured?.jobLocation?.address?.addressLocality
         ? decodeHtml(String(structured.jobLocation.address.addressLocality))
         : "") ||
-      extractByDataAutomation(html, "job-detail-location", 200);
+      extractByDataAutomation(html, "job-detail-location", 200)
+    );
 
     const salary =
       nd?.salary ||
@@ -911,28 +924,20 @@ async function fetchSeekDirectApi(url: string): Promise<JobAdDetails | null> {
       : "";
     if (!description || description.trim().length < 100) return null;
 
-    // SEEK API embeds UI elements (buttons, SVG icons) directly in text fields,
-    // sometimes as unclosed tags that htmlToText's regex won't match. Slicing at
-    // the first '<' is safe — job titles and company names never contain '<'.
-    const seekText = (raw: string) => {
-      const s = htmlToText(raw).trim();
-      return s.includes('<') ? s.split('<')[0].trim() : s;
-    };
-
-    const title = seekText(firstString(data.title, "")) || "Job from SEEK";
-    const company = seekText(firstString(
+    const title = plainTextField(firstString(data.title, "")) || "Job from SEEK";
+    const company = plainTextField(firstString(
       data.companyReview?.companyName,
       data.advertiser?.description,
       ""
     )) || "Company from job ad";
-    const location = seekText(firstString(
+    const location = plainTextField(firstString(
       data.locationHierarchy?.suburb,
       data.locationHierarchy?.city,
       data.locationHierarchy?.area,
       data.locationHierarchy?.state,
       ""
     ));
-    const salary = seekText(firstString(data.salary, ""));
+    const salary = plainTextField(firstString(data.salary, ""));
 
     console.log(`[job-ad] SEEK direct API ok — title: "${title}", desc length: ${description.length}`);
     return {
