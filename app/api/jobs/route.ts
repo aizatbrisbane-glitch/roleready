@@ -1,3 +1,5 @@
+import { scheduleAnalytics } from "@/lib/analytics-background";
+import { recordGAEvent } from "@/lib/ga4";
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { fetchJobAdDetails, normaliseJobUrl } from "@/lib/job-ad";
@@ -77,9 +79,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: applicationError?.message ?? "Unable to create application." }, { status: 400 });
   }
 
-  const { data: profileRow } = await supabase.from("profiles").select("name").eq("id", user.id).maybeSingle();
-  const firstName = (profileRow?.name ?? "").split(" ")[0] || null;
-  void logEvent("APPLICATION_CREATED", user.id, { first_name: firstName });
+  scheduleAnalytics(async () => {
+    const { data: profileRow } = await supabase.from("profiles").select("name").eq("id", user.id).maybeSingle();
+    const firstName = (profileRow?.name ?? "").split(" ")[0] || null;
+    await logEvent("APPLICATION_CREATED", user.id, { first_name: firstName });
+  });
 
+  scheduleAnalytics(() => recordGAEvent({ name: "job_added", key: `job:${job.id}`, userId: user.id }));
   return NextResponse.json({ applicationId: application.id });
 }

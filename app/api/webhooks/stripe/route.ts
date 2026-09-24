@@ -1,3 +1,4 @@
+import { scheduleAnalytics } from "@/lib/analytics-background";
 ﻿import { createHmac } from "crypto";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
@@ -7,6 +8,8 @@ import { getStripeWebhookSecret } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { logEvent } from "@/lib/events";
 import { trackPurchaseServerSide } from "@/lib/server-analytics";
+import { recordVerifiedPurchase, checkoutIdentity } from "@/lib/stripe-analytics";
+import { gaEnabled, dispatchGAEvents } from "@/lib/ga4";
 import type { EntitlementPlanType } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -42,7 +45,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Webhook signature verification failed." }, { status: 400 });
   }
 
-  if (event.type !== "checkout.session.completed") {
+  if (event.type !== "checkout.session.completed" && event.type !== "checkout.session.async_payment_succeeded") {
     return NextResponse.json({ received: true });
   }
 
@@ -69,13 +72,16 @@ export async function POST(request: Request) {
   // Idempotency — prevent double-grant if Stripe retries
   const { data: existing } = await adminSupabase
     .from("entitlements")
-    .select("id")
+    .select("id,user_id")
     .eq("stripe_payment_id", sessionId)
     .maybeSingle();
 
   if (existing) {
+    scheduleAnalytics(() => recordVerifiedPurchase(session, existing.user_id, event.created));
     return NextResponse.json({ received: true });
   }
+  // Delayed-payment notification is analytics-only; existing fulfillment behaviour is unchanged.
+  if (event.type === "checkout.session.async_payment_succeeded") return NextResponse.json({ received: true });
 
   // Resolve user ID — either from metadata (logged-in checkout) or email (guest checkout)
   let resolvedUserId = session.metadata?.userId ?? null;
@@ -93,6 +99,10 @@ export async function POST(request: Request) {
     const { data: createData, error: createError } = await adminSupabase.auth.admin.createUser({
       email: customerEmail,
       email_confirm: true,
+      user_metadata: { analytics: {
+        environment: gaEnabled() && session.livemode && session.metadata?.analytics_environment === "production" ? "production" : "excluded",
+        identity: checkoutIdentity(session), source: "guest_checkout",
+      } },
     });
 
     if (createData?.user?.id) {
@@ -175,13 +185,15 @@ export async function POST(request: Request) {
     });
   }
 
-  void logEvent("SUBSCRIPTION_STARTED", resolvedUserId, {
+  scheduleAnalytics(() => logEvent("SUBSCRIPTION_STARTED", resolvedUserId, {
     plan_type: planType,
     amount_cents: session.amount_total ?? 0,
-  });
+  }));
 
   // Fire server-side purchase events — more reliable than client-side redirect page
-  void trackPurchaseServerSide({
+  scheduleAnalytics(() => recordVerifiedPurchase(session, resolvedUserId, event.created));
+  scheduleAnalytics(() => dispatchGAEvents(`signup:${resolvedUserId}`));
+  if (session.livemode && session.payment_status === "paid" && gaEnabled()) scheduleAnalytics(() => trackPurchaseServerSide({
     email:         session.customer_details?.email ?? undefined,
     userId:        resolvedUserId,
     transactionId: sessionId,
@@ -198,7 +210,7 @@ export async function POST(request: Request) {
     attrFbp:       session.metadata?.attr_fbp      ?? undefined,
     attrFbc:       session.metadata?.attr_fbc      ?? undefined,
     attrLiFatId:   session.metadata?.attr_li_fat_id ?? undefined,
-  });
+  }));
 
   return NextResponse.json({ received: true });
 }

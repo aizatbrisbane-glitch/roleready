@@ -1,3 +1,5 @@
+import { scheduleAnalytics } from "@/lib/analytics-background";
+import { recordGAEvent } from "@/lib/ga4";
 import { NextResponse } from "next/server";
 import { extractTextFromFile } from "@/lib/file-text";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -53,16 +55,17 @@ export async function POST(request: Request) {
   }
 
   if (resumeFileName) {
-    const { error: resumeError } = await supabase.from("master_resumes").insert({
+    const { data: savedResume, error: resumeError } = await supabase.from("master_resumes").insert({
       user_id: user.id,
       file_name: resumeFileName,
       storage_path: resumeStoragePath,
       resume_text: resumeText,
-    });
+    }).select("id").single();
 
-    if (resumeError) {
-      return NextResponse.json({ error: resumeError.message }, { status: 400 });
+    if (resumeError || !savedResume) {
+      return NextResponse.json({ error: resumeError?.message ?? "Unable to save resume" }, { status: 400 });
     }
+    scheduleAnalytics(() => recordGAEvent({ name: "resume_uploaded", key: `resume:${savedResume.id}`, userId: user.id }));
   } else if (resumeText.trim()) {
     const { data: existingResume } = await supabase
       .from("master_resumes")
@@ -79,9 +82,11 @@ export async function POST(request: Request) {
 
   if (resumeFileName) {
 
-    const { data: profileRow } = await supabase.from("profiles").select("name").eq("id", user.id).maybeSingle();
-    const firstName = (profileRow?.name ?? "").split(" ")[0] || null;
-    void logEvent("RESUME_UPLOADED", user.id, { first_name: firstName });
+    scheduleAnalytics(async () => {
+      const { data: profileRow } = await supabase.from("profiles").select("name").eq("id", user.id).maybeSingle();
+      const firstName = (profileRow?.name ?? "").split(" ")[0] || null;
+      await logEvent("RESUME_UPLOADED", user.id, { first_name: firstName });
+    });
 
     await supabase.from("cached_grabbed_jobs").delete().eq("user_id", user.id);
   }

@@ -1,4 +1,6 @@
 "use client";
+import { notifySignup } from "@/lib/analytics-browser";
+import { signupAnalyticsMetadata } from "@/lib/analytics-identity";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -71,7 +73,7 @@ function SignupForm({ buttonLabel, prefillEmail = "" }: { buttonLabel: string; p
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: fullName ? { full_name: fullName } : undefined,
+          data: { ...(fullName ? { full_name: fullName } : {}), ...signupAnalyticsMetadata() },
         },
       });
 
@@ -100,11 +102,7 @@ function SignupForm({ buttonLabel, prefillEmail = "" }: { buttonLabel: string; p
             keepalive: true,
           }).catch(() => {});
         }
-        fetch("/api/track/signup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ method: "email" }),
-        }).catch(() => {});
+        notifySignup("email");
         analytics.signupComplete({ method: "email", source: analytics.getSignupSource(), userId });
         window.location.href = "/";
         return;

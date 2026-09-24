@@ -1,3 +1,5 @@
+import { scheduleAnalytics } from "@/lib/analytics-background";
+import { recordGAEvent } from "@/lib/ga4";
 import { NextResponse } from "next/server";
 import { extractTextFromFile } from "@/lib/file-text";
 import { fetchJobAdDetails, detectJobSource, isBlockedJobBoard, isSearchResultsPage, normaliseJobUrl } from "@/lib/job-ad";
@@ -59,16 +61,17 @@ async function saveMasterDocument({
     throw new Error(uploadError.message);
   }
 
-  const { error } = await supabase.from(table).insert({
+  const { data: savedDocument, error } = await supabase.from(table).insert({
     user_id: userId,
     file_name: file.name,
     storage_path: storagePath,
     [textColumn]: documentText
-  });
+  }).select("id").single();
 
-  if (error) {
-    throw new Error(error.message);
+  if (error || !savedDocument) {
+    throw new Error(error?.message ?? "Unable to save document");
   }
+  if (table === "master_resumes") scheduleAnalytics(() => recordGAEvent({ name: "resume_uploaded", key: `resume:${savedDocument.id}`, userId }));
 }
 
 export async function POST(request: Request) {
@@ -199,6 +202,7 @@ export async function POST(request: Request) {
       throw new Error(applicationError?.message ?? "Unable to create application.");
     }
 
+    scheduleAnalytics(() => recordGAEvent({ name: "job_added", key: `job:${job.id}`, userId: user.id }));
     return NextResponse.json({ applicationId: application.id });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Unable to create application." }, { status: 400 });

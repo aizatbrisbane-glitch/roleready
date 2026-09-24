@@ -22,7 +22,6 @@ export async function POST(request: Request) {
     attr_term:          truncate(body.term),
     attr_referrer:      truncate(body.referrer),
     attr_landing_page:  truncate(body.landing_page),
-    attr_ga_client_id:  truncate(body.ga_client_id),
     attr_fbp:           truncate(body.fbp),
     attr_fbc:           truncate(body.fbc),
     attr_li_fat_id:     truncate(body.li_fat_id),

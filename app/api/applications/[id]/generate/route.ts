@@ -1,3 +1,6 @@
+import { scheduleAnalytics } from "@/lib/analytics-background";
+import { randomUUID } from "crypto";
+import { recordGAEvent } from "@/lib/ga4";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
@@ -352,6 +355,7 @@ export async function POST(request: Request, { params }: Props) {
   });
 
   let generated: GeneratedApplication;
+  const generationId = randomUUID();
 
   try {
     const provider = requestedProvider ?? normalizeProvider(process.env.AI_PROVIDER) ?? "openai";
@@ -391,7 +395,7 @@ export async function POST(request: Request, { params }: Props) {
         .eq("job_url", app.jobs.job_url);
     }
 
-    await supabase.from("generated_documents").insert([
+    const { error: documentError } = await supabase.from("generated_documents").insert([
       {
         user_id: user.id,
         application_id: app.id,
@@ -416,15 +420,24 @@ export async function POST(request: Request, { params }: Props) {
         return NextResponse.json({ error: credit.error ?? "Unable to record application credit usage." }, { status: 400 });
       }
     }
+    // Preserve the existing credit operation/order; failed document persistence
+    // must not produce analytics completion or turn a retry into a free credit.
+    if (documentError) {
+      return NextResponse.json({ error: documentError.message }, { status: 400 });
+    }
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "AI generation failed." }, { status: 500 });
   }
 
   const profileData = profile as Profile | null;
   const firstName = (profileData?.name ?? "").split(" ")[0] || null;
-  void logEvent("JOB_ANALYSED",         user.id, { first_name: firstName });
-  void logEvent("RESUME_GENERATED",     user.id, { first_name: firstName });
-  void logEvent("COVER_LETTER_CREATED", user.id, { first_name: firstName });
+  scheduleAnalytics(() => recordGAEvent({ name: "analysis_completed", key: `analysis:${generationId}`, userId: user.id }));
+  for (const documentType of ["tailored_resume", "cover_letter"]) {
+    scheduleAnalytics(() => recordGAEvent({ name: "document_generated", key: `document:${generationId}:${documentType}`, userId: user.id, params: { document_type: documentType } }));
+  }
+  scheduleAnalytics(() => logEvent("JOB_ANALYSED",         user.id, { first_name: firstName }));
+  scheduleAnalytics(() => logEvent("RESUME_GENERATED",     user.id, { first_name: firstName }));
+  scheduleAnalytics(() => logEvent("COVER_LETTER_CREATED", user.id, { first_name: firstName }));
 
   // applicationsRemaining === 1 pre-consume means this generation brought the count to the limit.
   // Fire the email now (on success) rather than on the next blocked attempt — most users won't

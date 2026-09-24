@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useRouter } from "next/navigation";
 import { ExternalLink, Loader2, Zap } from "lucide-react";
 import { useState } from "react";
@@ -66,6 +67,7 @@ export function GrabPanel({ hasResume }: Props) {
 
   async function importJob(job: GrabResult) {
     setImporting((prev) => ({ ...prev, [job.id]: true }));
+
 
     const res = await fetch("/api/grab/import", {
       method: "POST",

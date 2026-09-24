@@ -1,3 +1,5 @@
+import { scheduleAnalytics } from "@/lib/analytics-background";
+import { recordGAEvent } from "@/lib/ga4";
 import { NextResponse } from "next/server";
 import { fetchJobAdDetails, detectJobSource, normaliseJobUrl } from "@/lib/job-ad";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -99,5 +101,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: applicationError?.message ?? "Unable to create application." }, { status: 400 });
   }
 
+  scheduleAnalytics(() => recordGAEvent({ name: "job_added", key: `job:${job.id}`, userId: user.id }));
   return NextResponse.json({ applicationId: application.id });
 }

@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { JobSource } from "@/types/database";
@@ -20,6 +21,7 @@ export function AddJobForm() {
     setLoading(true);
     setFetchingDesc(hasUrl && !hasDesc);
     setMessage("");
+
 
     const response = await fetch("/api/jobs", {
       method: "POST",

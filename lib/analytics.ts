@@ -1,3 +1,4 @@
+import { deferBrowserAnalytics } from "./analytics-browser";
 declare global {
   interface Window {
     gtag?: (...args: unknown[]) => void;
@@ -10,73 +11,71 @@ const SIGNUP_SOURCE_KEY = "koalapply_signup_source";
 
 function fireEvent(eventName: string, params?: Record<string, string | number | boolean>) {
   if (typeof window === "undefined") return;
+  if (!window.koalapplyAnalyticsEnabled) return;
   if (process.env.NODE_ENV === "development") {
     console.log("[analytics]", eventName, params ?? {});
   }
-  window.gtag?.("event", eventName, params);
+  deferBrowserAnalytics(() => window.gtag?.("event", eventName, params));
 }
 
 export const analytics = {
+  signupDiagnostic(event: "signup_page_viewed" | "signup_form_started" | "signup_error" | "signup_confirmation_required", form: "hero" | "footer" | "page", errorCode?: "validation" | "password_policy" | "signup_failed") {
+    fireEvent(event, { form_placement: form, ...(errorCode ? { error_code: errorCode } : {}) });
+  },
   /** Persist the page that initiated the signup flow (call when modal opens or /login loads) */
   setSignupSource(source: string) {
     if (typeof window === "undefined") return;
-    sessionStorage.setItem(SIGNUP_SOURCE_KEY, source);
+    try { sessionStorage.setItem(SIGNUP_SOURCE_KEY, source); } catch {}
   },
 
   /** Read + clear the persisted signup source */
   getSignupSource(): string {
     if (typeof window === "undefined") return "unknown";
-    const value = sessionStorage.getItem(SIGNUP_SOURCE_KEY) ?? "unknown";
-    sessionStorage.removeItem(SIGNUP_SOURCE_KEY);
-    return value;
+    try {
+      const value = sessionStorage.getItem(SIGNUP_SOURCE_KEY) ?? "unknown";
+      sessionStorage.removeItem(SIGNUP_SOURCE_KEY);
+      return value;
+    } catch { return "unknown"; }
   },
 
   /**
    * User completed account creation.
-   * Uses GA4's recommended `sign_up` event name so it's auto-recognised as a conversion.
+   * GA4 is emitted once by the account-creation outbox.
    * Also fires Meta Pixel CompleteRegistration and LinkedIn lintrk conversion.
    * For Google OAuth signups, trackSignupServerSide() handles everything server-side instead.
    */
   signupComplete(opts: { method: "email" | "email_otp" | "google"; source: string; userId?: string }) {
-    fireEvent("sign_up", {
-      method: opts.method,
-      source: opts.source,
+    deferBrowserAnalytics(() => {
+      // GA4 signup is owned by the durable account-discovery outbox.
+      // eventID matches the server-side CAPI call so Meta deduplicates and counts it once
+      window.fbq?.(
+        "track",
+        "CompleteRegistration",
+        { method: opts.method },
+        opts.userId ? { eventID: `signup_${opts.userId}` } : undefined
+      );
+      const linkedInConvId = process.env.NEXT_PUBLIC_LINKEDIN_SIGNUP_CONVERSION_ID;
+      if (linkedInConvId) {
+        window.lintrk?.("track", { conversion_id: Number(linkedInConvId) });
+      }
     });
-    // eventID matches the server-side CAPI call so Meta deduplicates and counts it once
-    window.fbq?.(
-      "track",
-      "CompleteRegistration",
-      { method: opts.method },
-      opts.userId ? { eventID: `signup_${opts.userId}` } : undefined
-    );
-    const linkedInConvId = process.env.NEXT_PUBLIC_LINKEDIN_SIGNUP_CONVERSION_ID;
-    if (linkedInConvId) {
-      window.lintrk?.("track", { conversion_id: Number(linkedInConvId) });
-    }
   },
 
   /**
    * User completed a Stripe checkout.
-   * Uses GA4's recommended `purchase` event name with standard ecommerce params.
+   * GA4 is emitted only by the verified Stripe webhook.
    * Also fires Meta Pixel Purchase — event_id matches the server-side CAPI call so Meta deduplicates.
    */
   purchaseComplete(opts: { plan: string; value: number; currency: string; transactionId: string }) {
-    window.gtag?.("set", "user_properties", {
-      user_type: "paying",
-      plan: opts.plan,
+    deferBrowserAnalytics(() => {
+      // Stripe-verified browser Meta event only; GA4 purchase is webhook-owned.
+      window.fbq?.(
+        "track",
+        "Purchase",
+        { value: opts.value, currency: opts.currency, content_name: opts.plan },
+        { eventID: `purchase_${opts.transactionId}` }
+      );
     });
-    fireEvent("purchase", {
-      transaction_id: opts.transactionId,
-      value: opts.value,
-      currency: opts.currency,
-      items: opts.plan,
-    });
-    window.fbq?.(
-      "track",
-      "Purchase",
-      { value: opts.value, currency: opts.currency, content_name: opts.plan },
-      { eventID: `purchase_${opts.transactionId}` }
-    );
   },
 
   /** User clicked "Check my score" on the ATS checker tool */

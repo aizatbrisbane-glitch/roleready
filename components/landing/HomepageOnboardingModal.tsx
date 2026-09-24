@@ -1,10 +1,12 @@
 ﻿"use client";
+import { notifySignup } from "@/lib/analytics-browser";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, Eye, FileText, Loader2, UploadCloud, X } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { ErrorToast } from "@/components/ErrorToast";
 import { analytics } from "@/lib/analytics";
+import { signupAnalyticsMetadata } from "@/lib/analytics-identity";
 import { inferCountry, marketLabel } from "@/lib/country-inference";
 
 export const HOMEPAGE_ONBOARDING_DRAFT_KEY = "Koalapply_home_onboarding_draft";
@@ -415,7 +417,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback?next=/`,
-          data: fullName ? { full_name: fullName } : undefined,
+          data: { ...(fullName ? { full_name: fullName } : {}), ...signupAnalyticsMetadata() },
         },
       });
 
@@ -438,9 +440,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
           fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }), keepalive: true }).catch(() => {});
         }
         const userId = signUpData.session.user.id;
-        try {
-          await fetch("/api/track/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ method: "email" }) });
-        } catch { /* tracking failure must never block signup */ }
+        notifySignup("email");
         analytics.signupComplete({ method: "email", source: analytics.getSignupSource(), userId });
         setIsAuthenticated(true);
         await submitAuthenticated();
@@ -453,9 +453,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
           fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }), keepalive: true }).catch(() => {});
         }
         const userId = refreshedSessionData.session.user.id;
-        try {
-          await fetch("/api/track/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ method: "email" }) });
-        } catch { /* tracking failure must never block signup */ }
+        notifySignup("email");
         analytics.signupComplete({ method: "email", source: analytics.getSignupSource(), userId });
         setIsAuthenticated(true);
         await submitAuthenticated();
@@ -521,20 +519,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       // DEBUG — remove once confirmed
       console.error("[DEBUG signup-track] About to call /api/track/signup, userId:", userId ?? "(none)");
 
-      // Awaited before submitAuthenticated so the request completes before any navigation
-      try {
-        const res = await fetch("/api/track/signup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ method: "email_otp" }),
-        });
-        // DEBUG — remove once confirmed
-        const body = await res.json().catch(() => ({}));
-        console.error("[DEBUG signup-track] /api/track/signup response:", res.status, body);
-      } catch (err) {
-        // DEBUG — remove once confirmed
-        console.error("[DEBUG signup-track] /api/track/signup fetch error:", err);
-      }
+      notifySignup("email_otp");
 
       analytics.signupComplete({ method: "email_otp", source: analytics.getSignupSource(), userId });
       setIsAuthenticated(true);

@@ -1,10 +1,12 @@
 "use client";
+import { notifySignup } from "@/lib/analytics-browser";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Compass, Eye, FileText, LayoutDashboard, Loader2, Target } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { analytics } from "@/lib/analytics";
+import { signupAnalyticsMetadata } from "@/lib/analytics-identity";
 import { ErrorToast } from "@/components/ErrorToast";
 
 const steps = [
@@ -34,7 +36,15 @@ const steps = [
   },
 ];
 
-function SignupForm({ buttonLabel, prefillEmail = "" }: { buttonLabel: string; prefillEmail?: string }) {
+function SignupForm({ buttonLabel, placement, prefillEmail = "" }: { buttonLabel: string; placement: "hero" | "footer"; prefillEmail?: string }) {
+  const started = useRef(false);
+  const lastValidation = useRef(0);
+  function startForm() {
+    if (started.current) return;
+    started.current = true;
+    analytics.setSignupSource("/claim-free-account");
+    analytics.signupDiagnostic("signup_form_started", placement);
+  }
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState(prefillEmail);
@@ -50,6 +60,7 @@ function SignupForm({ buttonLabel, prefillEmail = "" }: { buttonLabel: string; p
     setMessage("");
 
     if (password.length < 8 || !/(?=.*[a-zA-Z])(?=.*[0-9])/.test(password)) {
+      analytics.signupDiagnostic("signup_error", placement, "password_policy");
       setMessage("Password must be at least 8 characters and include letters and numbers.");
       return;
     }
@@ -65,7 +76,7 @@ function SignupForm({ buttonLabel, prefillEmail = "" }: { buttonLabel: string; p
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: fullName ? { full_name: fullName } : undefined,
+          data: { ...(fullName ? { full_name: fullName } : {}), ...signupAnalyticsMetadata() },
         },
       });
 
@@ -94,18 +105,20 @@ function SignupForm({ buttonLabel, prefillEmail = "" }: { buttonLabel: string; p
             keepalive: true,
           }).catch(() => {});
         }
-        fetch("/api/track/signup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ method: "email" }),
-        }).catch(() => {});
+        notifySignup("email");
         analytics.signupComplete({ method: "email", source: analytics.getSignupSource(), userId });
         window.location.href = "/";
         return;
       }
 
+      if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        analytics.signupDiagnostic("signup_error", placement, "signup_failed");
+      } else {
+        analytics.signupDiagnostic("signup_confirmation_required", placement);
+      }
       setDone(true);
     } catch (err) {
+      analytics.signupDiagnostic("signup_error", placement, "signup_failed");
       setMessage(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setLoading(false);
@@ -124,7 +137,7 @@ function SignupForm({ buttonLabel, prefillEmail = "" }: { buttonLabel: string; p
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
+    <form onSubmit={handleSubmit} onChange={startForm} onInvalidCapture={() => { if (Date.now() - lastValidation.current > 500) { lastValidation.current = Date.now(); analytics.signupDiagnostic("signup_error", placement, "validation"); } }} className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
         <input
           type="text"
@@ -197,6 +210,12 @@ function SignupForm({ buttonLabel, prefillEmail = "" }: { buttonLabel: string; p
 }
 
 export default function JoinPage() {
+  const viewed = useRef(false);
+  useEffect(() => {
+    if (viewed.current) return;
+    viewed.current = true;
+    analytics.signupDiagnostic("signup_page_viewed", "page");
+  }, []);
   return (
     <main className="min-h-screen bg-white text-slate-900">
 
@@ -234,7 +253,7 @@ export default function JoinPage() {
             <h2 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">Claim your free Koalapply account</h2>
             <p className="mt-4 leading-7 text-slate-600">No credit card required.</p>
             <div className="mt-8">
-              <SignupForm buttonLabel="Create my free account" />
+              <SignupForm buttonLabel="Create my free account" placement="hero" />
             </div>
           </div>
         </div>
@@ -283,7 +302,7 @@ export default function JoinPage() {
               Whether you&apos;re applying for your first role, making a career move or suddenly back on the market, Koalapply helps you keep moving without letting the job hunt take over your life.
             </p>
             <div className="mt-8">
-              <SignupForm buttonLabel="Get started free" />
+              <SignupForm buttonLabel="Get started free" placement="footer" />
             </div>
           </div>
         </div>

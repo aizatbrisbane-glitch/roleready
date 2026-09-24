@@ -36,7 +36,6 @@ export function AttributionCapture({ isAuthenticated }: { isAuthenticated: boole
       }
 
       const params = new URLSearchParams(window.location.search);
-      const gaCookie = getCookie("_ga");
       const fbclid = params.get("fbclid");
       const referrer = document.referrer || undefined;
 
@@ -54,8 +53,6 @@ export function AttributionCapture({ isAuthenticated }: { isAuthenticated: boole
         term:         params.get("utm_term")       ?? undefined,
         referrer,
         landing_page: window.location.pathname + (window.location.search || ""),
-        // Store raw _ga value — server's parseGa4ClientId() handles stripping the prefix
-        ga_client_id: gaCookie ?? undefined,
         fbp:          getCookie("_fbp"),
         fbc:          getCookie("_fbc") ?? (fbclid ? `fb.1.${Date.now()}.${fbclid}` : undefined),
         li_fat_id:    params.get("li_fat_id") ?? undefined,

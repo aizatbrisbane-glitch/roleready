@@ -1,5 +1,6 @@
 "use client";
 
+import { captureGAIdentity } from "@/lib/analytics-identity";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
@@ -22,7 +23,7 @@ export default function GuestCheckoutPage() {
 
     // Use authenticated checkout for logged-in users so we can lock their email at Stripe
     const supabase = createSupabaseBrowserClient();
-    const doCheckout = supabase
+    const doCheckout = captureGAIdentity().then(() => supabase
       ? supabase.auth.getUser().then(({ data }) => {
           if (data.user) {
             return fetch("/api/checkout", {
@@ -41,7 +42,7 @@ export default function GuestCheckoutPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ planType: plan, attribution }),
-        });
+        }));
 
     doCheckout
       .then((res) => res.json())

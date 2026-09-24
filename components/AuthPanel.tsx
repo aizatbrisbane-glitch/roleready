@@ -1,4 +1,5 @@
 "use client";
+import { notifySignup, deferBrowserAnalytics } from "@/lib/analytics-browser";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -6,6 +7,7 @@ import { Eye } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { ErrorToast } from "@/components/ErrorToast";
 import { analytics } from "@/lib/analytics";
+import { signupAnalyticsMetadata } from "@/lib/analytics-identity";
 
 type Mode = "signin" | "signup" | "forgot";
 
@@ -112,7 +114,7 @@ export function AuthPanel({ redirectTo = "/", initialMode = "signin" }: { redire
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback`, data: signupAnalyticsMetadata() },
     });
 
     if (error) {
@@ -137,16 +139,7 @@ export function AuthPanel({ redirectTo = "/", initialMode = "signin" }: { redire
         fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }), keepalive: true }).catch(() => {});
       }
       const userId = data.session.user.id;
-      try {
-        await Promise.all([
-          fetch("/api/track/signup", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ method: "email", attribution: captureAttribution() }),
-          }),
-          pushStoredAttribution(),
-        ]);
-      } catch { /* tracking failure must never block signup */ }
+      deferBrowserAnalytics(() => { notifySignup("email", captureAttribution()); return pushStoredAttribution(); });
       analytics.signupComplete({ method: "email", source: analytics.getSignupSource(), userId });
       window.location.href = redirectTo;
       return;
@@ -192,21 +185,7 @@ export function AuthPanel({ redirectTo = "/", initialMode = "signin" }: { redire
     // DEBUG — remove once confirmed
     console.error("[DEBUG signup-track] About to call /api/track/signup, userId:", userId ?? "(none)");
 
-    // Await before navigating — keepalive:true was unreliable; same-origin call resolves in <100ms
-    try {
-      const res = await fetch("/api/track/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ method: "email_otp", attribution: captureAttribution() }),
-      });
-      // DEBUG — remove once confirmed
-      const body = await res.json().catch(() => ({}));
-      console.error("[DEBUG signup-track] /api/track/signup response:", res.status, body);
-    } catch (err) {
-      // DEBUG — remove once confirmed
-      console.error("[DEBUG signup-track] /api/track/signup fetch error:", err);
-    }
-    await pushStoredAttribution();
+    deferBrowserAnalytics(() => { notifySignup("email_otp", captureAttribution()); return pushStoredAttribution(); });
 
     analytics.signupComplete({ method: "email_otp", source: analytics.getSignupSource(), userId });
 
@@ -222,28 +201,31 @@ export function AuthPanel({ redirectTo = "/", initialMode = "signin" }: { redire
 
     // Capture attribution data before leaving the domain — sessionStorage won't survive a
     // cross-domain OAuth redirect, but a first-party cookie will.
-    const attribution = captureAttribution();
+    try {
+      const attribution = captureAttribution();
 
-    // If the current page has no UTM source, pull from what AttributionCapture stored in
-    // localStorage — e.g. user landed from a LinkedIn organic post (no UTMs, referrer stripped
-    // by lnkd.in), browsed to the signup page, and document.referrer is now koalapply.com.
-    if (!attribution.utm_source) {
-      try {
-        const stored = localStorage.getItem("koala_attr");
-        if (stored) {
-          const lsAttr = JSON.parse(stored) as Record<string, string>;
-          attribution.utm_source   = lsAttr.source   || attribution.utm_source;
-          attribution.utm_medium   = lsAttr.medium   || attribution.utm_medium;
-          attribution.utm_campaign = lsAttr.campaign || attribution.utm_campaign;
-          attribution.utm_content  = lsAttr.content  || attribution.utm_content;
-          attribution.utm_term     = lsAttr.term     || attribution.utm_term;
-          if (!attribution.referrer) attribution.referrer = lsAttr.referrer;
-        }
-      } catch { /* non-critical */ }
-    }
+      // If the current page has no UTM source, pull from what AttributionCapture stored in
+      // localStorage — e.g. user landed from a LinkedIn organic post (no UTMs, referrer stripped
+      // by lnkd.in), browsed to the signup page, and document.referrer is now koalapply.com.
+      if (!attribution.utm_source) {
+        try {
+          const stored = localStorage.getItem("koala_attr");
+          if (stored) {
+            const lsAttr = JSON.parse(stored) as Record<string, string>;
+            attribution.utm_source   = lsAttr.source   || attribution.utm_source;
+            attribution.utm_medium   = lsAttr.medium   || attribution.utm_medium;
+            attribution.utm_campaign = lsAttr.campaign || attribution.utm_campaign;
+            attribution.utm_content  = lsAttr.content  || attribution.utm_content;
+            attribution.utm_term     = lsAttr.term     || attribution.utm_term;
+            if (!attribution.referrer) attribution.referrer = lsAttr.referrer;
+          }
+        } catch { /* non-critical */ }
+      }
 
-    const secure = window.location.protocol === "https:" ? "; Secure" : "";
-    document.cookie = `koalapply_attribution=${encodeURIComponent(JSON.stringify(attribution))}; path=/auth/callback; max-age=3600; SameSite=Lax${secure}`;
+      const secure = window.location.protocol === "https:" ? "; Secure" : "";
+      document.cookie = `koalapply_attribution=${encodeURIComponent(JSON.stringify(attribution))}; path=/auth/callback; max-age=3600; SameSite=Lax${secure}`;
+
+    } catch { /* Attribution storage must not block OAuth. */ }
 
     await supabase.auth.signInWithOAuth({
       provider: "google",

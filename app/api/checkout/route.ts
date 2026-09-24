@@ -1,7 +1,10 @@
+import { scheduleAnalytics } from "@/lib/analytics-background";
 ﻿import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getStripeClient } from "@/lib/stripe";
 import type { EntitlementPlanType } from "@/types/database";
+import { gaEnabled, recordGAEvent } from "@/lib/ga4";
+import { ecommerceParams, identityFromCookie } from "@/lib/analytics-policy";
 
 type PlanConfig = {
   name: string;
@@ -60,6 +63,7 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   try {
+    const identity = identityFromCookie(request.headers.get("cookie") ?? "");
     const stripe = getStripeClient();
 
     // Create-or-fetch Stripe customer so we can lock the email and tie purchases to one record
@@ -99,7 +103,10 @@ export async function POST(request: Request) {
       metadata: {
         userId:   user.id,
         planType: plan.planType,
-        ...(profile?.attr_ga_client_id ? { ga_client_id:   profile.attr_ga_client_id } : {}),
+        analytics_environment: gaEnabled() ? "production" : "excluded",
+        ...(identity.client_id ? { ga_client_id: identity.client_id } : {}),
+        ...(identity.session_id ? { ga_session_id: identity.session_id } : {}),
+        ...(identity.captured_at ? { ga_captured_at: String(identity.captured_at) } : {}),
         ...(profile?.attr_source       ? { attr_source:     profile.attr_source }       : {}),
         ...(profile?.attr_medium       ? { attr_medium:     profile.attr_medium }       : {}),
         ...(profile?.attr_campaign     ? { attr_campaign:   profile.attr_campaign }     : {}),
@@ -115,6 +122,10 @@ export async function POST(request: Request) {
       cancel_url: `${appUrl}/pricing`,
     });
 
+    if (session.url && session.livemode) scheduleAnalytics(() => recordGAEvent({
+      name: "begin_checkout", key: `checkout:${session.id}`, userId: user.id, identity,
+      params: ecommerceParams(session.id, plan.planType, plan.amountAud, "AUD"),
+    }));
     return NextResponse.json({ url: session.url });
   } catch (err) {
     console.error("[checkout] Stripe session creation failed:", err);

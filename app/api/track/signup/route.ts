@@ -1,3 +1,5 @@
+import { scheduleAnalytics } from "@/lib/analytics-background";
+import { observeSignup } from "@/lib/ga4";
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { trackSignupServerSide, type AttributionData } from "@/lib/server-analytics";
@@ -10,17 +12,12 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user?.email) return NextResponse.json({ ok: false }, { status: 401 });
 
-  // Guard: only fire for accounts created in the last 5 minutes to prevent replay
-  const createdAt = new Date(user.created_at).getTime();
-  if (Date.now() - createdAt > 300_000) {
-    return NextResponse.json({ ok: true, skipped: true });
-  }
-
   const body = await request.json().catch(() => ({}));
-  const method = (body?.method as string) ?? "email";
+  const method = user.app_metadata?.provider === "google" ? "google" : "email";
   const attribution = (body?.attribution ?? {}) as AttributionData;
 
-  await trackSignupServerSide({ email: user.email, userId: user.id, method, attribution });
+  scheduleAnalytics(() => observeSignup(user.id));
+  scheduleAnalytics(() => trackSignupServerSide({ email: user.email!, userId: user.id, method, attribution }));
 
   return NextResponse.json({ ok: true });
 }

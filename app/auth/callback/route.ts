@@ -1,7 +1,9 @@
+import { scheduleAnalytics } from "@/lib/analytics-background";
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { trackSignupServerSide, type AttributionData } from "@/lib/server-analytics";
+import { gaEnabled, observeSignup } from "@/lib/ga4";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -35,42 +37,46 @@ export async function GET(request: Request) {
         console.error("Unable to accept enterprise invitation during callback", error.message);
       }
 
-      // Detect a brand-new signup (account created within the last 60 seconds)
       const user = data.session.user;
-      const createdAt = new Date(user.created_at).getTime();
-      const isNewUser = Date.now() - createdAt < 60_000;
+      scheduleAnalytics(async () => {
+        if (gaEnabled(requestUrl.hostname)) { await observeSignup(user.id); return; }
+        const admin = createSupabaseAdminClient();
+        if (!admin) return;
+        await admin.rpc("discover_ga4_accounts", { p_user: user.id });
+        await admin.from("ga4_accounts").update({ environment: "excluded" })
+          .eq("user_id", user.id).eq("environment", "awaiting_callback");
+      });
+      scheduleAnalytics(async () => {
+        if (user.email) {
+          // Only write attribution when the cookie carried a utm_source. An empty cookie
+          // (user went directly to the auth page with no stored landing data) must NOT stamp
+          // attr_landed_at, because that would permanently block the AttributionCapture.tsx
+          // post-redirect fallback which reads from localStorage.
+          if (attrMatch && attribution.utm_source) {
+            // Use the admin client so the write is never blocked by RLS — the session Supabase
+            // client may not be fully authenticated inside the same request that called
+            // exchangeCodeForSession, causing silent 0-row updates under the user RLS policy.
+            const adminSupabase = createSupabaseAdminClient();
+            if (adminSupabase) {
+              const truncate = (v: unknown) => typeof v === "string" ? v.slice(0, 500) : undefined;
+              const { error: attrError } = await adminSupabase.from("profiles").update({
+                attr_source:       truncate(attribution.utm_source),
+                attr_medium:       truncate(attribution.utm_medium),
+                attr_campaign:     truncate(attribution.utm_campaign),
+                attr_content:      truncate(attribution.utm_content),
+                attr_term:         truncate(attribution.utm_term),
+                attr_referrer:     truncate(attribution.referrer),
+                attr_fbp:          truncate(attribution.fbp),
+                attr_fbc:          truncate(attribution.fbc),
+                attr_li_fat_id:    truncate(attribution.li_fat_id),
+                attr_landed_at:    new Date().toISOString(),
+              }).eq("id", user.id).is("attr_landed_at", null);
 
-      if (isNewUser && user.email) {
-        // Only write attribution when the cookie carried a utm_source. An empty cookie
-        // (user went directly to the auth page with no stored landing data) must NOT stamp
-        // attr_landed_at, because that would permanently block the AttributionCapture.tsx
-        // post-redirect fallback which reads from localStorage.
-        if (attrMatch && attribution.utm_source) {
-          // Use the admin client so the write is never blocked by RLS — the session Supabase
-          // client may not be fully authenticated inside the same request that called
-          // exchangeCodeForSession, causing silent 0-row updates under the user RLS policy.
-          const adminSupabase = createSupabaseAdminClient();
-          if (adminSupabase) {
-            const truncate = (v: unknown) => typeof v === "string" ? v.slice(0, 500) : undefined;
-            const { error: attrError } = await adminSupabase.from("profiles").update({
-              attr_source:       truncate(attribution.utm_source),
-              attr_medium:       truncate(attribution.utm_medium),
-              attr_campaign:     truncate(attribution.utm_campaign),
-              attr_content:      truncate(attribution.utm_content),
-              attr_term:         truncate(attribution.utm_term),
-              attr_referrer:     truncate(attribution.referrer),
-              attr_ga_client_id: truncate(attribution.ga_client_id),
-              attr_fbp:          truncate(attribution.fbp),
-              attr_fbc:          truncate(attribution.fbc),
-              attr_li_fat_id:    truncate(attribution.li_fat_id),
-              attr_landed_at:    new Date().toISOString(),
-            }).eq("id", user.id).is("attr_landed_at", null);
-
-            if (attrError) {
-              console.error("[auth/callback] Failed to write attribution to profile:", {
-                error: attrError.message,
-                userId: user.id,
-                utm_source: attribution.utm_source,
+              if (attrError) {
+                console.error("[auth/callback] Failed to write attribution to profile:", {
+                  error: attrError.message,
+                  userId: user.id,
+                  utm_source: attribution.utm_source,
               });
             } else {
               console.log("[auth/callback] Attribution written for new user", {
@@ -84,13 +90,14 @@ export async function GET(request: Request) {
 
         // Fire server-side tracking — no client-side pixel needed for Google OAuth signups
         // (the Meta CAPI and LinkedIn CAPI calls are more reliable than a browser pixel)
-        void trackSignupServerSide({
+        await trackSignupServerSide({
           email: user.email,
           userId: user.id,
-          method: "google",
+          method: user.app_metadata?.provider === "google" ? "google" : "email",
           attribution,
         });
       }
+      });
     }
   }
 

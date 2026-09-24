@@ -1,5 +1,6 @@
 "use client";
 
+import { captureGAIdentity } from "@/lib/analytics-identity";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
@@ -13,11 +14,11 @@ export default function CheckoutInitiatePage() {
     if (called.current || !plan) return;
     called.current = true;
 
-    fetch("/api/checkout", {
+    captureGAIdentity().then(() => fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ planType: plan }),
-    })
+    }))
       .then((res) => res.json())
       .then((data) => {
         if (data.url) {

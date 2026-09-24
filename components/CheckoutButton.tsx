@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import type { EntitlementPlanType } from "@/types/database";

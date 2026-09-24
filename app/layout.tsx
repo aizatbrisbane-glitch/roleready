@@ -8,6 +8,8 @@ import { headers } from "next/headers";
 import { MobileNav } from "@/components/MobileNav";
 import { Sidebar } from "@/components/Sidebar";
 import { AttributionCapture } from "@/components/AttributionCapture";
+import { AnalyticsIdentity } from "@/components/AnalyticsIdentity";
+import { productionAnalytics, internalUser } from "@/lib/analytics-policy";
 import { SignOutButton } from "@/components/SignOutButton";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -78,19 +80,25 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const isAdmin = profile?.role === "admin" || profile?.role === "founder";
   const access = user && supabase ? await getAccessState(supabase, user.id) : null;
   const planType = access?.planType ?? null;
+  const analyticsEnabled = productionAnalytics(process.env, headersList.get("host") ?? "invalid") &&
+    !internalUser(user?.id, profile?.role, process.env.GA4_INTERNAL_USER_IDS);
 
   return (
     <html lang="en" className={inter.className}>
       <body className="overflow-x-hidden">
+        {analyticsEnabled && <>
         <Script src="https://www.googletagmanager.com/gtag/js?id=G-R1ZFGNBD6D" strategy="afterInteractive" />
         <Script src="https://www.googletagmanager.com/gtag/js?id=AW-18405510825" strategy="afterInteractive" />
-        <Script id="ga-init" strategy="afterInteractive">{`
+        <Script id="ga-init" strategy="beforeInteractive">{`
+          window.koalapplyAnalyticsEnabled = true;
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', 'G-R1ZFGNBD6D');
+          gtag('config', 'G-R1ZFGNBD6D', { user_id: ${JSON.stringify(user?.id ?? null)} });
           gtag('config', 'AW-18405510825');
         `}</Script>
+        </>}
+        <AnalyticsIdentity enabled={analyticsEnabled} userId={user?.id ?? null} />
 
         {/* Meta Pixel — base code, fires PageView on every page. Two pixels share one script load. */}
         <Script id="meta-pixel" strategy="afterInteractive">{`
