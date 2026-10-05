@@ -187,7 +187,7 @@ function SignupForm({ buttonLabel, placement, prefillEmail = "" }: { buttonLabel
             required
             autoFocus
           />
-          <ErrorToast message={message} onDismiss={() => setMessage("")} />
+          {message && <ErrorToast message={message} onDismiss={() => setMessage("")} />}
           <button
             type="submit"
             disabled={loading}
@@ -210,7 +210,7 @@ function SignupForm({ buttonLabel, placement, prefillEmail = "" }: { buttonLabel
 
   return (
     <form onSubmit={handleSubmit} onChange={startForm} onInvalidCapture={() => { if (Date.now() - lastValidation.current > 500) { lastValidation.current = Date.now(); analytics.signupDiagnostic("signup_error", placement, "validation"); } }} className="space-y-3">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2">
         <input
           type="text"
           required
@@ -218,7 +218,7 @@ function SignupForm({ buttonLabel, placement, prefillEmail = "" }: { buttonLabel
           placeholder="First name *"
           value={firstName}
           onChange={(e) => setFirstName(e.target.value)}
-          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
+          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
         />
         <input
           type="text"
@@ -227,7 +227,7 @@ function SignupForm({ buttonLabel, placement, prefillEmail = "" }: { buttonLabel
           placeholder="Last name *"
           value={lastName}
           onChange={(e) => setLastName(e.target.value)}
-          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
+          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
         />
       </div>
       <input
@@ -237,9 +237,9 @@ function SignupForm({ buttonLabel, placement, prefillEmail = "" }: { buttonLabel
         placeholder="Email address *"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
+        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
       />
-      <span className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 focus-within:ring-2 focus-within:ring-[#d4ccff]">
+      <span className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 focus-within:ring-2 focus-within:ring-[#d4ccff]">
         <input
           type={showPassword ? "text" : "password"}
           required
@@ -268,7 +268,7 @@ function SignupForm({ buttonLabel, placement, prefillEmail = "" }: { buttonLabel
         />
         Get an extra free application credit — subscribe to career tips and job search advice (unsubscribe anytime)
       </label>
-      <ErrorToast message={message} onDismiss={() => setMessage("")} />
+      {message && <ErrorToast message={message} onDismiss={() => setMessage("")} />}
       <button
         type="submit"
         disabled={loading}
@@ -304,27 +304,24 @@ export default function JoinPage() {
       </nav>
 
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#f5f3ff] via-white to-white px-5 pb-20 pt-16 sm:px-8 sm:pb-24 sm:pt-20">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#f5f3ff] via-white to-white px-5 pb-20 pt-8 sm:px-8 sm:pb-24 sm:pt-20">
         <div className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-[#d4ccff]/50 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-20 -left-20 h-80 w-80 rounded-full bg-violet-100/60 blur-3xl" />
         <div className="relative mx-auto max-w-3xl text-center">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#d4ccff] bg-[#ece8ff] px-4 py-1.5 text-sm font-semibold text-[#2200ff]">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#d4ccff] bg-[#ece8ff] px-4 py-1.5 text-sm font-semibold text-[#2200ff]">
             Free to get started
           </div>
-          <h1 className="text-4xl font-black tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+          <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
             Your job search.<br />
             <span className="text-[#2200ff]">Finally, all in one place.</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-600">
-            Tired of customising every application? Losing track of what you&apos;ve applied for? Interview prep too time consuming? We get it, because we&apos;ve been there!
+          <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-600">
+            No resume needed. Add yours whenever you&apos;re ready and easily tailor, track and prepare for every application.
           </p>
-          <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-slate-600">
-            Koalapply helps you submit stronger applications, stay on top of every opportunity and walk into interviews better prepared. It&apos;s the smart way to job hunt.
-          </p>
-          <div className="mx-auto mt-10 max-w-3xl rounded-3xl bg-gradient-to-br from-[#f5f3ff] to-white p-8 text-left shadow-[0_8px_40px_rgba(34,0,255,0.08)] sm:p-12">
-            <h2 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">Claim your free Koalapply account</h2>
-            <p className="mt-4 leading-7 text-slate-600">No credit card required.</p>
-            <div className="mt-8">
+          <div className="mx-auto mt-5 max-w-3xl rounded-3xl bg-gradient-to-br from-[#f5f3ff] to-white px-8 pb-8 pt-4 text-left shadow-[0_8px_40px_rgba(34,0,255,0.08)] sm:p-12">
+            <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-4xl">Claim your free account</h2>
+            <p className="mt-2 text-center leading-7 text-slate-600">No credit card required.</p>
+            <div className="mt-4">
               <SignupForm buttonLabel="Create my free account" placement="hero" />
             </div>
           </div>
