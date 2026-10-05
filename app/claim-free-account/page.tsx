@@ -304,7 +304,7 @@ export default function JoinPage() {
       </nav>
 
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#f5f3ff] via-white to-white px-5 pb-20 pt-8 sm:px-8 sm:pb-24 sm:pt-20">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#f5f3ff] via-white to-white px-5 pb-20 pt-7 sm:px-8 sm:pb-24 sm:pt-20">
         <div className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-[#d4ccff]/50 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-20 -left-20 h-80 w-80 rounded-full bg-violet-100/60 blur-3xl" />
         <div className="relative mx-auto max-w-3xl text-center">
