@@ -20,7 +20,7 @@ const steps = [
     icon: LayoutDashboard,
     heading: "Track everything in one place",
     body: "No more spreadsheets, forgotten applications or trying to remember which version of your resume you sent.",
-    tagline: "Keep your applications, roles and progress together in one simple dashboard.",
+    tagline: "Keep your applications and progress together in one simple dashboard.",
   },
   {
     icon: Target,
@@ -329,14 +329,27 @@ export default function JoinPage() {
       </section>
 
       {/* ── Features ── */}
-      <section className="px-5 py-20 sm:px-8 sm:py-24">
+      <section className="px-5 py-10 sm:px-8 sm:py-24">
         <div className="mx-auto max-w-3xl">
-          <h2 className="mb-14 text-center text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
+          <h2 className="mb-6 text-center text-2xl font-black tracking-tight text-slate-900 sm:mb-14 sm:text-4xl">
             Apply smarter. Stay organised. Be ready.
           </h2>
-          <div className="space-y-14">
+          {/* Mobile: 2×2 icon grid */}
+          <div className="grid grid-cols-2 gap-3 sm:hidden">
             {steps.map((step) => (
-              <div key={step.heading} className="flex gap-6 sm:gap-8">
+              <div key={step.heading} className="flex flex-col gap-2 rounded-2xl bg-[#f5f3ff] p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#ece8ff] text-[#2200ff]">
+                  <step.icon className="h-5 w-5" />
+                </div>
+                <h3 className="text-base font-bold leading-snug text-slate-900">{step.heading}</h3>
+                <p className="text-sm leading-snug text-slate-500">{step.tagline}</p>
+              </div>
+            ))}
+          </div>
+          {/* Desktop: full vertical list */}
+          <div className="hidden sm:block sm:space-y-14">
+            {steps.map((step) => (
+              <div key={step.heading} className="flex gap-8">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#ece8ff] text-[#2200ff]">
                   <step.icon className="h-5 w-5" />
                 </div>
@@ -352,7 +365,7 @@ export default function JoinPage() {
       </section>
 
       {/* ── Mid CTA banner ── */}
-      <section className="bg-gradient-to-br from-[#2200ff] to-[#5533ff] px-5 py-20 sm:px-8 sm:py-24">
+      <section className="bg-gradient-to-br from-[#2200ff] to-[#5533ff] px-5 py-12 sm:px-8 sm:py-24">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
             One place for the whole job hunt.
@@ -363,12 +376,12 @@ export default function JoinPage() {
           <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-violet-100">
             Spend less time managing your job search and more time finding the right opportunity.
           </p>
-          <div className="mx-auto mt-10 max-w-3xl rounded-3xl bg-gradient-to-br from-[#f5f3ff] to-white p-8 text-left shadow-[0_8px_40px_rgba(0,0,0,0.18)] sm:p-12">
-            <h2 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
-              Less job-search chaos. More momentum.
+          <div className="mx-auto mt-10 max-w-3xl rounded-3xl bg-gradient-to-br from-[#f5f3ff] to-white p-8 text-center shadow-[0_8px_40px_rgba(0,0,0,0.18)] sm:p-12 sm:text-left">
+            <h2 className="whitespace-nowrap text-[22px] font-black tracking-tight text-slate-900 sm:text-4xl sm:whitespace-normal">
+              From chaos to momentum.
             </h2>
             <p className="mt-4 max-w-xl leading-7 text-slate-600">
-              Whether you&apos;re applying for your first role, making a career move or suddenly back on the market, Koalapply helps you keep moving without letting the job hunt take over your life.
+              Stay organised, apply with confidence and keep moving forward.
             </p>
             <div className="mt-8">
               <SignupForm buttonLabel="Get started free" placement="footer" />
