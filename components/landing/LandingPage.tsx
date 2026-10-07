@@ -584,12 +584,20 @@ export function LandingPage() {
                   Paste your resume and a job description to see your keyword match score in seconds. Free, no signup required.
                 </p>
               </div>
+              {/* Desktop: tool-first */}
               <Link
                 href="/ats-checker"
                 onClick={() => analytics.atsCheckerNavClick({ placement: "homepage_card" })}
-                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-sm font-bold text-white shadow-[0_8px_24px_rgba(34,0,255,0.25)] transition hover:-translate-y-0.5 hover:bg-[#1a00cc]"
+                className="hidden lg:inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-sm font-bold text-white shadow-[0_8px_24px_rgba(34,0,255,0.25)] transition hover:-translate-y-0.5 hover:bg-[#1a00cc]"
               >
                 Check my resume free
+              </Link>
+              {/* Mobile: account-first */}
+              <Link
+                href="/claim-free-account"
+                className="lg:hidden inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-sm font-bold text-white shadow-[0_8px_24px_rgba(34,0,255,0.25)] transition hover:-translate-y-0.5 hover:bg-[#1a00cc]"
+              >
+                Get started free
               </Link>
             </div>
           </div>

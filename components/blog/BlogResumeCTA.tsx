@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useState } from "react";
 import { ArrowRight, ShieldCheck, Zap } from "lucide-react";
 import { HomepageOnboardingModal } from "@/components/landing/HomepageOnboardingModal";
@@ -40,11 +41,12 @@ export function BlogResumeCTA({
   if (variant === "inline") {
     return (
       <>
+        {/* Desktop: resume-first */}
         <div
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => { e.preventDefault(); handleFile(e.dataTransfer.files?.[0]); }}
           onClick={() => inputRef.current?.click()}
-          className="cursor-pointer rounded-2xl bg-gradient-to-br from-[#ece8ff] to-[#f5f3ff] p-5 transition hover:from-[#e0d9ff] hover:to-[#ede9ff] sm:p-6"
+          className="hidden lg:block cursor-pointer rounded-2xl bg-gradient-to-br from-[#ece8ff] to-[#f5f3ff] p-5 transition hover:from-[#e0d9ff] hover:to-[#ede9ff] sm:p-6"
         >
           {fileInput}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -62,6 +64,23 @@ export function BlogResumeCTA({
           </div>
         </div>
 
+        {/* Mobile: account-first */}
+        <div className="lg:hidden rounded-2xl bg-gradient-to-br from-[#ece8ff] to-[#f5f3ff] p-5">
+          <div className="flex flex-col gap-4">
+            <div>
+              <p className="text-base font-black tracking-tight text-slate-900">{heading}</p>
+              <p className="mt-1 text-sm leading-6 text-slate-600">{subtext}</p>
+            </div>
+            <Link
+              href="/claim-free-account"
+              onClick={() => analytics.blogCtaClick({ sourceSlug, placement: "cta_button" })}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#2200ff] px-5 py-2.5 text-sm font-bold text-white shadow-[0_8px_24px_rgba(34,0,255,0.28)] transition hover:bg-[#1a00cc]"
+            >
+              Get started free <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+
         <HomepageOnboardingModal
           open={modalOpen}
           initialResumeFile={pendingFile}
@@ -73,7 +92,8 @@ export function BlogResumeCTA({
 
   return (
     <>
-      <section className="px-5 pb-10 pt-2 sm:px-8 lg:px-10">
+      {/* Desktop: resume-first */}
+      <section className="hidden lg:block px-5 pb-10 pt-2 lg:px-10">
         <div className="mx-auto max-w-4xl">
           <div
             onDragOver={(e) => e.preventDefault()}
@@ -102,6 +122,27 @@ export function BlogResumeCTA({
                 ATS-friendly PDFs
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Mobile: account-first */}
+      <section className="lg:hidden px-5 pb-10 pt-2">
+        <div className="mx-auto max-w-4xl">
+          <div className="flex flex-col items-center justify-center rounded-[1.5rem] border border-slate-200 bg-white p-6 text-center shadow-sm">
+            <p className="text-2xl font-black tracking-tight text-slate-900">{heading}</p>
+            <p className="mt-2 text-base font-semibold tracking-tight text-slate-500">{subtext}</p>
+            <Link
+              href="/claim-free-account"
+              onClick={() => analytics.blogCtaClick({ sourceSlug, placement: "cta_button" })}
+              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-base font-bold text-white shadow-[0_16px_44px_rgba(34,0,255,0.34)] transition hover:bg-[#1a00cc]"
+            >
+              Get started free <ArrowRight className="h-4 w-4" />
+            </Link>
+            <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-slate-400">
+              <ShieldCheck className="h-4 w-4" />
+              No credit card required
+            </p>
           </div>
         </div>
       </section>
