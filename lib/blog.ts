@@ -52,6 +52,92 @@ export const blogCategories: BlogCategory[] = [
 
 export const blogArticles: BlogArticle[] = [
   {
+    slug: "why-job-ads-up-market-still-hard-australia",
+    title: "Why is it still hard to land a role when job ads are up?",
+    excerpt: "Australian job ads have risen for three consecutive months, but for many jobseekers the market still doesn't feel any easier. Here's what's driving the disconnect — and what to do about it.",
+    category: "Job Market",
+    featured: true,
+    author: "Koalapply",
+    publishDate: "7 Oct 2026",
+    readingTime: "5 min read",
+    image: "/blog/why-job-ads-up-market-still-hard-australia.jpg",
+    imageAlt: "Multiple candidates sitting waiting for interviews with clipboards and documents in the background",
+    relatedSlugs: [
+      "reconnecting-with-former-colleagues-job-search",
+      "why-youre-not-getting-interviews-even-with-experience",
+      "job-search-system-that-keeps-you-organised",
+    ],
+    midCta: {
+      afterSectionId: "employers-can-afford-to-be-selective",
+      heading: "Make every application count",
+      subtext: "Upload your resume and let Koalapply tailor it to the job description — so your relevance is obvious from the first line.",
+    },
+    sections: [
+      {
+        id: "intro",
+        title: "",
+        paragraphs: [
+          "Australian job ads have now risen for three consecutive months, suggesting hiring demand may finally be improving. But for many jobseekers, the market still does not feel any easier.",
+          "Applications per job ad are still rising, unemployment has increased to 4.6%, and employees are changing jobs less often than they were a year ago. Together, those figures show a disconnect.",
+          "The latest SEEK Employment Report showed job ads increased again in September, extending a three-month run of growth.",
+          "The market may be improving overall, but not every jobseeker is experiencing that recovery. So why are jobseekers still stuck?",
+        ],
+      },
+      {
+        id: "more-people-competing",
+        title: "More people are competing for work",
+        paragraphs: [
+          "Australia's unemployment rate rose to 4.6% in August, meaning more people are actively looking for jobs.",
+          "That pool includes people who have been made redundant, graduates trying to enter the workforce, experienced professionals looking for their next role and long-term jobseekers broadening their search.",
+          "Jobs and Skills Australia has also found employers are receiving more qualified and suitable applicants for vacancies.",
+          "For recruiters, that means more choice. For candidates, it means simply being capable of doing the job may no longer be enough to secure an interview.",
+          "When many applicants meet the basic requirements, employers can become more selective about industry experience, recent skills, achievements and how closely someone's background matches the role.",
+        ],
+      },
+      {
+        id: "staying-in-jobs-longer",
+        title: "People are staying in their jobs longer",
+        paragraphs: [
+          "Another part of the story is lower employee turnover.",
+          "ABS data shows the proportion of employed people changing jobs fell to 7.2% in the year to February 2026, down from 7.7% the previous year. Among professionals, job mobility fell from 7.4% to 6.4%.",
+          "That matters because turnover creates vacancies.",
+          "When employees feel uncertain about the economy, they are more likely to stay in secure roles. That slows the usual chain of movement where one person changes company, creating another vacancy behind them.",
+          "It is one reason rising job ads do not immediately translate into an easier candidate market.",
+        ],
+      },
+      {
+        id: "employers-can-afford-to-be-selective",
+        title: "Employers can afford to be selective",
+        paragraphs: [
+          "Australia's vacancy market also remains well below the extraordinary levels reached after the pandemic, when employers were scrambling for workers.",
+          "Today, many organisations can take longer, compare more candidates and hold out for someone who closely matches their requirements.",
+          "That can mean more interview rounds, assessments and longer waits between stages.",
+          "It doesn't mean the labour market is collapsing. It means vacancy numbers can start recovering before jobseekers actually feel the benefit.",
+        ],
+      },
+      {
+        id: "what-jobseekers-should-do",
+        title: "What should jobseekers do?",
+        paragraphs: [
+          "Start by looking at your market and track the roles and industries relevant to you and see whether vacancies are genuinely increasing.",
+          "Be more targeted with applications. Sending the same resume to 50 employers is unlikely to outperform a smaller number of well-matched applications.",
+          "Make your relevance obvious. If an employer wants stakeholder management, project delivery or sales growth, don't just list the skill. Show where you used it, what you delivered and what changed as a result.",
+          "And don't rely entirely on job boards. Reconnect with former colleagues, speak with recruiters, follow organisations you want to work for and let your network know what kind of opportunity you're looking for.",
+          "It can also help to widen your search sideways rather than downwards. Similar roles are often advertised under different job titles or in industries you may not have considered.",
+          "Finally, look at the pattern in your job search. If you're applying regularly but rarely getting interviews, review your resume, positioning and target roles. If you're reaching interview stage but not getting offers, focus on your examples, interview approach and how clearly you explain your value.",
+        ],
+      },
+      {
+        id: "dont-read-every-rejection-as-verdict",
+        title: "Don't read every rejection as a verdict",
+        paragraphs: [
+          "A long job search can quickly become personal, particularly for experienced people who are used to performing well at work. Most of the time it's not your skills and capabilities — it's the market.",
+          "The best thing you can do for yourself is to focus on applying to roles that align well, be the earliest to apply, check your resume using the ATS checker, and network with your past and present contacts.",
+        ],
+      },
+    ],
+  },
+  {
     slug: "reconnecting-with-former-colleagues-job-search",
     title: "Long Time, No Chat: Reconnecting With Former Colleagues During Your Job Search",
     excerpt: "Reaching out to old colleagues can feel awkward when you're job hunting — but you don't need a perfect reason or an impressive update. Here's how to do it without the cringe.",
