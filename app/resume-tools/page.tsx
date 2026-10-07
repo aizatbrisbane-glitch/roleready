@@ -51,7 +51,16 @@ function SignupForm({ buttonLabel, prefillEmail = "" }: { buttonLabel: string; p
   const [newsletterOptIn, setNewsletterOptIn] = useState(true);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [done, setDone] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState("");
+
+  async function pushStoredAttribution() {
+    try {
+      const stored = localStorage.getItem("koala_attr");
+      if (!stored) return;
+      await fetch("/api/attribution", { method: "POST", headers: { "Content-Type": "application/json" }, body: stored });
+    } catch {}
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -104,11 +113,12 @@ function SignupForm({ buttonLabel, prefillEmail = "" }: { buttonLabel: string; p
         }
         notifySignup("email");
         analytics.signupComplete({ method: "email", source: analytics.getSignupSource(), userId });
+        await pushStoredAttribution();
         window.location.href = "/";
         return;
       }
 
-      setDone(true);
+      setOtpSent(true);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -116,13 +126,76 @@ function SignupForm({ buttonLabel, prefillEmail = "" }: { buttonLabel: string; p
     }
   }
 
-  if (done) {
+  async function verifyOtp(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setMessage("");
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) { setLoading(false); return; }
+
+    const { data: verifyData, error } = await supabase.auth.verifyOtp({
+      email,
+      token: otp.replace(/\D/g, ""),
+      type: "signup",
+    });
+
+    if (error) {
+      setMessage(error.message);
+      setLoading(false);
+      return;
+    }
+
+    const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+    if (fullName) {
+      fetch("/api/profile/settings", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: fullName }) }).catch(() => {});
+    }
+    if (newsletterOptIn) {
+      fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }), keepalive: true }).catch(() => {});
+    }
+    notifySignup("email_otp");
+    analytics.signupComplete({ method: "email_otp", source: analytics.getSignupSource(), userId: verifyData.user?.id });
+    await pushStoredAttribution();
+    window.location.href = "/";
+  }
+
+  if (otpSent) {
     return (
-      <div className="rounded-3xl border border-[#d4ccff] bg-[#ece8ff] px-6 py-8 text-center">
-        <p className="text-lg font-bold text-[#2200ff]">Check your inbox!</p>
-        <p className="mt-2 text-sm text-slate-600">
-          We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.
+      <div className="rounded-3xl border border-[#d4ccff] bg-white px-6 py-8 text-center shadow-sm">
+        <p className="text-2xl font-bold text-slate-900">Check your email</p>
+        <p className="mt-3 text-sm leading-6 text-slate-600">
+          We sent a 6-digit verification code to <strong>{email}</strong>.
         </p>
+        <form onSubmit={verifyOtp} className="mt-6 space-y-4">
+          <input
+            className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-center text-2xl font-black tracking-[0.35em] text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            pattern="[0-9]*"
+            maxLength={6}
+            placeholder="000000"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            required
+            autoFocus
+          />
+          {message && <ErrorToast message={message} onDismiss={() => setMessage("")} />}
+          <button
+            type="submit"
+            disabled={loading}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-4 text-base font-bold text-white shadow-[0_12px_32px_rgba(34,0,255,0.22)] transition hover:bg-[#1a00cc] disabled:opacity-60"
+          >
+            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
+            {loading ? "Verifying…" : "Verify my account"}
+          </button>
+        </form>
+        <button
+          type="button"
+          onClick={() => { setOtpSent(false); setOtp(""); setMessage(""); }}
+          className="mt-4 text-sm font-semibold text-[#2200ff] hover:text-[#1a00cc]"
+        >
+          ← Wrong email? Go back
+        </button>
       </div>
     );
   }

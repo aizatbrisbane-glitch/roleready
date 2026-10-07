@@ -374,10 +374,9 @@ export function OnboardingWizard() {
               />
               {location.trim() && (() => {
                 const info = inferCountry([location]);
-                const boards = marketLabel(info);
                 return (
                   <p className="mt-2 text-sm text-[#2200ff]">
-                    Searching {boards} for {info.joobleCountry} jobs
+                    Searching {marketLabel(info)} jobs
                   </p>
                 );
               })()}

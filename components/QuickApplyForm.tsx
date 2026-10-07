@@ -76,12 +76,12 @@ const SEARCH_PAGE_PATTERNS: { test: (u: URL) => boolean; message: string }[] = [
 ];
 
 type Props = {
-  resumeFileName: string | null;
-  coverLetterFileName: string | null;
+  hasResume: boolean;
   profileLocation?: string | null;
+  onResumeRequired?: (continuation: () => void) => void;
 };
 
-export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFileName: _coverLetterFileName, profileLocation }: Props) {
+export function QuickApplyForm({ hasResume, profileLocation, onResumeRequired }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const fetchStageLabel = useFetchStage(loading);
@@ -138,6 +138,28 @@ export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFil
     return () => clearTimeout(timer);
   }, [jobUrl]);
 
+  // The actual API call — extracted so it can be used as a continuation after resume upload
+  async function doApiSubmit() {
+    setLoading(true);
+    setMessage("");
+    const formData = new FormData();
+    if (jobUrl.trim()) formData.set("job_url", jobUrl.trim());
+    if (descText.trim()) formData.set("job_description_fallback", descText.trim());
+    const response = await fetch("/api/quick-start", { method: "POST", body: formData });
+    const payload = await response.json();
+    if (!response.ok) {
+      if (payload.errorCode === "JOB_TEXT_UNAVAILABLE") {
+        setDescOpen(true);
+        setMessage("We couldn't read that page — paste the job description below and submit again.");
+      } else {
+        setMessage(payload.error ?? "Something went wrong.");
+      }
+      setLoading(false);
+      return;
+    }
+    router.push(`/applications/${payload.applicationId}?generate=true`);
+  }
+
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!jobUrl.trim() && !descText.trim()) {
@@ -150,47 +172,36 @@ export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFil
       setMessage(spw);
       return;
     }
-    setLoading(true);
-    setMessage("");
-
-    const formData = new FormData(event.currentTarget);
-    const response = await fetch("/api/quick-start", { method: "POST", body: formData });
-    const payload = await response.json();
-
-    if (!response.ok) {
-      if (payload.errorCode === "JOB_TEXT_UNAVAILABLE") {
-        setDescOpen(true);
-        setMessage("We couldn't read that page — paste the job description below and submit again.");
-      } else {
-        setMessage(payload.error ?? "Something went wrong.");
-      }
-      setLoading(false);
+    // Gate on resume: show prompt before starting any tailoring
+    if (!hasResume && onResumeRequired) {
+      onResumeRequired(() => void doApiSubmit());
       return;
     }
-
-    router.push(`/applications/${payload.applicationId}?generate=true`);
+    await doApiSubmit();
   }
 
   return (
     <form
       onSubmit={submit}
-      className="relative max-w-full overflow-hidden rounded-[2rem] bg-gradient-to-br from-white to-[#ece8ff]/40 p-5 shadow-[0_22px_70px_rgba(34,0,255,0.08)] md:p-7"
+      className="relative max-w-full overflow-hidden rounded-[2rem] bg-gradient-to-br from-white to-[#ece8ff]/40 p-4 shadow-[0_22px_70px_rgba(34,0,255,0.08)] md:p-6"
     >
       <div className="pointer-events-none absolute -right-8 -top-8 h-48 w-48 rounded-full bg-[#d4ccff]/40 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-10 left-1/2 h-36 w-52 rounded-full bg-violet-100/40 blur-3xl" />
 
-      <div className="relative grid min-w-0 items-center gap-5 lg:grid-cols-[1fr_1.6fr] lg:gap-8">
+      <div className="relative grid min-w-0 items-center gap-3 lg:grid-cols-[1fr_1.6fr] lg:gap-8">
         {/* Left: headline */}
         <div>
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#2200ff] shadow-sm">
+          <div className="mb-2 hidden sm:mb-3 sm:inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#2200ff] shadow-sm">
             <Sparkles className="h-3.5 w-3.5" />
             Start here
           </div>
-          <h2 className="text-2xl font-bold leading-tight text-slate-900 md:text-[2.1rem]">
-            What job are you applying for today?
+          <h2 className="text-xl font-bold leading-tight text-slate-900 sm:text-2xl md:text-[2.1rem]">
+            Already found a job?
           </h2>
-          <p className="mt-3 text-sm leading-6 text-slate-500">
-            Paste a job link and we&apos;ll tailor your resume and cover letter in seconds.
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            {hasResume
+              ? "Paste the job link and we’ll tailor your application."
+              : "Paste the job link and we’ll help you tailor your application."}
           </p>
           {(() => {
             if (!profileLocation?.trim()) return (
@@ -234,7 +245,7 @@ export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFil
                 disabled={loading}
                 type="submit"
               >
-                {loading ? "Working…" : "Generate ✨"}
+                {loading ? "Working…" : "Tailor my application"}
               </button>
             </div>
           </div>
@@ -257,7 +268,7 @@ export function QuickApplyForm({ resumeFileName: _resumeFileName, coverLetterFil
             disabled={loading}
             type="submit"
           >
-            {loading ? "Working…" : "Generate ✨"} <ArrowRight className="h-5 w-5" />
+            {loading ? "Working…" : "Tailor my application"} <ArrowRight className="h-5 w-5" />
           </button>
 
           <details open={descOpen} onToggle={(e) => setDescOpen((e.currentTarget as HTMLDetailsElement).open)} className="group rounded-2xl border border-slate-100 bg-white px-4 py-3">

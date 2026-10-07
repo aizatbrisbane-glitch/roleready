@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script";
 import Link from "next/link";
-import { Plus } from "lucide-react";
 import { headers } from "next/headers";
 import { MobileNav } from "@/components/MobileNav";
 import { Sidebar } from "@/components/Sidebar";
@@ -180,14 +179,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : initials}
                   </Link>
                   <SignOutButton />
-                  {!showEnterpriseAdmin && (
-                    <Link
-                      href="/jobs/new"
-                      className="inline-flex items-center gap-1.5 rounded-full bg-[#2200ff] px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-[#1a00cc]"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Link>
-                  )}
                 </nav>
               </div>
             </header>

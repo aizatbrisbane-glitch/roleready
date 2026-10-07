@@ -103,6 +103,13 @@ export async function PATCH(request: Request) {
     (patch as Record<string, unknown>).target_job_titles = body.target_job_titles;
   }
 
+  if (typeof body.candidate_onboarding_completed_at === "string") {
+    if (isNaN(Date.parse(body.candidate_onboarding_completed_at))) {
+      return NextResponse.json({ error: "Invalid timestamp for candidate_onboarding_completed_at." }, { status: 400 });
+    }
+    (patch as Record<string, unknown>).candidate_onboarding_completed_at = body.candidate_onboarding_completed_at;
+  }
+
   const { error } = await supabase.from("profiles").upsert(patch);
 
   if (error) {

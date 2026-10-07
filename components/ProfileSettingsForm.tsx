@@ -107,7 +107,7 @@ export function ProfileSettingsForm({ profile, userEmail }: Props) {
             const info = inferCountry([locationValue]);
             return (
               <p className="text-xs text-[#2200ff]">
-                Searching {marketLabel(info)} for {info.joobleCountry} jobs
+                Searching {marketLabel(info)} jobs
               </p>
             );
           })()}

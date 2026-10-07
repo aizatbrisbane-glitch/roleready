@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { notifySignup } from "@/lib/analytics-browser";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -7,29 +7,15 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { ErrorToast } from "@/components/ErrorToast";
 import { analytics } from "@/lib/analytics";
 import { signupAnalyticsMetadata } from "@/lib/analytics-identity";
-import { inferCountry, marketLabel } from "@/lib/country-inference";
 
 export const HOMEPAGE_ONBOARDING_DRAFT_KEY = "Koalapply_home_onboarding_draft";
+// Retained for DashboardTabs which reads this key to pre-fill the job search filter.
 export const GRAB_PREFILL_STORAGE_KEY = "Koalapply_grab_prefill";
-
-type JobMode = "url" | "browse" | "description";
 
 export type StoredDraft = {
   resumeFileName?: string;
   resumeFileKey?: string;
-  coverLetterFileName?: string;
-  coverLetterFileKey?: string;
   email?: string;
-  jobMode?: JobMode | "description";
-  jobUrl?: string;
-  jobDescription?: string;
-  jobSearchIntent?: string;
-  browse?: {
-    keywords?: string;
-    location?: string;
-    workType?: string;
-    salaryMin?: string;
-  };
 };
 
 type Props = {
@@ -44,22 +30,13 @@ const acceptedDocumentTypes = [".pdf", ".docx"];
 const EMAIL_OTP_LENGTH = 6;
 const DRAFT_DB_NAME = "Koalapply-onboarding-drafts";
 const DRAFT_STORE_NAME = "files";
-const JOB_TEXT_UNAVAILABLE = "JOB_TEXT_UNAVAILABLE";
-
-const INTENT_OPTIONS = [
-  { value: "just_starting", label: "Just starting out", sub: "I'm beginning my job search from scratch" },
-  { value: "actively_hunting", label: "Actively hunting", sub: "I need a job and I'm searching hard" },
-  { value: "employed_browsing", label: "Employed, just browsing", sub: "Happy enough but open to better offers" },
-  { value: "levelling_up", label: "Looking to level up", sub: "I want a bigger role or a promotion" },
-  { value: "career_tips_only", label: "Not searching yet", sub: "I just want career advice for now" },
-];
 
 function isAcceptedDocument(file: File) {
   const name = file.name.toLowerCase();
   return acceptedDocumentTypes.some((extension) => name.endsWith(extension));
 }
 
-function createFileKey(type: "resume" | "cover") {
+function createFileKey(type: "resume") {
   return `${type}-${Date.now()}-${crypto.randomUUID()}`;
 }
 
@@ -123,17 +100,9 @@ function clearDraft() {
 
 export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft, initialMessage, onClose }: Props) {
   const resumeInputRef = useRef<HTMLInputElement>(null);
-  const coverInputRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState(1);
   const [resumeFile, setResumeFile] = useState<File | null>(initialResumeFile ?? null);
   const [resumeFileKey, setResumeFileKey] = useState(initialDraft?.resumeFileKey ?? "");
-  const [coverLetterFile, setCoverLetterFile] = useState<File | null>(null);
-  const [coverLetterFileKey, setCoverLetterFileKey] = useState(initialDraft?.coverLetterFileKey ?? "");
-  const [jobMode, setJobMode] = useState<JobMode>(initialDraft?.jobMode === "browse" ? "browse" : "url");
-  const [jobUrl, setJobUrl] = useState(initialDraft?.jobUrl ?? "");
-  const [jobDescription, setJobDescription] = useState(initialDraft?.jobDescription ?? "");
-  const [browseWorkType, setBrowseWorkType] = useState(initialDraft?.browse?.workType ?? "");
-  const [browseSalaryMin, setBrowseSalaryMin] = useState(initialDraft?.browse?.salaryMin ?? "");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState(initialDraft?.email ?? "");
@@ -148,9 +117,6 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [newsletterOptIn, setNewsletterOptIn] = useState(true);
-  const [jobSearchIntent, setJobSearchIntent] = useState(initialDraft?.jobSearchIntent ?? "");
-  const [targetRole, setTargetRole] = useState(initialDraft?.browse?.keywords ?? "");
-  const [locationInput, setLocationInput] = useState(initialDraft?.browse?.location ?? "");
 
   useEffect(() => {
     if (!open) return;
@@ -191,184 +157,62 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       .finally(() => setExtracting(false));
   }, [initialDraft?.resumeFileKey, open, resumeFile]);
 
-  useEffect(() => {
-    if (!open || coverLetterFile || !initialDraft?.coverLetterFileKey) return;
-    void getDraftFile(initialDraft.coverLetterFileKey).then((file) => {
-      if (file) setCoverLetterFile(file);
-    });
-  }, [coverLetterFile, initialDraft?.coverLetterFileKey, open]);
-
   const currentDraft = useMemo<StoredDraft>(
     () => ({
       resumeFileName: resumeFile?.name ?? initialDraft?.resumeFileName,
       resumeFileKey,
-      coverLetterFileName: coverLetterFile?.name ?? initialDraft?.coverLetterFileName,
-      coverLetterFileKey,
       email,
-      jobMode,
-      jobUrl,
-      jobSearchIntent,
-      browse: {
-        keywords: targetRole,
-        location: locationInput,
-        workType: browseWorkType,
-        salaryMin: browseSalaryMin,
-      },
     }),
-    [
-      browseSalaryMin,
-      browseWorkType,
-      coverLetterFile,
-      coverLetterFileKey,
-      email,
-      initialDraft?.coverLetterFileName,
-      initialDraft?.resumeFileName,
-      jobMode,
-      jobSearchIntent,
-      jobUrl,
-      locationInput,
-      resumeFile,
-      resumeFileKey,
-      targetRole,
-    ]
+    [email, initialDraft?.resumeFileName, resumeFile, resumeFileKey]
   );
 
   if (!open) return null;
 
-  async function setDocumentFile(file: File, type: "resume" | "cover") {
+  async function setResumeFileHandler(file: File) {
     setMessage("");
     if (!isAcceptedDocument(file)) {
       setMessage("Please upload a PDF or DOCX file.");
       return;
     }
-    const key = createFileKey(type);
+    const key = createFileKey("resume");
     await saveDraftFile(key, file);
-    if (type === "resume") {
-      setResumeFile(file);
-      setResumeFileKey(key);
-      setExtracting(true);
-      window.setTimeout(() => setExtracting(false), 650);
-    } else {
-      setCoverLetterFile(file);
-      setCoverLetterFileKey(key);
-    }
-  }
-
-  function validateJobIntent() {
-    if (jobMode === "url" && !jobUrl.trim()) {
-      setMessage("Paste the job URL first.");
-      return false;
-    }
-    if (jobMode === "description" && !jobDescription.trim()) {
-      setMessage("Paste the job description first.");
-      return false;
-    }
-    if (jobMode === "browse" && !targetRole.trim()) {
-      setMessage("Add at least a keyword so we can prepare your job search.");
-      return false;
-    }
-    return true;
+    setResumeFile(file);
+    setResumeFileKey(key);
+    setExtracting(true);
+    window.setTimeout(() => setExtracting(false), 650);
   }
 
   async function submitAuthenticated() {
     setMessage("");
 
+    const file = resumeFile;
+    if (!file) {
+      setStep(1);
+      setMessage("We couldn't find your resume. Please select it again.");
+      return;
+    }
+
     const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
-    if (jobSearchIntent || targetRole.trim() || locationInput.trim() || fullName) {
+    if (fullName) {
       await fetch("/api/profile/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...(fullName ? { name: fullName } : {}),
-          ...(jobSearchIntent ? { job_search_intent: jobSearchIntent } : {}),
-          ...(targetRole.trim() ? { target_job_titles: [targetRole.trim()] } : {}),
-          ...(locationInput.trim() ? { location: locationInput.trim() } : {}),
-        }),
+        body: JSON.stringify({ name: fullName }),
       }).catch(() => {});
     }
 
-    if (jobMode === "browse") {
-      if (!resumeFile) {
-        setStep(1);
-        setMessage("Upload your resume again to continue. We could not recover the temporary browser copy.");
-        return;
-      }
-
-      const documentData = new FormData();
-      documentData.append("resume_file", resumeFile);
-      if (coverLetterFile) documentData.append("cover_letter_file", coverLetterFile);
-
-      setLoadingStep("Saving your resume…");
-      const documentResponse = await fetch("/api/profile/documents", {
-        method: "POST",
-        body: documentData,
-      });
-      const documentPayload = await documentResponse.json();
-      if (!documentResponse.ok) {
-        throw new Error(documentPayload.error ?? "Unable to save your resume.");
-      }
-
-      window.localStorage.setItem(
-        GRAB_PREFILL_STORAGE_KEY,
-        JSON.stringify({
-          keywords: targetRole,
-          location: locationInput,
-          workType: browseWorkType,
-          salaryMin: browseSalaryMin,
-        })
-      );
-      clearDraft();
-      void deleteDraftFile(resumeFileKey);
-      void deleteDraftFile(coverLetterFileKey);
-      window.location.href = "/";
-      return;
-    }
-
-    if (!resumeFile) {
-      setStep(1);
-      setMessage("Upload your resume again to continue. We could not recover the temporary browser copy.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("resume_file", resumeFile);
-    if (coverLetterFile) formData.append("cover_letter_file", coverLetterFile);
-    if (jobMode === "url") formData.append("job_url", jobUrl.trim());
-    if (jobMode === "description") formData.append("job_description_fallback", jobDescription.trim());
-
     setLoadingStep("Saving your resume…");
-    if (jobMode === "url") {
-      window.setTimeout(() => {
-        setLoadingStep("Reading the job ad...");
-      }, 500);
-    }
-    const response = await fetch("/api/quick-start", {
-      method: "POST",
-      body: formData,
-    });
-    setLoadingStep("Creating your application…");
-    const payload = await response.json();
-
-    if (response.status === 401) {
-      throw new Error("Your session expired — please sign in again and retry.");
-    }
-    if (payload?.errorCode === JOB_TEXT_UNAVAILABLE) {
-      setConfirmEmail(false);
-      setStep(3);
-      setJobMode("url");
-      saveDraft({ ...currentDraft, jobMode: "url" });
-      setMessage("We could not read that job link. Try the direct job ad URL instead of a search results page.");
-      return;
-    }
-    if (!response.ok || !payload.applicationId) {
-      throw new Error(payload.error ?? "Unable to create your first application.");
+    const formData = new FormData();
+    formData.append("resume_file", file);
+    const res = await fetch("/api/profile/documents", { method: "POST", body: formData });
+    const payload = await res.json().catch(() => ({})) as { error?: string };
+    if (!res.ok) {
+      throw new Error((payload as { error?: string }).error ?? "Unable to save your resume. Please try again.");
     }
 
     clearDraft();
     void deleteDraftFile(resumeFileKey);
-    void deleteDraftFile(coverLetterFileKey);
-    setLoadingStep("Opening your application...");
-    window.location.href = `/applications/${payload.applicationId}?generate=true`;
+    window.location.href = "/";
   }
 
   async function handleAccountGate(event?: React.FormEvent<HTMLFormElement>) {
@@ -380,7 +224,6 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       setMessage("Upload your resume first.");
       return;
     }
-    if (!validateJobIntent()) return;
 
     setLoading(true);
     try {
@@ -389,7 +232,6 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
 
       const { data: sessionData } = await supabase.auth.getSession();
       if (sessionData.session) {
-        // Refresh to ensure server-side cookies are current before calling the API.
         await supabase.auth.refreshSession();
         await submitAuthenticated();
         return;
@@ -397,10 +239,8 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
 
       saveDraft(currentDraft);
 
-      // Try signing in first — handles returning users without sending an OTP.
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      const { data: signInData } = await supabase.auth.signInWithPassword({ email, password });
       if (signInData?.session) {
-        // Returning user successfully signed in — skip OTP.
         setIsAuthenticated(true);
         await submitAuthenticated();
         return;
@@ -410,7 +250,6 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
         throw new Error("Password must be at least 8 characters and include letters and numbers.");
       }
 
-      // New user (or wrong password for returning user) — attempt sign-up.
       const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
@@ -422,7 +261,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       });
 
       if (signUpError) {
-        if (signInError && signUpError.message.toLowerCase().includes("already registered")) {
+        if (signUpError.message.toLowerCase().includes("already registered")) {
           throw new Error("Incorrect password. Try signing in from the main menu.");
         }
         if (signUpError.message.toLowerCase().includes("password should")) {
@@ -485,20 +324,10 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       const supabase = createSupabaseBrowserClient();
       if (!supabase) throw new Error("Supabase is not configured.");
 
-      // DEBUG — remove once server-side signup tracking is confirmed working
-      console.error("[DEBUG signup-track] HomepageOnboardingModal verifyEmailCode: calling verifyOtp");
-
       const { data: verifyData, error } = await supabase.auth.verifyOtp({
         email,
         token: cleanCode,
         type: "signup",
-      });
-
-      // DEBUG — remove once confirmed
-      console.error("[DEBUG signup-track] verifyOtp result:", {
-        userId: verifyData?.user?.id ?? null,
-        hasSession: !!verifyData?.session,
-        errorMessage: error?.message ?? null,
       });
 
       if (error) {
@@ -515,12 +344,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
       }
 
       const userId = verifyData?.user?.id;
-
-      // DEBUG — remove once confirmed
-      console.error("[DEBUG signup-track] About to call /api/track/signup, userId:", userId ?? "(none)");
-
       notifySignup("email_otp");
-
       analytics.signupComplete({ method: "email_otp", source: analytics.getSignupSource(), userId });
       setIsAuthenticated(true);
       await submitAuthenticated();
@@ -560,25 +384,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
     }
   }
 
-  function continueFromJobStep() {
-    setMessage("");
-    if (!validateJobIntent()) return;
-    saveDraft(currentDraft);
-    setStep(4);
-  }
-
-  function continueFromIntentStep() {
-    setMessage("");
-    if (!jobSearchIntent) return;
-    if (isAuthenticated) {
-      void handleAccountGate();
-    } else {
-      saveDraft(currentDraft);
-      setStep(5);
-    }
-  }
-
-  const stepLabel = confirmEmail ? "Confirm email" : isAuthenticated && step === 5 ? "Ready" : `Step ${step} of 5`;
+  const stepLabel = confirmEmail ? "Confirm email" : `Step ${step} of 2`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/55 px-3 py-4 backdrop-blur-sm sm:items-center sm:px-6">
@@ -587,14 +393,14 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
           type="button"
           onClick={onClose}
           className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-          aria-label="Close onboarding"
+          aria-label="Close"
         >
           <X className="h-5 w-5" />
         </button>
 
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">{stepLabel}</p>
         <div className="mt-3 flex gap-1.5">
-          {[1, 2, 3, 4, 5].map((i) => (
+          {[1, 2].map((i) => (
             <div
               key={i}
               className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
@@ -610,7 +416,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
               <CheckCircle2 className="h-10 w-10 text-emerald-600" />
               <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-900">Enter your verification code</h2>
               <p className="mt-3 text-base leading-7 text-slate-600">
-                We sent a {EMAIL_OTP_LENGTH}-digit code to <span className="font-bold text-slate-900">{email}</span>. This confirms the email belongs to you before we save your application.
+                We sent a {EMAIL_OTP_LENGTH}-digit code to <span className="font-bold text-slate-900">{email}</span>. This confirms the email belongs to you before we save your resume.
               </p>
               <p className="mt-2 text-sm text-slate-400">
                 Can&apos;t find it? Check your <span className="font-medium">junk or spam</span> folder.
@@ -642,7 +448,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
               </button>
               {loading && (
                 <p className="text-center text-xs leading-5 text-slate-500">
-                  After verification, we save your resume, read the job ad, then open your application while documents generate.
+                  After verification, we&apos;ll save your resume and take you to your dashboard.
                 </p>
               )}
               <button
@@ -671,7 +477,7 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
               <section className="mt-5">
                 <h2 className="text-3xl font-black tracking-tight text-slate-900">{resumeFile ? "Resume uploaded" : "Upload your resume"}</h2>
                 <p className="mt-2 text-base leading-7 text-slate-600">
-                  {resumeFile ? "We will save and extract this after your account is ready." : "Add your CV or resume to get started."}
+                  {resumeFile ? "We'll save this once your account is ready." : "Add your CV or resume to get started."}
                 </p>
 
                 <div className="mt-6 rounded-[1.5rem] border border-dashed border-[#d4ccff] bg-[#f7f5ff] p-5">
@@ -701,10 +507,12 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                     className="hidden"
                     onChange={(event) => {
                       const file = event.target.files?.[0];
-                      if (file) void setDocumentFile(file, "resume");
+                      if (file) void setResumeFileHandler(file);
                     }}
                   />
                 </div>
+
+                {message && <p className="mt-3 text-sm text-rose-600">{message}</p>}
 
                 <div className="mt-6 flex justify-end">
                   <button
@@ -721,250 +529,9 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
 
             {step === 2 && (
               <section className="mt-5">
-                <h2 className="text-3xl font-black tracking-tight text-slate-900">Do you have a master cover letter?</h2>
-                <p className="mt-2 text-base leading-7 text-slate-600">Optional, but helpful if you already have one.</p>
-                <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                  <button
-                    type="button"
-                    onClick={() => coverInputRef.current?.click()}
-                    className="rounded-[1.4rem] border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:border-[#d4ccff] hover:bg-[#f7f5ff]"
-                  >
-                    <UploadCloud className="h-7 w-7 text-[#2200ff]" />
-                    <p className="mt-4 font-bold text-slate-900">Upload Cover Letter</p>
-                    <p className="mt-1 text-sm text-slate-500">{coverLetterFile?.name ?? "PDF or DOCX"}</p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setStep(3)}
-                    className="rounded-[1.4rem] border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:border-[#d4ccff] hover:bg-[#f7f5ff]"
-                  >
-                    <ArrowRight className="h-7 w-7 text-[#2200ff]" />
-                    <p className="mt-4 font-bold text-slate-900">Skip For Now</p>
-                    <p className="mt-1 text-sm text-slate-500">You can add one later.</p>
-                  </button>
-                </div>
-                <input
-                  ref={coverInputRef}
-                  type="file"
-                  accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                  className="hidden"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    if (file) {
-                      void setDocumentFile(file, "cover");
-                      setStep(3);
-                    }
-                  }}
-                />
-                <div className="mt-4">
-                  <button type="button" onClick={() => setStep(1)} className="text-sm font-medium text-slate-400 hover:text-slate-600">
-                    ← Back
-                  </button>
-                </div>
-              </section>
-            )}
-
-            {step === 3 && (
-              <section className="mt-5">
-                <h2 className="text-3xl font-black tracking-tight text-slate-900">What role do you want to apply for?</h2>
-                <div className="mt-5 grid gap-2 sm:grid-cols-3">
-                  {[
-                    ["url", "Paste Job URL"],
-                    ["description", "Paste Job Description"],
-                    ["browse", "Browse Jobs With Koalapply"],
-                  ].map(([value, label]) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => {
-                        setJobMode(value as JobMode);
-                        setMessage("");
-                      }}
-                      className={`rounded-2xl border px-4 py-3 text-sm font-bold transition ${
-                        jobMode === value
-                          ? "border-[#2200ff] bg-[#ece8ff] text-[#2200ff]"
-                          : "border-slate-200 bg-white text-slate-600 hover:border-[#d4ccff]"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-
-                {jobMode === "url" && (
-                  <label className="mt-5 block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Job URL</span>
-                    <input
-                      className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base outline-none focus:ring-2 focus:ring-[#d4ccff]"
-                      placeholder="https://..."
-                      value={jobUrl}
-                      onChange={(event) => setJobUrl(event.target.value)}
-                    />
-                  </label>
-                )}
-
-                {jobMode === "description" && (
-                  <label className="mt-5 block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Job Description</span>
-                    <textarea
-                      className="w-full resize-y rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#d4ccff]"
-                      placeholder="Paste the full job description here..."
-                      rows={6}
-                      value={jobDescription}
-                      onChange={(e) => setJobDescription(e.target.value)}
-                    />
-                  </label>
-                )}
-
-                {jobMode === "browse" && (
-                  <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Keywords</span>
-                      <input className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-[#d4ccff]" value={targetRole} onChange={(e) => setTargetRole(e.target.value)} placeholder="Governance manager" />
-                    </label>
-                    <label className="block">
-                      <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Preferred location</span>
-                      <input className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-[#d4ccff]" value={locationInput} onChange={(e) => setLocationInput(e.target.value)} placeholder="e.g. Sydney, London, Jakarta" />
-                      {locationInput.trim() && (() => {
-                        const info = inferCountry([locationInput]);
-                        return (
-                          <p className="mt-1.5 text-xs text-[#2200ff]">
-                            Searching {marketLabel(info)} for {info.joobleCountry} jobs
-                          </p>
-                        );
-                      })()}
-                    </label>
-                    <label className="block">
-                      <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Work type</span>
-                      <select className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-[#d4ccff]" value={browseWorkType} onChange={(e) => setBrowseWorkType(e.target.value)}>
-                        <option value="">Any</option>
-                        <option value="full_time">Full-time</option>
-                        <option value="part_time">Part-time</option>
-                        <option value="hybrid">Hybrid</option>
-                        <option value="onsite">Onsite</option>
-                        <option value="contract">Contract</option>
-                        <option value="permanent">Permanent</option>
-                      </select>
-                    </label>
-                    <label className="block">
-                      <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Minimum salary</span>
-                      <input type="number" min={0} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-[#d4ccff]" value={browseSalaryMin} onChange={(e) => setBrowseSalaryMin(e.target.value)} placeholder="100000" />
-                    </label>
-                  </div>
-                )}
-
-                <div className="mt-6 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <button type="button" onClick={() => setStep(2)} className="text-sm font-medium text-slate-400 hover:text-slate-600">
-                      ← Back
-                    </button>
-                    <button
-                      type="button"
-                      onClick={continueFromJobStep}
-                      disabled={loading}
-                      className="inline-flex items-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-sm font-bold text-white shadow-[0_12px_32px_rgba(34,0,255,0.22)] disabled:opacity-60"
-                    >
-                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-                      {loading ? (loadingStep || "Working...") : isAuthenticated ? "Create application" : "Continue"}
-                    </button>
-                  </div>
-                  {loading && (
-                    <div className="rounded-2xl bg-[#ece8ff]/60 px-4 py-3">
-                      <div className="h-1 w-full overflow-hidden rounded-full bg-[#d4ccff]">
-                        <div className="h-full w-1/3 rounded-full bg-[#2200ff] animate-[indeterminate_1.8s_ease-in-out_infinite]" />
-                      </div>
-                      <p className="mt-2 text-xs text-slate-500">
-                        {loadingStep === "Reading the job ad..." ? "Reading the job ad can take 15–30 seconds — hang tight!" : "This usually takes less than a minute."}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </section>
-            )}
-
-            {step === 4 && (
-              <section className="mt-5">
-                <h2 className="text-3xl font-black tracking-tight text-slate-900">Where are you in your job search?</h2>
-                <p className="mt-2 text-base leading-7 text-slate-600">This helps us tailor your experience.</p>
-                <div className="mt-6 space-y-3">
-                  {INTENT_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setJobSearchIntent(opt.value)}
-                      className={`w-full rounded-2xl border px-5 py-4 text-left transition ${
-                        jobSearchIntent === opt.value
-                          ? "border-[#2200ff] bg-[#ece8ff]"
-                          : "border-slate-200 bg-white hover:border-[#d4ccff]"
-                      }`}
-                    >
-                      <p className={`font-semibold ${jobSearchIntent === opt.value ? "text-[#2200ff]" : "text-slate-900"}`}>{opt.label}</p>
-                      <p className="mt-0.5 text-sm text-slate-500">{opt.sub}</p>
-                    </button>
-                  ))}
-                </div>
-                {jobMode !== "browse" && (
-                  <>
-                    <div className="mt-6">
-                      <label className="block text-sm font-semibold text-slate-700">
-                        What role are you looking for?
-                      </label>
-                      <input
-                        type="text"
-                        value={targetRole}
-                        onChange={(e) => setTargetRole(e.target.value)}
-                        placeholder="e.g. Project Manager"
-                        className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
-                      />
-                      <p className="mt-1.5 text-xs text-slate-400">We use this to find the most relevant jobs for you on the dashboard.</p>
-                    </div>
-                    <div className="mt-5">
-                      <label className="block text-sm font-semibold text-slate-700">
-                        Where are you looking for work?
-                      </label>
-                      <input
-                        type="text"
-                        value={locationInput}
-                        onChange={(e) => setLocationInput(e.target.value)}
-                        placeholder="e.g. Sydney, London, Kuala Lumpur, Jakarta"
-                        className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
-                      />
-                      {locationInput.trim() && (() => {
-                        const info = inferCountry([locationInput]);
-                        return (
-                          <p className="mt-1.5 text-xs text-[#2200ff]">
-                            Searching {marketLabel(info)} for {info.joobleCountry} jobs
-                          </p>
-                        );
-                      })()}
-                      {!locationInput.trim() && (
-                        <p className="mt-1.5 text-xs text-slate-400">We&apos;ll search the right job boards for your market.</p>
-                      )}
-                    </div>
-                  </>
-                )}
-                {message && <p className="mt-4 text-sm text-rose-600">{message}</p>}
-                <div className="mt-6 flex items-center justify-between">
-                  <button type="button" onClick={() => setStep(3)} className="text-sm font-medium text-slate-400 hover:text-slate-600">
-                    ← Back
-                  </button>
-                  <button
-                    type="button"
-                    disabled={!jobSearchIntent || !targetRole.trim()}
-                    onClick={continueFromIntentStep}
-                    className="inline-flex items-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-sm font-bold text-white shadow-[0_12px_32px_rgba(34,0,255,0.22)] disabled:opacity-50"
-                  >
-                    Continue <ArrowRight className="h-4 w-4" />
-                  </button>
-                </div>
-              </section>
-            )}
-
-            {step === 5 && (
-              <section className="mt-5">
-                <h2 className="text-3xl font-black tracking-tight text-slate-900">Your first application is almost ready</h2>
+                <h2 className="text-3xl font-black tracking-tight text-slate-900">Create your free account</h2>
                 <p className="mt-3 text-base leading-7 text-slate-600">
-                  Create a free account to save your resume and generate your first tailored application for free.
+                  We&apos;ll save your resume and get your profile ready.
                 </p>
                 <form onSubmit={handleAccountGate} className="mt-6 space-y-4">
                   <div className="grid grid-cols-2 gap-3">
@@ -1013,13 +580,11 @@ export function HomepageOnboardingModal({ open, initialResumeFile, initialDraft,
                       <div className="h-1 w-full overflow-hidden rounded-full bg-[#d4ccff]">
                         <div className="h-full w-1/3 rounded-full bg-[#2200ff] animate-[indeterminate_1.8s_ease-in-out_infinite]" />
                       </div>
-                      <p className="mt-2 text-xs text-slate-500">
-                        {loadingStep === "Reading the job ad..." ? "Reading the job ad can take 15–30 seconds — hang tight!" : "This usually takes less than a minute."}
-                      </p>
+                      <p className="mt-2 text-xs text-slate-500">Saving your resume and setting up your account…</p>
                     </div>
                   )}
                   {!loading && (
-                    <button type="button" onClick={() => setStep(4)} className="w-full text-center text-sm font-medium text-slate-400 hover:text-slate-600">
+                    <button type="button" onClick={() => setStep(1)} className="w-full text-center text-sm font-medium text-slate-400 hover:text-slate-600">
                       ← Back
                     </button>
                   )}
@@ -1044,7 +609,8 @@ export function DeferredOnboardingResume() {
     if (!raw) return;
     try {
       const parsed = JSON.parse(raw) as StoredDraft;
-      if (!parsed.jobMode) return;
+      // Only reopen if there is a staged resume to recover.
+      if (!parsed.resumeFileKey) return;
 
       const supabase = createSupabaseBrowserClient();
       if (!supabase) {

@@ -1,12 +1,13 @@
-﻿"use client";
+"use client";
 
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   Bookmark,
+  ChevronDown,
   ExternalLink,
   Info,
   Loader2,
@@ -25,6 +26,7 @@ type Props = {
   coverLetterFileName: string | null;
   userName?: string | null;
   profileLocation?: string | null;
+  profileTargetJobTitles?: string[];
   grabbedMatches: CachedGrabbedJob[];
   grabbedMatchesStale: boolean;
   savedByUrl?: Record<string, string>;
@@ -103,6 +105,75 @@ function formatAccessDate(value: string | null) {
   return new Intl.DateTimeFormat("en-AU", { day: "numeric", month: "short", year: "numeric" }).format(new Date(value));
 }
 
+// Shared resume-required gate modal — used for both pasted-job and recommended-job tailoring
+function ResumeRequiredModal({
+  onSuccess,
+  onCancel,
+}: {
+  onSuccess: () => void;
+  onCancel: () => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function handleFile(file: File) {
+    setUploading(true);
+    setError("");
+    const fd = new FormData();
+    fd.append("resume_file", file);
+    const res = await fetch("/api/profile/documents", { method: "POST", body: fd });
+    const data = await res.json().catch(() => null);
+    setUploading(false);
+    if (!res.ok) {
+      setError(data?.error ?? "Upload failed. Please try again.");
+      return;
+    }
+    onSuccess();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-[1.75rem] bg-white p-8 shadow-2xl">
+        <h2 className="text-xl font-bold text-slate-900">Upload your resume to tailor this job</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          Koalapply needs your master resume to analyse your match and create your tailored resume and cover letter.
+        </p>
+        {error && <p className="mt-3 text-sm text-rose-600">{error}</p>}
+        <div className="mt-6 space-y-3">
+          <button
+            type="button"
+            disabled={uploading}
+            onClick={() => fileRef.current?.click()}
+            className="w-full rounded-full bg-[#2200ff] py-3 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[#1a00cc] disabled:opacity-60"
+          >
+            {uploading ? "Uploading…" : "Upload master resume"}
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".pdf,.docx"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void handleFile(f);
+              e.target.value = "";
+            }}
+          />
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={uploading}
+            className="w-full rounded-full border border-slate-200 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function GrabbedMatchCard({
   job,
   importedApplicationId,
@@ -172,7 +243,7 @@ function GrabbedMatchCard({
         {importedApplicationId ? (
           <Link
             href={`/applications/${importedApplicationId}`}
-            className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#2200ff] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a00cc] sm:min-h-0 sm:flex-none"
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-[#2200ff] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a00cc] sm:flex-none"
           >
             Open <ArrowRight className="h-3.5 w-3.5" />
           </Link>
@@ -181,7 +252,7 @@ function GrabbedMatchCard({
             type="button"
             disabled={importing}
             onClick={() => onImport(job)}
-            className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#2200ff] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a00cc] disabled:opacity-70 sm:min-h-0 sm:flex-none"
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-[#2200ff] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a00cc] disabled:opacity-70 sm:flex-none"
           >
             {importing ? "Starting…" : "Tailor & Apply"} <ArrowRight className="h-3.5 w-3.5" />
           </button>
@@ -218,6 +289,7 @@ export function DashboardTabs({
   coverLetterFileName,
   userName,
   profileLocation,
+  profileTargetJobTitles,
   grabbedMatches,
   grabbedMatchesStale,
   savedByUrl = {},
@@ -242,10 +314,17 @@ export function DashboardTabs({
   const [importing, setImporting] = useState<Record<string, boolean>>({});
   const [imported, setImported] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState<Record<string, boolean>>({});
-  const [saved, setSaved] = useState<Record<string, string>>(savedByUrl); // jobUrl â†' applicationId
+  const [saved, setSaved] = useState<Record<string, string>>(savedByUrl); // jobUrl → applicationId
   const [showAllMatches, setShowAllMatches] = useState(false);
   const [mobilePreferencesOpen, setMobilePreferencesOpen] = useState(false);
   const [matchMarket, setMatchMarket] = useState<string | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  // Tracks whether the user has a resume — updated immediately after gate upload
+  const [localHasResume, setLocalHasResume] = useState(!!resumeFileName);
+  // Gate state: open when tailoring is attempted without a resume
+  const [gateOpen, setGateOpen] = useState(false);
+  const [gateContinuation, setGateContinuation] = useState<(() => void) | null>(null);
 
   const importedByUrl = useMemo(() => {
     const map: Record<string, string> = {};
@@ -264,7 +343,6 @@ export function DashboardTabs({
   }
 
   async function refreshMatches(force = false) {
-    if (!resumeFileName) return;
     setLoadingMatches(true);
     setMatchError("");
     setMatchNotice(force ? "Searching…" : "Checking today's matches…");
@@ -316,6 +394,12 @@ export function DashboardTabs({
   }
 
   async function importJob(job: GrabResult) {
+    // Gate: resume is required to begin tailoring
+    if (!localHasResume) {
+      setGateContinuation(() => () => void importJob(job));
+      setGateOpen(true);
+      return;
+    }
     setImporting((prev) => ({ ...prev, [job.id]: true }));
     try {
       const response = await fetch("/api/grab/import", {
@@ -375,6 +459,14 @@ export function DashboardTabs({
     }
   }
 
+  function handleGateSuccess() {
+    setLocalHasResume(true);
+    setGateOpen(false);
+    const cont = gateContinuation;
+    setGateContinuation(null);
+    cont?.();
+  }
+
   useEffect(() => {
     const raw = window.localStorage.getItem(GRAB_PREFILL_STORAGE_KEY);
     if (!raw) return;
@@ -398,14 +490,14 @@ export function DashboardTabs({
   }, []);
 
   useEffect(() => {
-    if (resumeFileName && grabbedMatchesStale) {
+    if (grabbedMatchesStale) {
       void refreshMatches(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resumeFileName, grabbedMatchesStale]);
+  }, [grabbedMatchesStale]);
 
   const onEnter = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !loadingMatches && resumeFileName) void refreshMatches(true);
+    if (e.key === "Enter" && !loadingMatches) void refreshMatches(true);
   };
 
   return (
@@ -424,7 +516,7 @@ export function DashboardTabs({
               <Link href="/pricing" className="font-semibold text-[#2200ff] hover:underline">Upgrade to create more</Link>
             </div>
           ) : (
-            <div className="mt-4 inline-flex flex-wrap items-center gap-2 rounded-2xl border border-slate-100 bg-white px-4 py-3 text-sm font-semibold text-slate-600 shadow-sm">
+            <div className="mt-4 inline-flex flex-wrap items-center gap-2 rounded-full border border-slate-100 bg-white px-4 py-1.5 text-sm font-medium text-slate-600 shadow-sm">
               <span className={accessState.planType === "enterprise_90_day" ? "text-[#2200ff]" : "text-slate-700"}>
                 {accessState.planType === "enterprise_90_day" && accessState.validUntil
                   ? `Enterprise access active until ${formatAccessDate(accessState.validUntil)}`
@@ -440,169 +532,195 @@ export function DashboardTabs({
         ) : null}
       </div>
 
-      <div className="min-w-0 space-y-6 md:space-y-8">
-        <QuickApplyForm resumeFileName={resumeFileName} coverLetterFileName={coverLetterFileName} profileLocation={profileLocation} />
+      <div className="min-w-0 space-y-4 md:space-y-8">
+        <QuickApplyForm
+          hasResume={localHasResume}
+          profileLocation={profileLocation}
+          onResumeRequired={(cont) => {
+            setGateContinuation(() => cont);
+            setGateOpen(true);
+          }}
+        />
 
         {/* Fresh opportunities */}
         <section>
-          {/* Section header */}
+          {/* Section heading */}
           <div className="mb-4 px-1">
             <h2 className="text-2xl font-bold tracking-tight text-slate-900">
-              Find jobs that match your resume ✨
+              Or let Koalapply find one for you ✨
             </h2>
-            <p className="mt-1 text-sm leading-6 text-slate-500">
-              Sorted by keyword relevance to your resume. Tailor a job to unlock your true match score.
-            </p>
+            {(() => {
+              const kw = keywordQuery.trim() || profileTargetJobTitles?.[0] || "";
+              const loc = locationQuery.trim();
+              const rolePhrase = kw ? `${kw} roles` : "jobs";
+              const locPhrase = loc ? ` around ${loc}` : "";
+              if (loadingMatches && matches.length === 0) {
+                return <p className="mt-1 text-sm text-slate-500">Finding {rolePhrase}{locPhrase}…</p>;
+              }
+              if (matches.length > 0) {
+                return <p className="mt-1 text-sm text-slate-500">{matches.length} {rolePhrase}{locPhrase}</p>;
+              }
+              return null;
+            })()}
+          </div>
 
-            {/* Filter bar */}
-            <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-[1fr_1fr_1fr_auto]">
-              {/* Keywords */}
-              <div>
-                <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Search keywords</p>
-                <input
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
-                  placeholder="e.g. Communications Manager"
-                  value={keywordQuery}
-                  onChange={(e) => setKeywordQuery(e.target.value)}
-                  onKeyDown={onEnter}
-                />
-              </div>
+          {/* Refine job search — collapsed by default; auto-expands on empty results */}
+          {(() => {
+            const expanded = filtersOpen || (matches.length === 0 && !loadingMatches);
+            return (
+              <div className="mb-4">
+                <button
+                  type="button"
+                  onClick={() => setFiltersOpen((v) => !v)}
+                  className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 transition hover:text-[#2200ff]"
+                  aria-expanded={expanded}
+                >
+                  Refine job search
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
+                </button>
 
-              {/* Location */}
-              <div>
-                <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Job location</p>
-                <div className="relative">
-                  <input
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 pr-8 text-sm text-slate-900 shadow-sm outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
-                    placeholder="e.g. Sydney"
-                    value={locationQuery}
-                    onChange={(e) => {
-                      setLocationQuery(e.target.value);
-                      window.localStorage.setItem("koalapply_search_location", e.target.value);
-                    }}
-                    onFocus={(e) => e.target.select()}
-                    onKeyDown={onEnter}
-                  />
-                  {locationQuery && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLocationQuery("");
-                        window.localStorage.setItem("koalapply_search_location", "");
-                      }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                      aria-label="Clear location"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-                {locationQuery && (
-                  <p className="mt-1.5 text-xs text-[#2200ff]">
-                    Searching {marketLabel(inferCountry([locationQuery]))}
-                  </p>
-                )}
-                {!locationQuery && (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {["Sydney", "Melbourne", "London", "Kuala Lumpur", "Jakarta", "Manila", "Singapore", "New York"].map((city) => (
+                {expanded && (
+                  <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-[1fr_1fr_1fr_auto]">
+                    {/* Keywords */}
+                    <div>
+                      <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Search keywords</p>
+                      <input
+                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
+                        placeholder="e.g. Communications Manager"
+                        value={keywordQuery}
+                        onChange={(e) => setKeywordQuery(e.target.value)}
+                        onKeyDown={onEnter}
+                      />
+                    </div>
+
+                    {/* Location */}
+                    <div>
+                      <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Job location</p>
+                      <div className="relative">
+                        <input
+                          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 pr-8 text-sm text-slate-900 shadow-sm outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#d4ccff]"
+                          placeholder="e.g. Sydney"
+                          value={locationQuery}
+                          onChange={(e) => {
+                            setLocationQuery(e.target.value);
+                            window.localStorage.setItem("koalapply_search_location", e.target.value);
+                          }}
+                          onFocus={(e) => e.target.select()}
+                          onKeyDown={onEnter}
+                        />
+                        {locationQuery && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLocationQuery("");
+                              window.localStorage.setItem("koalapply_search_location", "");
+                            }}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                            aria-label="Clear location"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                      {locationQuery && (
+                        <p className="mt-1.5 text-xs text-[#2200ff]">
+                          Searching {marketLabel(inferCountry([locationQuery]))} jobs
+                        </p>
+                      )}
+                      {!locationQuery && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {["Sydney", "Melbourne", "London", "Kuala Lumpur", "Jakarta", "Manila", "Singapore", "New York"].map((city) => (
+                            <button
+                              key={city}
+                              type="button"
+                              onClick={() => {
+                                setLocationQuery(city);
+                                window.localStorage.setItem("koalapply_search_location", city);
+                              }}
+                              className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500 transition hover:border-[#d4ccff] hover:text-[#2200ff]"
+                            >
+                              {city}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Salary */}
+                    <div className="col-span-2 sm:col-span-1">
+                      <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Min. salary</p>
+                      <div className="flex items-center gap-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm focus-within:ring-2 focus-within:ring-[#d4ccff]">
+                        <span className="pl-4 text-sm font-medium text-slate-400">{currencySymbol(inferCountry([locationQuery || profileLocation || ""]))}</span>
+                        <input
+                          type="number"
+                          className="min-w-0 flex-1 bg-transparent px-2 py-2.5 text-sm text-slate-900 outline-none placeholder:text-slate-400"
+                          placeholder="e.g. 100000"
+                          value={salaryMin}
+                          onChange={(e) => setSalaryMin(e.target.value)}
+                          onKeyDown={onEnter}
+                          min={0}
+                        />
+                      </div>
+                    </div>
+
+                    {/* More preferences */}
+                    <div className="col-span-2 sm:col-span-1">
+                      <p className="mb-1.5 hidden text-xs font-semibold uppercase tracking-[0.14em] text-slate-400 lg:block">More preferences</p>
+                      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm lg:border-0 lg:bg-transparent lg:shadow-none">
+                        <button
+                          type="button"
+                          onClick={() => setMobilePreferencesOpen((open) => !open)}
+                          className="flex min-h-11 w-full items-center justify-between px-4 py-2.5 text-left text-sm font-semibold text-slate-900 transition lg:hidden"
+                          aria-expanded={mobilePreferencesOpen}
+                        >
+                          <span>More preferences</span>
+                          <span className="flex items-center gap-1 text-xs font-medium text-[#2200ff]">
+                            {mobilePreferencesOpen ? "Show less" : "Show more"}
+                            <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${mobilePreferencesOpen ? "rotate-180" : ""}`} />
+                          </span>
+                        </button>
+                        <div className={`${mobilePreferencesOpen ? "flex flex-col" : "hidden"} gap-y-3 border-t border-slate-100 px-4 py-3 lg:flex lg:flex-col lg:gap-y-1.5 lg:border-0 lg:p-0`}>
+                          {WORK_TYPE_OPTIONS.map(({ value, label }) => (
+                            <label key={value} className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+                              <input
+                                type="checkbox"
+                                checked={workTypes.has(value)}
+                                onChange={() => toggleWorkType(value)}
+                                className="h-4 w-4 rounded accent-[#2200ff]"
+                              />
+                              {label}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Refresh button — spans full width */}
+                    <div className="col-span-2 mt-1 lg:col-span-4">
                       <button
-                        key={city}
                         type="button"
-                        onClick={() => {
-                          setLocationQuery(city);
-                          window.localStorage.setItem("koalapply_search_location", city);
-                        }}
-                        className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500 transition hover:border-[#d4ccff] hover:text-[#2200ff]"
+                        disabled={loadingMatches}
+                        onClick={() => refreshMatches(true)}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a00cc] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:justify-start"
                       >
-                        {city}
+                        {loadingMatches ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                        {loadingMatches ? "Searching…" : "Refresh matches"}
                       </button>
-                    ))}
+                    </div>
                   </div>
                 )}
               </div>
+            );
+          })()}
 
-              {/* Salary */}
-              <div className="col-span-2 sm:col-span-1">
-                <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Min. salary</p>
-                <div className="flex items-center gap-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm focus-within:ring-2 focus-within:ring-[#d4ccff]">
-                  <span className="pl-4 text-sm font-medium text-slate-400">{currencySymbol(inferCountry([locationQuery || profileLocation || ""]))}</span>
-                  <input
-                    type="number"
-                    className="min-w-0 flex-1 bg-transparent px-2 py-2.5 text-sm text-slate-900 outline-none placeholder:text-slate-400"
-                    placeholder="e.g. 100000"
-                    value={salaryMin}
-                    onChange={(e) => setSalaryMin(e.target.value)}
-                    onKeyDown={onEnter}
-                    min={0}
-                  />
-                </div>
-              </div>
-
-              {/* More preferences + refresh */}
-              <div className="col-span-2 sm:col-span-1">
-                <p className="mb-1.5 hidden text-xs font-semibold uppercase tracking-[0.14em] text-slate-400 lg:block">More preferences</p>
-                <button
-                  type="button"
-                  onClick={() => setMobilePreferencesOpen((open) => !open)}
-                  className="flex min-h-11 w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-left text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-50 lg:hidden"
-                  aria-expanded={mobilePreferencesOpen}
-                >
-                  <span>More preferences</span>
-                  <span className="text-xs font-medium text-slate-400">
-                    {workTypes.size === 0 ? "None selected" : `${workTypes.size} selected`}
-                  </span>
-                </button>
-                <div className={`${mobilePreferencesOpen ? "mt-2 grid" : "hidden"} grid-cols-2 gap-2 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm lg:flex lg:flex-col lg:gap-y-1.5 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none`}>
-                  {WORK_TYPE_OPTIONS.map(({ value, label }) => (
-                    <label key={value} className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
-                      <input
-                        type="checkbox"
-                        checked={workTypes.has(value)}
-                        onChange={() => toggleWorkType(value)}
-                        className="h-4 w-4 rounded accent-[#2200ff]"
-                      />
-                      {label}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Refresh button */}
-            <div className="mt-3 flex items-center gap-3">
-              <button
-                type="button"
-                disabled={loadingMatches || !resumeFileName}
-                onClick={() => refreshMatches(true)}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a00cc] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:justify-start"
-              >
-                {loadingMatches ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                {loadingMatches ? "Searching…" : "Refresh matches"}
-              </button>
-            </div>
-          </div>
-
-          {/* Notices */}
+          {/* Error */}
           {matchError && (
             <p className="mb-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800">{matchError}</p>
-          )}
-          {!matchError && matchNotice && (
-            <p className="mb-4 rounded-2xl bg-[#ece8ff] px-4 py-3 text-sm font-medium text-[#1a00cc]">{matchNotice}</p>
           )}
 
           {/* Job cards */}
           <div className="space-y-2.5">
-            {!resumeFileName ? (
-              <div className="rounded-[1.75rem] border border-slate-100 bg-white px-6 py-12 text-center shadow-sm">
-                <h3 className="mt-4 text-xl font-bold text-slate-900">Add your resume to unlock matches.</h3>
-                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">
-                  Once your master resume is saved, Koalapply can refresh your best job matches automatically.
-                </p>
-                <Link href="/documents" className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#2200ff] px-5 py-3 text-sm font-semibold text-white hover:bg-[#1a00cc]">
-                  Add documents <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            ) : loadingMatches && matches.length === 0 ? (
+            {loadingMatches && matches.length === 0 ? (
               <>
                 {[0, 1, 2].map((i) => (
                   <div key={i} className="h-20 animate-pulse rounded-[1.6rem] bg-slate-100" />
@@ -612,7 +730,7 @@ export function DashboardTabs({
               <div className="rounded-[1.75rem] border border-slate-100 bg-white px-6 py-12 text-center shadow-sm">
                 <h3 className="mt-4 text-xl font-bold text-slate-900">No fresh matches just yet.</h3>
                 <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">
-                  Try refreshing, or update your keywords to give the search a clearer signal.
+                  Refine your search below to give Koalapply a clearer signal.
                 </p>
               </div>
             ) : (
@@ -641,8 +759,20 @@ export function DashboardTabs({
               </>
             )}
           </div>
+
         </section>
       </div>
+
+      {/* Shared resume-required gate modal */}
+      {gateOpen && (
+        <ResumeRequiredModal
+          onSuccess={handleGateSuccess}
+          onCancel={() => {
+            setGateOpen(false);
+            setGateContinuation(null);
+          }}
+        />
+      )}
     </div>
   );
 }

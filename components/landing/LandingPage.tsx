@@ -4,12 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { getLatestArticles } from "@/lib/blog";
 import { PublicFooter } from "@/components/PublicFooter";
+import { HomepageOnboardingModal } from "@/components/landing/HomepageOnboardingModal";
 import { analytics } from "@/lib/analytics";
-import {
-  HOMEPAGE_ONBOARDING_DRAFT_KEY,
-  HomepageOnboardingModal,
-  type StoredDraft,
-} from "@/components/landing/HomepageOnboardingModal";
 import {
   ArrowRight,
   Briefcase,
@@ -94,15 +90,19 @@ function LimeSwoop({ className }: { className?: string }) {
 }
 
 export function LandingPage() {
-  const resumeInputRef = useRef<HTMLInputElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
-  const [onboardingOpen, setOnboardingOpen] = useState(false);
-  const [heroResumeFile, setHeroResumeFile] = useState<File | null>(null);
-  const [storedDraft, setStoredDraft] = useState<StoredDraft | null>(null);
-  const [onboardingMessage, setOnboardingMessage] = useState("");
+  const heroFileInputRef = useRef<HTMLInputElement>(null);
   const [heroImageIndex, setHeroImageIndex] = useState(0);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [heroModalOpen, setHeroModalOpen] = useState(false);
+  const [heroPendingFile, setHeroPendingFile] = useState<File | null>(null);
+
+  function handleHeroFile(file?: File | null) {
+    if (!file) return;
+    setHeroPendingFile(file);
+    setHeroModalOpen(true);
+  }
 
   const heroImages = [
     "/landing/slide-1.png",
@@ -117,27 +117,6 @@ export function LandingPage() {
       setHeroImageIndex((i) => (i + 1) % heroImages.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-    const errorCode = params.get("error_code");
-    const errorDescription = params.get("error_description");
-    if (!errorCode && !errorDescription) return;
-
-    if (errorCode === "otp_expired" || errorDescription?.toLowerCase().includes("expired")) {
-      const rawDraft = window.localStorage.getItem(HOMEPAGE_ONBOARDING_DRAFT_KEY);
-      if (rawDraft) {
-        try {
-          setStoredDraft(JSON.parse(rawDraft) as StoredDraft);
-        } catch {
-          window.localStorage.removeItem(HOMEPAGE_ONBOARDING_DRAFT_KEY);
-        }
-      }
-      setOnboardingMessage("That confirmation link expired or was already used. Re-upload your resume and continue to send a fresh confirmation email.");
-      setOnboardingOpen(true);
-      window.history.replaceState(null, "", window.location.pathname + window.location.search);
-    }
   }, []);
 
   useEffect(() => {
@@ -166,22 +145,6 @@ export function LandingPage() {
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [mobileNavOpen]);
-
-  function startOnboarding(file?: File | null) {
-    if (file) setHeroResumeFile(file);
-    if (file) setStoredDraft(null);
-    setOnboardingMessage("");
-    setOnboardingOpen(true);
-  }
-
-  function handleHeroFile(file?: File | null) {
-    if (!file) return;
-    if (file.size > 4 * 1024 * 1024) {
-      alert("File is too large. Please upload a PDF or DOCX under 4 MB.");
-      return;
-    }
-    startOnboarding(file);
-  }
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-white text-slate-900">
@@ -411,27 +374,27 @@ export function LandingPage() {
                 </div>
               </div>
 
-              {/* Right: big resume upload card */}
+              {/* Right: hero CTA card — real file dropzone (desktop only) */}
               <div
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={(event) => {
-                  event.preventDefault();
-                  handleHeroFile(event.dataTransfer.files?.[0]);
-                }}
-                className="Koalapply-pop-in flex flex-col items-center justify-center rounded-[1.5rem] border-2 border-dashed border-[#b9adff] bg-white/95 p-6 text-center shadow-[0_28px_90px_rgba(34,0,255,0.16)] backdrop-blur transition hover:-translate-y-0.5 hover:border-[#2200ff] sm:rounded-[2.25rem] sm:p-12 lg:p-5"
+                role="button"
+                tabIndex={0}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => { e.preventDefault(); handleHeroFile(e.dataTransfer.files?.[0]); }}
+                onClick={() => heroFileInputRef.current?.click()}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") heroFileInputRef.current?.click(); }}
+                className="Koalapply-pop-in hidden cursor-pointer flex-col items-center justify-center rounded-[1.5rem] border-2 border-dashed border-[#b9adff] bg-white/95 p-6 text-center shadow-[0_28px_90px_rgba(34,0,255,0.16)] backdrop-blur transition hover:-translate-y-0.5 hover:border-[#2200ff] sm:rounded-[2.25rem] sm:p-12 lg:flex lg:p-5"
               >
                 <input
-                  ref={resumeInputRef}
+                  ref={heroFileInputRef}
                   type="file"
                   accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   className="hidden"
-                  onChange={(event) => handleHeroFile(event.target.files?.[0])}
+                  onChange={(e) => handleHeroFile(e.target.files?.[0])}
                 />
                 <span className="inline-flex h-16 w-16 items-center justify-center rounded-[1.2rem] bg-[#ece8ff] text-[#2200ff] shadow-sm sm:h-24 sm:w-24 sm:rounded-[1.7rem] lg:h-12 lg:w-12 lg:rounded-[1rem]">
                   <UploadCloud className="h-9 w-9 sm:h-14 sm:w-14 lg:h-7 lg:w-7" />
                 </span>
-                <p className="mt-4 text-2xl font-black tracking-tight text-slate-900 sm:mt-6 sm:text-4xl lg:mt-3 lg:text-xl">Drop your resume here. See what it could look like.</p>
-                <p className="mt-3 text-base font-semibold text-slate-500 lg:mt-2">PDF or DOCX · Max 4 MB</p>
+                <p className="mt-4 text-2xl font-black tracking-tight text-slate-900 sm:mt-6 sm:text-4xl lg:mt-3 lg:text-xl">Tailor applications in seconds. See the difference.</p>
                 <div className="mt-5 flex flex-col gap-3 sm:mt-8 lg:mt-3">
                   <div className="inline-flex items-center gap-1.5 rounded-full bg-[#ece8ff] px-3.5 py-1.5 text-xs font-semibold text-[#2200ff] sm:text-sm">
                     <Sparkles className="h-3.5 w-3.5 shrink-0" />
@@ -439,10 +402,7 @@ export function LandingPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      resumeInputRef.current?.click();
-                    }}
+                    onClick={(e) => { e.stopPropagation(); heroFileInputRef.current?.click(); }}
                     className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-3 text-base font-bold text-white shadow-[0_16px_44px_rgba(34,0,255,0.34)] transition hover:bg-[#1a00cc] sm:px-7 sm:py-4 sm:text-lg lg:py-2.5 lg:text-base"
                   >
                     Tailor My Resume for FREE
@@ -464,8 +424,43 @@ export function LandingPage() {
                 </div>
                 <a
                   href="#walkthrough"
+                  onClick={(e) => e.stopPropagation()}
                   className="mt-2 text-xs text-slate-400 underline underline-offset-2 transition hover:text-[#2200ff] lg:hidden"
                 >
+                  Watch how it works →
+                </a>
+              </div>
+
+              {/* Mobile-only hero CTA — account-first, frictionless signup */}
+              <div className="Koalapply-pop-in flex flex-col items-center justify-center rounded-[2.25rem] border border-slate-200 bg-white/95 p-8 text-center shadow-[0_28px_90px_rgba(34,0,255,0.16)] lg:hidden">
+                <span className="inline-flex h-16 w-16 items-center justify-center rounded-[1.4rem] bg-[#ece8ff] text-[#2200ff] shadow-sm">
+                  <Briefcase className="h-9 w-9" />
+                </span>
+                <p className="mt-4 text-2xl font-black tracking-tight text-slate-900">
+                  Start your job search in 30 seconds
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-slate-500">
+                  Create a free account — no resume needed right now.
+                </p>
+                <div className="mt-5 w-full">
+                  <Link
+                    href="/claim-free-account"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2200ff] px-6 py-3.5 text-base font-bold text-white shadow-[0_16px_44px_rgba(34,0,255,0.34)] transition hover:bg-[#1a00cc]"
+                  >
+                    Get started free
+                  </Link>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+                  <p className="inline-flex items-center gap-1.5 text-xs text-slate-400">
+                    <ShieldCheck className="h-4 w-4" />
+                    No credit card required
+                  </p>
+                  <p className="inline-flex items-center gap-1.5 text-xs text-slate-400">
+                    <Lock className="h-4 w-4" />
+                    Your resume is never shared without your permission
+                  </p>
+                </div>
+                <a href="#walkthrough" className="mt-3 text-xs text-slate-400 underline underline-offset-2 transition hover:text-[#2200ff]">
                   Watch how it works →
                 </a>
               </div>
@@ -710,14 +705,14 @@ export function LandingPage() {
 
       </main>
 
-      <PublicFooter />
+      {/* Rendered outside <main> so the hero's CSS transform doesn't trap fixed positioning */}
       <HomepageOnboardingModal
-        open={onboardingOpen}
-        initialResumeFile={heroResumeFile}
-        initialDraft={storedDraft}
-        initialMessage={onboardingMessage}
-        onClose={() => setOnboardingOpen(false)}
+        open={heroModalOpen}
+        initialResumeFile={heroPendingFile}
+        onClose={() => setHeroModalOpen(false)}
       />
+
+      <PublicFooter />
     </div>
   );
 }

@@ -80,8 +80,7 @@ export function isCountryLocation(loc: string, countryInfo: CountryInfo): boolea
 }
 
 export function marketLabel(info: CountryInfo): string {
-  if (info.adzunaCode) return `Adzuna ${info.joobleCountry} + Jooble`;
-  return `Jooble`;
+  return info.joobleCountry;
 }
 
 export function currencySymbol(info: CountryInfo): string {

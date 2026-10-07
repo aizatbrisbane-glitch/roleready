@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Activity, ArrowRight, BarChart2, BookOpen, Bookmark, Building2, FileText, Home, LayoutDashboard, LogOut, Plus, Settings, Shield, Users, Zap } from "lucide-react";
+import { Activity, ArrowRight, BarChart2, BookOpen, Bookmark, Building2, FileText, Home, LayoutDashboard, LogOut, Settings, Shield, Users, Zap } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 const navItems = [
@@ -84,17 +84,6 @@ export function Sidebar({ userName, userEmail, avatarUrl, showEnterpriseAdmin, i
           );
         })}
 
-        {!showEnterpriseAdmin && (
-          <div className="pt-2">
-            <Link
-              href="/jobs/new"
-              className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-500 transition duration-200 hover:bg-slate-50 hover:text-[#2200ff]"
-            >
-              <Plus className="h-4.5 w-4.5 shrink-0" />
-              Add Job
-            </Link>
-          </div>
-        )}
 
         {isAdmin && (
           <div className="pt-2 mt-2 border-t border-slate-100 space-y-1">

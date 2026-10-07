@@ -3,7 +3,7 @@ import { ArrowRight, Building2 } from "lucide-react";
 import { DashboardTabs } from "@/components/DashboardTabs";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { DeferredOnboardingResume } from "@/components/landing/HomepageOnboardingModal";
-import { OnboardingWizard } from "@/components/OnboardingWizard";
+import { CandidateOnboarding } from "@/components/CandidateOnboarding";
 import { SetupNotice } from "@/components/SetupNotice";
 import { getAccessState, type AccessState } from "@/lib/entitlements";
 import { isSupabaseConfigured } from "@/lib/env";
@@ -32,6 +32,8 @@ export default async function DashboardPage() {
   let coverLetterFileName: string | null = null;
   let profileName: string | null = null;
   let profileLocation: string | null = null;
+  let profileTargetJobTitles: string[] = [];
+  let candidateOnboardingCompletedAt: string | null = null;
   let grabbedMatches: CachedGrabbedJob[] = [];
   let savedByUrl: Record<string, string> = {};
   let accessState: AccessState | null = null;
@@ -41,7 +43,7 @@ export default async function DashboardPage() {
       supabase.from("applications").select("*, jobs(*)").eq("user_id", user.id).neq("status", "Saved").order("created_at", { ascending: false }),
       supabase.from("master_resumes").select("id, file_name").eq("user_id", user.id).not("file_name", "is", null).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("master_cover_letters").select("id, file_name").eq("user_id", user.id).not("file_name", "is", null).order("created_at", { ascending: false }).limit(1).maybeSingle(),
-      supabase.from("profiles").select("name, location").eq("id", user.id).maybeSingle(),
+      supabase.from("profiles").select("name, location, candidate_onboarding_completed_at, target_job_titles").eq("id", user.id).maybeSingle(),
       supabase.from("cached_grabbed_jobs").select("*").eq("user_id", user.id).order("match_score", { ascending: false }).limit(15),
       supabase.from("applications").select("id, jobs(job_url)").eq("user_id", user.id).eq("status", "Saved"),
       getAccessState(supabase, user.id),
@@ -52,6 +54,8 @@ export default async function DashboardPage() {
     coverLetterFileName = coverLetter?.file_name ?? null;
     profileName = profile?.name ?? user.user_metadata?.name ?? user.email ?? null;
     profileLocation = (profile as { location?: string } | null)?.location ?? null;
+    profileTargetJobTitles = (profile as { target_job_titles?: string[] } | null)?.target_job_titles ?? [];
+    candidateOnboardingCompletedAt = (profile as { candidate_onboarding_completed_at?: string | null } | null)?.candidate_onboarding_completed_at ?? null;
     grabbedMatches = (cachedMatches ?? []) as CachedGrabbedJob[];
     savedByUrl = Object.fromEntries(
       (savedApps ?? [])
@@ -99,11 +103,14 @@ export default async function DashboardPage() {
     return <LandingPage />;
   }
 
-  if (!resumeFileName) {
+  if (!candidateOnboardingCompletedAt) {
     return (
       <main className="min-h-screen bg-slate-50 px-4 pb-36 md:px-8 md:pb-10 xl:px-10">
-        <DeferredOnboardingResume />
-        <OnboardingWizard />
+        <CandidateOnboarding
+          initialTargetJobTitles={profileTargetJobTitles}
+          initialLocation={profileLocation ?? ""}
+          hasExistingResume={!!resumeFileName}
+        />
       </main>
     );
   }
@@ -117,6 +124,7 @@ export default async function DashboardPage() {
         coverLetterFileName={coverLetterFileName}
         userName={profileName}
         profileLocation={profileLocation}
+        profileTargetJobTitles={profileTargetJobTitles}
         grabbedMatches={grabbedMatches}
         grabbedMatchesStale={isStaleGrabCache(grabbedMatches)}
         savedByUrl={savedByUrl}

@@ -338,9 +338,8 @@ export async function GET(request: Request) {
       .maybeSingle(),
   ]);
 
-  if (!masterResume?.resume_text?.trim()) {
-    return NextResponse.json({ error: "Upload a master resume first." }, { status: 400 });
-  }
+  const hasResume = !!masterResume?.resume_text?.trim();
+  const hasTitles = !!(profile?.target_job_titles?.length);
 
   const appId = process.env.ADZUNA_APP_ID;
   const appKey = process.env.ADZUNA_APP_KEY;
@@ -392,6 +391,14 @@ export async function GET(request: Request) {
     }
   }
 
+  // Case 3: neither resume nor target titles — cannot produce recommendations.
+  if (!hasResume && !hasTitles && !manualQuery) {
+    return NextResponse.json(
+      { error: "Add job titles in your profile or upload a resume to see job recommendations." },
+      { status: 400 }
+    );
+  }
+
   let keywords: { jobTitle: string; searchQuery: string };
   if (manualQuery) {
     keywords = { jobTitle: "", searchQuery: manualQuery };
@@ -400,7 +407,7 @@ export async function GET(request: Request) {
     keywords = { jobTitle: title, searchQuery: title };
   } else {
     try {
-      keywords = await extractKeywords(masterResume.resume_text, provider);
+      keywords = await extractKeywords(masterResume!.resume_text, provider);
     } catch (e) {
       return NextResponse.json({ error: `Keyword extraction failed: ${e instanceof Error ? e.message : "Unknown error"}` }, { status: 500 });
     }

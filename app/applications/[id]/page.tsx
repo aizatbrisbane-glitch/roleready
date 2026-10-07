@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { AuthPanel } from "@/components/AuthPanel";
 import { JobExpiryEditor } from "@/components/JobExpiryEditor";
+import { JobTitleEditor } from "@/components/JobTitleEditor";
 import { ApplicationDetailClient } from "@/components/ApplicationDetailClient";
 import { ScoreDisplay } from "@/components/ScoreDisplay";
 import { GenerateButton } from "@/components/GenerateButton";
@@ -197,9 +198,7 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
           </Link>
 
           <div className="mt-4">
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
-              {displayJob.title}
-            </h1>
+            <JobTitleEditor jobId={job.id} initialTitle={job.title ?? ""} />
             <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500">
               <span>{displayJob.company}</span>
               {job.location ? (
@@ -241,7 +240,7 @@ export default async function ApplicationDetailPage({ params, searchParams }: Pr
                     {hasDocuments ? <CheckCircle2 className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
                   </span>
                   <div className="flex flex-col gap-1.5">
-                    <ScoreDisplay initialScore={effectiveMatchScore} />
+                    {(!generate || hasDocuments) && <ScoreDisplay initialScore={effectiveMatchScore} />}
                     <div className="w-52">
                       <StatusSelector applicationId={application.id} currentStatus={status} showLabel={false} />
                     </div>

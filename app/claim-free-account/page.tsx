@@ -56,6 +56,14 @@ function SignupForm({ buttonLabel, placement, prefillEmail = "" }: { buttonLabel
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
 
+  async function pushStoredAttribution() {
+    try {
+      const stored = localStorage.getItem("koala_attr");
+      if (!stored) return;
+      await fetch("/api/attribution", { method: "POST", headers: { "Content-Type": "application/json" }, body: stored });
+    } catch {}
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setMessage("");
@@ -108,6 +116,7 @@ function SignupForm({ buttonLabel, placement, prefillEmail = "" }: { buttonLabel
         }
         notifySignup("email");
         analytics.signupComplete({ method: "email", source: analytics.getSignupSource(), userId });
+        await pushStoredAttribution();
         window.location.href = "/";
         return;
       }
@@ -163,6 +172,7 @@ function SignupForm({ buttonLabel, placement, prefillEmail = "" }: { buttonLabel
     }
     notifySignup("email_otp");
     analytics.signupComplete({ method: "email_otp", source: analytics.getSignupSource(), userId: verifyData.user?.id });
+    await pushStoredAttribution();
     window.location.href = "/";
   }
 

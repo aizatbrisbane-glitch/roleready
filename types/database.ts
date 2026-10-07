@@ -32,6 +32,7 @@ export type Profile = {
   avatar_url: string;
   avatar_storage_path: string;
   job_search_intent: string | null;
+  candidate_onboarding_completed_at: string | null;
   newsletter_subscribed: boolean;
   monthly_generations_used: number;
   monthly_generations_reset_at: string;
