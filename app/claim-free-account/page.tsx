@@ -294,6 +294,15 @@ function SignupForm({ buttonLabel, placement, prefillEmail = "" }: { buttonLabel
 export default function JoinPage() {
   const viewed = useRef(false);
   useEffect(() => {
+    // Redirect already-authenticated users to the dashboard
+    const supabase = createSupabaseBrowserClient();
+    if (supabase) {
+      supabase.auth.getUser().then(({ data }) => {
+        if (data.user) { window.location.href = "/"; }
+      });
+    }
+  }, []);
+  useEffect(() => {
     if (viewed.current) return;
     viewed.current = true;
     analytics.signupDiagnostic("signup_page_viewed", "page");
