@@ -28,7 +28,12 @@ export async function middleware(request: NextRequest) {
 
     // Refreshes the session if the access token is expired (uses the refresh token).
     // Must be called before any Server Component reads the session.
-    await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // Authenticated users have no business on the signup page
+    if (user && request.nextUrl.pathname === "/claim-free-account") {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
   }
 
   response.headers.set("x-pathname", request.nextUrl.pathname);
