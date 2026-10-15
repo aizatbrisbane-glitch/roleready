@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export async function POST() {
   const supabase = await createSupabaseServerClient();
@@ -19,6 +20,43 @@ export async function POST() {
   }
 
   await supabase.from("profiles").upsert({ id: user.id, newsletter_subscribed: true });
+  await recordLifecycleConsent(createSupabaseAdminClient(), user.id, "[newsletter/bonus]");
 
   return NextResponse.json({ ok: true });
+}
+
+// Same rules as /api/newsletter — see that file for full documentation.
+async function recordLifecycleConsent(
+  admin: ReturnType<typeof createSupabaseAdminClient>,
+  userId: string,
+  tag: string
+): Promise<void> {
+  if (!admin) return;
+
+  const { error: insertError } = await admin
+    .from("email_preferences")
+    .insert({
+      user_id: userId,
+      preference_type: "lifecycle_marketing",
+      opted_in: true,
+      source: "signup_flow",
+    });
+
+  if (!insertError) return;
+
+  if ((insertError as { code?: string }).code !== "23505") {
+    console.error(`${tag} lifecycle consent insert failed:`, insertError.message);
+    return;
+  }
+
+  const { error: updateError } = await admin
+    .from("email_preferences")
+    .update({ opted_in: true, source: "signup_flow" })
+    .eq("user_id", userId)
+    .eq("preference_type", "lifecycle_marketing")
+    .or("source.is.null,source.neq.unsubscribe_link");
+
+  if (updateError) {
+    console.error(`${tag} lifecycle consent update failed:`, updateError.message);
+  }
 }

@@ -4,11 +4,17 @@ import { DashboardTabs } from "@/components/DashboardTabs";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { DeferredOnboardingResume } from "@/components/landing/HomepageOnboardingModal";
 import { CandidateOnboarding } from "@/components/CandidateOnboarding";
+import { LifecycleReminderPrompt } from "@/components/LifecycleReminderPrompt";
 import { SetupNotice } from "@/components/SetupNotice";
 import { getAccessState, type AccessState } from "@/lib/entitlements";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { ApplicationWithJob, CachedGrabbedJob } from "@/types/database";
+
+// Hours after onboarding completion within which the Group B opt-in prompt is shown.
+// Matches ONBOARDING_WINDOW_HOURS in lifecycle-eligibility.ts (14 days).
+const PROMPT_WINDOW_HOURS = 336;
 
 function isStaleGrabCache(matches: CachedGrabbedJob[]) {
   if (matches.length === 0) return true;
@@ -37,17 +43,27 @@ export default async function DashboardPage() {
   let grabbedMatches: CachedGrabbedJob[] = [];
   let savedByUrl: Record<string, string> = {};
   let accessState: AccessState | null = null;
+  let newsletterSubscribed = false;
+  let showReminderPrompt = false;
 
   if (supabase && user) {
-    const [{ data }, { data: resume }, { data: coverLetter }, { data: profile }, { data: cachedMatches }, { data: savedApps }, access, { data: enterpriseMembership }] = await Promise.all([
+    const admin = createSupabaseAdminClient();
+    const [{ data }, { data: resume }, { data: coverLetter }, { data: profile }, { data: cachedMatches }, { data: savedApps }, access, { data: enterpriseMembership }, lifecyclePref] = await Promise.all([
       supabase.from("applications").select("*, jobs(*)").eq("user_id", user.id).neq("status", "Saved").order("created_at", { ascending: false }),
       supabase.from("master_resumes").select("id, file_name").eq("user_id", user.id).not("file_name", "is", null).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("master_cover_letters").select("id, file_name").eq("user_id", user.id).not("file_name", "is", null).order("created_at", { ascending: false }).limit(1).maybeSingle(),
-      supabase.from("profiles").select("name, location, candidate_onboarding_completed_at, target_job_titles").eq("id", user.id).maybeSingle(),
+      supabase.from("profiles").select("name, location, candidate_onboarding_completed_at, target_job_titles, newsletter_subscribed").eq("id", user.id).maybeSingle(),
       supabase.from("cached_grabbed_jobs").select("*").eq("user_id", user.id).order("match_score", { ascending: false }).limit(15),
       supabase.from("applications").select("id, jobs(job_url)").eq("user_id", user.id).eq("status", "Saved"),
       getAccessState(supabase, user.id),
       supabase.from("organization_members").select("id").eq("user_id", user.id).in("role", ["owner", "admin"]).limit(1).maybeSingle(),
+      // Check if the user has any lifecycle email preference recorded (opt-in or opt-out).
+      // Requires admin client — email_preferences is service_role-only.
+      // On failure (admin unavailable OR DB error) we set a synthetic error so the
+      // prompt is suppressed — a failed lookup must never be treated as "no preference".
+      admin
+        ? admin.from("email_preferences").select("opted_in").eq("user_id", user.id).eq("preference_type", "lifecycle_marketing").maybeSingle()
+        : Promise.resolve({ data: null, error: { message: "admin_unavailable", code: "PGRST_N/A", details: "", hint: "" } }),
     ]);
     applications = (data ?? []) as ApplicationWithJob[];
     resumeFileName = resume?.file_name ?? null;
@@ -56,6 +72,7 @@ export default async function DashboardPage() {
     profileLocation = (profile as { location?: string } | null)?.location ?? null;
     profileTargetJobTitles = (profile as { target_job_titles?: string[] } | null)?.target_job_titles ?? [];
     candidateOnboardingCompletedAt = (profile as { candidate_onboarding_completed_at?: string | null } | null)?.candidate_onboarding_completed_at ?? null;
+    newsletterSubscribed = (profile as { newsletter_subscribed?: boolean } | null)?.newsletter_subscribed ?? false;
     grabbedMatches = (cachedMatches ?? []) as CachedGrabbedJob[];
     savedByUrl = Object.fromEntries(
       (savedApps ?? [])
@@ -63,6 +80,26 @@ export default async function DashboardPage() {
         .filter((e): e is [string, string] => Boolean(e[0]))
     );
     accessState = access;
+
+    // Show the lifecycle reminder prompt only for Group B users:
+    //   • Free plan (paid users are already motivated)
+    //   • Not subscribed to newsletter (Group A users already have consent via newsletter flow)
+    //   • Preference state is KNOWN and no row exists. A DB error or missing admin client
+    //     is treated as "state unknown" → prompt suppressed (safe default: never assume
+    //     absence of a preference that could not be verified).
+    //   • Within 14 days of completing onboarding (outside this window, the user is either
+    //     settled in or disengaged)
+    const prefQueryFailed = !!(lifecyclePref as { error?: unknown } | null)?.error;
+    const hasRecordedPreference = !prefQueryFailed && lifecyclePref?.data !== null && lifecyclePref?.data !== undefined;
+    const knownNoPreference = !prefQueryFailed && !hasRecordedPreference;
+    const onboardingAge = candidateOnboardingCompletedAt
+      ? (Date.now() - new Date(candidateOnboardingCompletedAt).getTime()) / 3_600_000
+      : Infinity;
+    showReminderPrompt =
+      access?.planType === "free" &&
+      !newsletterSubscribed &&
+      knownNoPreference &&
+      onboardingAge < PROMPT_WINDOW_HOURS;
 
     if (enterpriseMembership) {
       return (
@@ -118,6 +155,7 @@ export default async function DashboardPage() {
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-5 pb-36 md:px-8 md:py-10 md:pb-10 xl:px-10">
       <DeferredOnboardingResume />
+      {showReminderPrompt && <LifecycleReminderPrompt />}
       <DashboardTabs
         applications={applications}
         resumeFileName={resumeFileName}

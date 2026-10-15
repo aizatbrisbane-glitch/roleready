@@ -4,7 +4,7 @@ import React from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 const state = vi.hoisted(() => ({ signup: vi.fn(), gtag: vi.fn(), oauth: vi.fn() }));
-vi.mock("@/lib/supabase/browser", () => ({ createSupabaseBrowserClient: () => ({ auth: { signUp: state.signup, signInWithOAuth: state.oauth } }) }));
+vi.mock("@/lib/supabase/browser", () => ({ createSupabaseBrowserClient: () => ({ auth: { signUp: state.signup, signInWithOAuth: state.oauth, getUser: vi.fn().mockResolvedValue({ data: { user: null } }) } }) }));
 vi.mock("next/link", () => ({ default: ({ children, href }: { children: React.ReactNode; href: string }) => React.createElement("a", { href }, children) }));
 import ClaimAccount from "../app/claim-free-account/page";
 import ResumeTools from "../app/resume-tools/page";

@@ -1,4 +1,7 @@
 export type ApplicationStatus = "New" | "Ready" | "Applied" | "Interview" | "Rejected" | "Saved" | "Withdrawn";
+export type LifecycleEmailStatus = "pending" | "sending" | "sent" | "failed" | "uncertain";
+export type LifecycleReminderType = "reminder_1" | "reminder_2";
+export type EmailPreferenceType = "lifecycle_marketing";
 export type ProfileRole = "user" | "admin" | "founder";
 export type KoalapplyEventType =
   | "USER_SIGNUP"
@@ -255,4 +258,33 @@ export type Application = {
 
 export type ApplicationWithJob = Application & {
   jobs: Job | null;
+};
+
+export type LifecycleEmailLog = {
+  id: string;
+  user_id: string;
+  reminder_type: LifecycleReminderType;
+  status: LifecycleEmailStatus;
+  created_at: string;
+  scheduled_for: string | null;
+  sent_at: string | null;
+  last_attempted_at: string | null;
+  resend_message_id: string | null;
+  idempotency_key: string | null;
+  click_token: string;
+  clicked_at: string | null;
+  attempt_count: number;
+  max_attempts: number;
+  last_error: string | null;
+  eligible_snapshot: Record<string, unknown>;
+};
+
+export type EmailPreference = {
+  id: string;
+  user_id: string;
+  preference_type: EmailPreferenceType;
+  opted_in: boolean;
+  source: string | null;
+  updated_at: string;
+  unsubscribe_token_hash: string | null;
 };
