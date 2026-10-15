@@ -60,25 +60,30 @@ function htmlLayout(body: string, unsubscribeUrl: string): string {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="color-scheme" content="light" />
+  <meta name="supported-color-schemes" content="light" />
   <title>Koalapply</title>
+  <style>
+    :root { color-scheme: light; }
+  </style>
 </head>
 <body style="margin:0;padding:0;background:#f8fafc;font-family:sans-serif">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc">
     <tr>
       <td align="center" style="padding:32px 16px">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;border-radius:12px;overflow:hidden">
+        <table role="presentation" bgcolor="#ffffff" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background-color:#ffffff;border-radius:12px;overflow:hidden">
           <tr>
-            <td style="padding:32px 32px 0">
-              <img src="${APP_URL}/brand/koalapply-logo.png" alt="Koalapply" width="180" style="width:180px;height:auto;display:block;margin-bottom:28px" />
+            <td bgcolor="#ffffff" style="background-color:#ffffff;padding:32px 32px 0">
+              <img src="${APP_URL}/brand/koalapply-logo-email-white.png" alt="Koalapply" width="180" style="width:180px;height:auto;display:block;margin-bottom:28px" />
             </td>
           </tr>
           <tr>
-            <td style="padding:0 32px 32px;color:#1e293b;font-size:15px;line-height:1.7">
+            <td bgcolor="#ffffff" style="background-color:#ffffff;padding:0 32px 32px;color:#1e293b;font-size:15px;line-height:1.7">
               ${body}
             </td>
           </tr>
           <tr>
-            <td style="padding:20px 32px 28px;border-top:1px solid #f1f5f9">
+            <td bgcolor="#ffffff" style="background-color:#ffffff;padding:20px 32px 28px;border-top:1px solid #f1f5f9">
               <p style="margin:0;font-size:12px;color:#94a3b8;line-height:1.6">
                 You're receiving this because you created a Koalapply account.<br />
                 <a href="${esc(unsubscribeUrl)}" style="color:#94a3b8">Unsubscribe from reminder emails</a>

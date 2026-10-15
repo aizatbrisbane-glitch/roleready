@@ -71,7 +71,7 @@ describe("Reminder 1 — Still looking for your next role?", () => {
 
   it("HTML: logo is present", () => {
     const { html } = renderLifecycleEmail(make());
-    expect(html).toContain("koalapply-logo.png");
+    expect(html).toContain("koalapply-logo-email-white.png");
     expect(html).toContain("Koalapply");
   });
 
