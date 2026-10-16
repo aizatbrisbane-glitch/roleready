@@ -356,7 +356,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const manualQuery = url.searchParams.get("q")?.trim();
   const explicitLocation = url.searchParams.get("location")?.trim();
-  const locationParam = explicitLocation || profile?.preferred_locations?.[0] || undefined;
+  const locationParam = explicitLocation || profile?.preferred_locations?.[0] || (profile as { location?: string } | null)?.location || undefined;
   const workTypeParam = url.searchParams.get("work_type")?.trim() || undefined;
   const salaryMinParam = url.searchParams.get("salary_min") ? Number(url.searchParams.get("salary_min")) : undefined;
   const forceRefresh = url.searchParams.get("refresh") === "true" || Boolean(manualQuery) || Boolean(explicitLocation) || Boolean(workTypeParam) || Boolean(salaryMinParam);
