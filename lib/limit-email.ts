@@ -13,7 +13,7 @@ function variantA(greeting: string) {
     subject: "You've used your free application this month",
     html: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#1e293b">
-        <img src="${APP_URL}/brand/koalapply-logo.png" alt="Koalapply" width="220" style="width:220px;height:auto;margin-bottom:32px" />
+        <img src="${APP_URL}/brand/koalapply-logo-email-white.png" alt="Koalapply" width="220" style="width:220px;height:auto;margin-bottom:32px" />
         <p style="font-size:15px;line-height:1.6;margin:0 0 16px">${greeting}</p>
         <p style="font-size:15px;line-height:1.6;margin:0 0 16px">
           You just used your one free application on Koalapply. Nice work — that's one more resume tailored to actually get past the ATS.
@@ -40,7 +40,7 @@ function variantB(greeting: string) {
     subject: "You've used both your applications this month",
     html: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#1e293b">
-        <img src="${APP_URL}/brand/koalapply-logo.png" alt="Koalapply" width="220" style="width:220px;height:auto;margin-bottom:32px" />
+        <img src="${APP_URL}/brand/koalapply-logo-email-white.png" alt="Koalapply" width="220" style="width:220px;height:auto;margin-bottom:32px" />
         <p style="font-size:15px;line-height:1.6;margin:0 0 16px">${greeting}</p>
         <p style="font-size:15px;line-height:1.6;margin:0 0 16px">
           You've now used both your applications this month, so you're clearly putting Koalapply to work.

@@ -37,7 +37,7 @@ async function sendExistingUserInviteEmail({
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:24px;border:1px solid #e7ebf3;overflow:hidden;">
                   <tr>
                     <td align="center" style="padding:36px 32px 18px;">
-                      <img src="https://koalapply.com/brand/koalapply-logo.png" alt="Koalapply" style="height:80px;" />
+                      <img src="https://koalapply.com/brand/koalapply-logo-email-white.png" alt="Koalapply" style="height:80px;" />
                       <p style="margin:10px 0 0;font-size:14px;color:#60708f;">Enterprise invitation</p>
                     </td>
                   </tr>
