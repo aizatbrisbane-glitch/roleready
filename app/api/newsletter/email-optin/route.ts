@@ -36,7 +36,41 @@ export async function GET(request: Request) {
       await resend.contacts.create({ email, unsubscribed: false });
     }
     await adminSupabase.from("profiles").upsert({ id: uid, newsletter_subscribed: true });
+    await recordLifecycleConsent(adminSupabase, uid);
   }
 
   return NextResponse.redirect(`${appUrl}/?newsletter=subscribed`);
+}
+
+// Same rules as /api/newsletter — hard unsubscribes are never overwritten.
+async function recordLifecycleConsent(
+  admin: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
+  userId: string
+): Promise<void> {
+  const { error: insertError } = await admin
+    .from("email_preferences")
+    .insert({
+      user_id: userId,
+      preference_type: "lifecycle_marketing",
+      opted_in: true,
+      source: "signup_flow",
+    });
+
+  if (!insertError) return;
+
+  if ((insertError as { code?: string }).code !== "23505") {
+    console.error("[email-optin] lifecycle consent insert failed:", insertError.message);
+    return;
+  }
+
+  const { error: updateError } = await admin
+    .from("email_preferences")
+    .update({ opted_in: true, source: "signup_flow" })
+    .eq("user_id", userId)
+    .eq("preference_type", "lifecycle_marketing")
+    .or("source.is.null,source.neq.unsubscribe_link");
+
+  if (updateError) {
+    console.error("[email-optin] lifecycle consent update failed:", updateError.message);
+  }
 }
