@@ -67,17 +67,16 @@ async function getUserProfile(
   admin: AdminClient,
   userId: string
 ): Promise<{ email: string | null; firstName: string | null }> {
-  const { data } = await admin
-    .from("profiles")
-    .select("name, email")
-    .eq("id", userId)
-    .maybeSingle();
+  const [{ data: profileData }, { data: authData }] = await Promise.all([
+    admin.from("profiles").select("name, email").eq("id", userId).maybeSingle(),
+    admin.auth.admin.getUserById(userId),
+  ]);
 
-  if (!data) return { email: null, firstName: null };
-  const profile = data as { name?: string | null; email?: string | null };
-  const rawName = profile.name ?? null;
+  const profile = profileData as { name?: string | null; email?: string | null } | null;
+  const rawName = profile?.name ?? null;
   const firstName = rawName ? rawName.trim().split(" ")[0] || null : null;
-  return { email: profile.email ?? null, firstName };
+  const email = profile?.email?.trim() || authData?.user?.email || null;
+  return { email, firstName };
 }
 
 // ─── Internal: unsubscribe token provisioning ─────────────────────────────────
