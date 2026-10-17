@@ -1,7 +1,6 @@
 {
   "crons": [
     { "path": "/api/analytics/dispatch",       "schedule": "*/5 * * * *" },
-    { "path": "/api/cron/lifecycle-email",      "schedule": "0 23 * * *" },
-    { "path": "/api/cron/lifecycle-email",      "schedule": "0 5 * * *"  }
+    { "path": "/api/cron/lifecycle-email",      "schedule": "0 0,6,12,18 * * *" }
   ]
 }
