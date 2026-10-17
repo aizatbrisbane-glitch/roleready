@@ -167,9 +167,16 @@ export async function classifyUser(
   supabase: AdminClient,
   userId: string,
   reminderType: LifecycleReminderType,
-  now: Date = new Date()
+  now: Date = new Date(),
+  excludeLogId?: string
 ): Promise<{ classification: EligibilityClassification; snapshot: EligibilitySnapshot }> {
   const nowIso = now.toISOString();
+
+  const reminderQuery = supabase
+    .from("lifecycle_email_log")
+    .select("status")
+    .eq("user_id", userId)
+    .eq("reminder_type", reminderType);
 
   const [
     profileResult,
@@ -200,12 +207,9 @@ export async function classifyUser(
       .eq("user_id", userId)
       .eq("preference_type", "lifecycle_marketing")
       .maybeSingle(),
-    supabase
-      .from("lifecycle_email_log")
-      .select("status")
-      .eq("user_id", userId)
-      .eq("reminder_type", reminderType)
-      .maybeSingle(),
+    excludeLogId
+      ? reminderQuery.neq("id", excludeLogId).maybeSingle()
+      : reminderQuery.maybeSingle(),
     // Primary history signal — not cascade-deleted with individual applications
     supabase
       .from("koalapply_events")

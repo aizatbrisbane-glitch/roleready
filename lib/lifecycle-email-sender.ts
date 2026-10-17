@@ -217,7 +217,9 @@ async function sendOneReminder(
   }
 
   // 2. Pre-send eligibility recheck (entitlement may have changed since scheduling).
-  const { classification, snapshot } = await classifyUser(admin, userId, reminderType, now);
+  // Exclude this row from the already_reminded check — the row being processed must
+  // not block its own send.
+  const { classification, snapshot } = await classifyUser(admin, userId, reminderType, now, logId);
   const stillEligible =
     (reminderType === "reminder_1" && classification === "new_never_used") ||
     (reminderType === "reminder_2" && classification === "new_partially_used");
