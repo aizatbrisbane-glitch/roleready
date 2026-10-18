@@ -123,7 +123,7 @@ function SignupForm({ buttonLabel, placement, prefillEmail = "" }: { buttonLabel
       }
 
       if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
-        analytics.signupDiagnostic("signup_error", placement, "email_already_exists");
+        analytics.signupDiagnostic("signup_error", placement, "signup_failed");
         setExistingAccount(true);
         return;
       }
