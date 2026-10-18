@@ -153,7 +153,7 @@ function ResumeRequiredModal({
             ref={fileRef}
             type="file"
             accept=".pdf,.docx"
-            className="hidden"
+            className="sr-only"
             onChange={(e) => {
               const f = e.target.files?.[0];
               if (f) void handleFile(f);
