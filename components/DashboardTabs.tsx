@@ -114,7 +114,6 @@ function ResumeRequiredModal({
   onCancel: () => void;
 }) {
   const [uploading, setUploading] = useState(false);
-  const [done, setDone] = useState(false);
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -130,20 +129,7 @@ function ResumeRequiredModal({
       setError(data?.error ?? "Upload failed. Please try again.");
       return;
     }
-    setDone(true);
-    setTimeout(onSuccess, 1200);
-  }
-
-  if (done) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 backdrop-blur-sm">
-        <div className="w-full max-w-sm rounded-[1.75rem] bg-white p-8 shadow-2xl text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 text-2xl">✓</div>
-          <h2 className="text-xl font-bold text-slate-900">Resume uploaded!</h2>
-          <p className="mt-2 text-sm text-slate-500">Tailoring your application now…</p>
-        </div>
-      </div>
-    );
+    onSuccess();
   }
 
   return (
