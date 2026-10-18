@@ -30,17 +30,14 @@ function FileInputField({
   savedFileName: string | null;
   downloadUrl: string | null;
 }) {
-  const ref = useRef<HTMLInputElement>(null);
   const [chosen, setChosen] = useState<string | null>(null);
   const display = chosen ?? savedFileName;
   const isSaved = Boolean(savedFileName && !chosen);
 
   return (
     <div className="flex min-w-0 items-stretch gap-2">
-      <button
-        type="button"
-        onClick={() => ref.current?.click()}
-        className={`min-w-0 flex-1 rounded-2xl border px-4 py-3 text-left transition ${
+      <label
+        className={`min-w-0 flex-1 cursor-pointer rounded-2xl border px-4 py-3 text-left transition ${
           isSaved ? "border-[#d4ccff] bg-[#ece8ff]/80 hover:bg-[#d4ccff]" : "border-slate-100 bg-slate-50 hover:bg-slate-100"
         }`}
       >
@@ -50,7 +47,14 @@ function FileInputField({
         <p className={`mt-0.5 text-xs ${isSaved ? "text-[#2200ff]" : "text-slate-400"}`}>
           {isSaved ? "Saved - tap to change" : chosen ? "Ready to upload" : "PDF, DOCX, TXT or MD"}
         </p>
-      </button>
+        <input
+          type="file"
+          name={name}
+          accept=".pdf,.docx,.txt,.md"
+          className="sr-only"
+          onChange={(event) => setChosen(event.target.files?.[0]?.name ?? null)}
+        />
+      </label>
 
       {downloadUrl ? (
         <a
@@ -61,15 +65,6 @@ function FileInputField({
           <Download className="h-4 w-4" />
         </a>
       ) : null}
-
-      <input
-        ref={ref}
-        type="file"
-        name={name}
-        accept=".pdf,.docx,.txt,.md"
-        className="sr-only"
-        onChange={(event) => setChosen(event.target.files?.[0]?.name ?? null)}
-      />
     </div>
   );
 }

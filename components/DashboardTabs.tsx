@@ -115,21 +115,25 @@ function ResumeRequiredModal({
 }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
-  const fileRef = useRef<HTMLInputElement>(null);
 
   async function handleFile(file: File) {
     setUploading(true);
     setError("");
-    const fd = new FormData();
-    fd.append("resume_file", file);
-    const res = await fetch("/api/profile/documents", { method: "POST", body: fd });
-    const data = await res.json().catch(() => null);
-    setUploading(false);
-    if (!res.ok) {
-      setError(data?.error ?? "Upload failed. Please try again.");
-      return;
+    try {
+      const fd = new FormData();
+      fd.append("resume_file", file);
+      const res = await fetch("/api/profile/documents", { method: "POST", body: fd });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(data?.error ?? "Upload failed. Please try again.");
+        return;
+      }
+      onSuccess();
+    } catch {
+      setError("Upload failed. Check your connection and try again.");
+    } finally {
+      setUploading(false);
     }
-    onSuccess();
   }
 
   return (
@@ -141,25 +145,21 @@ function ResumeRequiredModal({
         </p>
         {error && <p className="mt-3 text-sm text-rose-600">{error}</p>}
         <div className="mt-6 space-y-3">
-          <button
-            type="button"
-            disabled={uploading}
-            onClick={() => fileRef.current?.click()}
-            className="w-full rounded-full bg-[#2200ff] py-3 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[#1a00cc] disabled:opacity-60"
-          >
+          {/* label approach: native tap → file picker, no programmatic .click() needed */}
+          <label className={`flex w-full cursor-pointer items-center justify-center rounded-full bg-[#2200ff] py-3 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[#1a00cc] ${uploading ? "pointer-events-none opacity-60" : ""}`}>
             {uploading ? "Uploading…" : "Upload master resume"}
-          </button>
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".pdf,.docx"
-            className="sr-only"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) void handleFile(f);
-              e.target.value = "";
-            }}
-          />
+            <input
+              type="file"
+              accept=".pdf,.docx"
+              className="sr-only"
+              disabled={uploading}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) void handleFile(f);
+                e.target.value = "";
+              }}
+            />
+          </label>
           <button
             type="button"
             onClick={onCancel}
