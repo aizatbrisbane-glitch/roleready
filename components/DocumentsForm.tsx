@@ -67,7 +67,7 @@ function FileInputField({
         type="file"
         name={name}
         accept=".pdf,.docx,.txt,.md"
-        className="hidden"
+        className="sr-only"
         onChange={(event) => setChosen(event.target.files?.[0]?.name ?? null)}
       />
     </div>
