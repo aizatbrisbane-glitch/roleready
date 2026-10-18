@@ -32,7 +32,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     : { data: { user: null } };
   const { plan, redirect: redirectParam, message, mode } = await searchParams;
   const redirectTo = plan ? `/checkout/initiate?plan=${plan}` : (redirectParam ?? "/");
-  const initialMode = mode === "signup" ? "signup" : "signin";
+  const initialMode = mode === "signup" ? "signup" : mode === "forgot" ? "forgot" : "signin";
   if (user) redirect(redirectTo);
   return (
     <main className="relative min-h-screen overflow-hidden bg-slate-50 px-5 py-12 text-slate-900 sm:px-8 lg:px-12">

@@ -53,6 +53,7 @@ function SignupForm({ buttonLabel, placement, prefillEmail = "" }: { buttonLabel
   const [newsletterOptIn, setNewsletterOptIn] = useState(true);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [existingAccount, setExistingAccount] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
 
@@ -122,10 +123,11 @@ function SignupForm({ buttonLabel, placement, prefillEmail = "" }: { buttonLabel
       }
 
       if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
-        analytics.signupDiagnostic("signup_error", placement, "signup_failed");
-      } else {
-        analytics.signupDiagnostic("signup_confirmation_required", placement);
+        analytics.signupDiagnostic("signup_error", placement, "email_already_exists");
+        setExistingAccount(true);
+        return;
       }
+      analytics.signupDiagnostic("signup_confirmation_required", placement);
       setOtpSent(true);
     } catch (err) {
       analytics.signupDiagnostic("signup_error", placement, "signup_failed");
@@ -278,6 +280,18 @@ function SignupForm({ buttonLabel, placement, prefillEmail = "" }: { buttonLabel
         />
         Get a 2nd free application, plus career tips, job-search advice and helpful Koalapply reminders by email. Unsubscribe anytime.
       </label>
+      {existingAccount && (
+        <div className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          An account with <strong>{email}</strong> already exists.{" "}
+          <Link href={`/login?email=${encodeURIComponent(email)}`} className="font-semibold underline hover:text-amber-900">
+            Sign in
+          </Link>
+          {" "}or{" "}
+          <Link href="/login?mode=forgot" className="font-semibold underline hover:text-amber-900">
+            Forgot your password?
+          </Link>
+        </div>
+      )}
       {message && <ErrorToast message={message} onDismiss={() => setMessage("")} />}
       <button
         type="submit"
