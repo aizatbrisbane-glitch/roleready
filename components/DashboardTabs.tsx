@@ -320,7 +320,8 @@ export function DashboardTabs({
   const [matchMarket, setMatchMarket] = useState<string | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  // Tracks whether the user has a resume — updated immediately after gate upload
+  // Tracks whether the user has a resume — ref is read by importJob to avoid stale closure
+  const hasResumeRef = useRef(!!resumeFileName);
   const [localHasResume, setLocalHasResume] = useState(!!resumeFileName);
   // Gate state: open when tailoring is attempted without a resume
   const [gateOpen, setGateOpen] = useState(false);
@@ -394,8 +395,8 @@ export function DashboardTabs({
   }
 
   async function importJob(job: GrabResult) {
-    // Gate: resume is required to begin tailoring
-    if (!localHasResume) {
+    // Gate: resume is required to begin tailoring — read ref, not state, to avoid stale closure
+    if (!hasResumeRef.current) {
       setGateContinuation(() => () => void importJob(job));
       setGateOpen(true);
       return;
@@ -460,6 +461,7 @@ export function DashboardTabs({
   }
 
   function handleGateSuccess() {
+    hasResumeRef.current = true; // update ref before continuation reads it
     setLocalHasResume(true);
     setGateOpen(false);
     const cont = gateContinuation;
