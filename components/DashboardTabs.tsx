@@ -18,6 +18,7 @@ import { QuickApplyForm } from "@/components/QuickApplyForm";
 import { GRAB_PREFILL_STORAGE_KEY } from "@/components/landing/HomepageOnboardingModal";
 import { inferCountry, currencySymbol, marketLabel } from "@/lib/country-inference";
 import type { GrabResult } from "@/app/api/grab/route";
+import { analytics } from "@/lib/analytics";
 import type { ApplicationWithJob, CachedGrabbedJob } from "@/types/database";
 
 type Props = {
@@ -401,6 +402,7 @@ export function DashboardTabs({
       setGateOpen(true);
       return;
     }
+    analytics.tailorApplyClicked();
     setImporting((prev) => ({ ...prev, [job.id]: true }));
     try {
       const response = await fetch("/api/grab/import", {

@@ -76,6 +76,7 @@ export function GenerateButton({ applicationId, hasDocuments, canGenerate, newsl
   async function generate() {
     if (generatingRef.current) return;
     generatingRef.current = true;
+    analytics.generationStarted();
     setLoading(true);
     window.dispatchEvent(new CustomEvent("koalapply:generating", { detail: { loading: true } }));
     setMessage("");
@@ -90,6 +91,12 @@ export function GenerateButton({ applicationId, hasDocuments, canGenerate, newsl
       });
       const payload = await response.text().then((t) => (t ? JSON.parse(t) : null));
       if (!response.ok) {
+        const reason =
+          response.status === 402 ? "credit_exhausted"
+          : response.status === 400 && typeof payload?.error === "string" && payload.error.toLowerCase().includes("resume") ? "missing_resume"
+          : response.status === 400 && typeof payload?.error === "string" && payload.error.toLowerCase().includes("job") ? "blocked_job_description"
+          : "api_error";
+        analytics.generationFailed({ reason });
         setMessage(payload?.error ?? "Unable to prepare application.");
         setLoading(false);
         return;
@@ -103,8 +110,12 @@ export function GenerateButton({ applicationId, hasDocuments, canGenerate, newsl
       }
       router.refresh();
     } catch (error) {
+      const isAbort = error instanceof DOMException && error.name === "AbortError";
+      const isNetwork = error instanceof TypeError;
+      const reason = isAbort ? "timeout" : isNetwork ? "network" : "unknown";
+      analytics.generationFailed({ reason });
       setMessage(
-        error instanceof DOMException && error.name === "AbortError"
+        isAbort
           ? "Generation timed out. Try ChatGPT or shorten the job ad text."
           : "Generation failed. Try again."
       );

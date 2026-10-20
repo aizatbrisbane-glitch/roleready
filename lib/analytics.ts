@@ -109,4 +109,28 @@ export const analytics = {
   creditLimitReached(opts: { limit: number }) {
     fireEvent("credit_limit_reached", { application_limit: opts.limit });
   },
+
+  /** User clicked "Tailor & Apply" on a job card — fired before the import API call */
+  tailorApplyClicked() {
+    fireEvent("tailor_apply_clicked");
+  },
+
+  /** Generation attempt has begun — fired immediately when generate() acquires the lock */
+  generationStarted() {
+    fireEvent("generation_started");
+  },
+
+  /** Generation attempt ended in a non-success state */
+  generationFailed(opts: { reason: GenerationFailureReason }) {
+    fireEvent("generation_failed", { failure_reason: opts.reason });
+  },
 };
+
+export type GenerationFailureReason =
+  | "timeout"
+  | "network"
+  | "api_error"
+  | "credit_exhausted"
+  | "missing_resume"
+  | "blocked_job_description"
+  | "unknown";
