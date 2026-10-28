@@ -7,11 +7,26 @@ const FROM_ADDRESS = "Aizat at Koalapply <noreply@koalapply.com>";
 
 export { FROM_ADDRESS };
 
+export type TailorIntentJobContext = {
+  title: string;
+  company: string;
+  /** URL the CTA should deep-link to — the dashboard, which shows the "Continue" banner */
+  ctaUrl: string;
+  /** True when the user already has a master resume on file */
+  hasResume: boolean;
+};
+
 export type LifecycleEmailData = {
   reminderType: LifecycleReminderType;
   firstName: string | null;
   remaining: number;
   unsubscribeUrl: string;
+  /** When present, personalise the email around this specific saved job */
+  tailorIntentJob?: TailorIntentJobContext | null;
+  /** Used only in generic reminder_1. First target job title from onboarding. */
+  primaryJobTitle?: string | null;
+  /** Used only in generic reminder_1. Location from onboarding profile. */
+  location?: string | null;
 };
 
 export type RenderedEmail = {
@@ -116,16 +131,41 @@ function signature(): string {
 
 function reminder1Html(data: LifecycleEmailData): string {
   const greeting = greetingHtml(data.firstName);
-  const phrase = applicationPhrase(data.remaining);
-  const short = applicationShort(data.remaining);
+
+  // Personalised variant: user previously clicked Tailor & Apply on a specific job
+  if (data.tailorIntentJob) {
+    const { title, company, ctaUrl, hasResume } = data.tailorIntentJob;
+    const resumePara = hasResume
+      ? "If you're still interested, you can pick up where you left off and Koalapply will help you tailor your application for the role."
+      : "If you're still interested, add your resume and Koalapply will help you tailor your application for the role.";
+    const body = `
+      ${p(greeting)}
+      ${p(`Are you still interested in applying for the <strong>${esc(title)}</strong> role at <strong>${esc(company)}</strong>?`)}
+      ${p("You started preparing your application but didn't quite finish it.")}
+      ${p(resumePara)}
+      ${ctaButton("Continue your application →", esc(ctaUrl))}
+      <p style="margin:24px 0 0;font-size:15px;color:#475569">Good luck!<br /><br />${SENDER_NAME}<br /><span style="color:#94a3b8;font-size:13px">${SENDER_TITLE}</span></p>
+    `;
+    return htmlLayout(body, data.unsubscribeUrl);
+  }
+
+  // Generic variant: bring the user back to their job matches
+  const t = data.primaryJobTitle?.trim() || null;
+  const l = data.location?.trim() || null;
+  const firstPara = t && l
+    ? `We found <strong>${esc(t)}</strong> roles matching what you're looking for in <strong>${esc(l)}</strong>.`
+    : t
+    ? `We found <strong>${esc(t)}</strong> roles matching what you're looking for.`
+    : l
+    ? `We found roles matching what you're looking for in <strong>${esc(l)}</strong>.`
+    : "We found roles matching what you're looking for.";
 
   const body = `
     ${p(greeting)}
-    ${p(`Just checking in — you've still got <strong>${esc(phrase)}</strong> ready to use.`)}
-    ${p("If you've spotted a job you're interested in, just paste the job link into Koalapply. We'll check how well you match the role and help tailor your resume and cover letter.")}
-    ${p(`No pressure — your free ${esc(short)} will be there when you're ready.`)}
-    ${ctaButton("Try Koalapply →", `${APP_URL}/`)}
-    ${signature()}
+    ${p(firstPara)}
+    ${p("Pick one you're interested in and Koalapply can help you understand your match and prepare a tailored application.")}
+    ${ctaButton("See my job matches →", `${APP_URL}/`)}
+    <p style="margin:24px 0 0;font-size:15px;color:#475569">Good luck!<br /><br />${SENDER_NAME}<br /><span style="color:#94a3b8;font-size:13px">${SENDER_TITLE}</span></p>
   `;
 
   return htmlLayout(body, data.unsubscribeUrl);
@@ -133,21 +173,54 @@ function reminder1Html(data: LifecycleEmailData): string {
 
 function reminder1Text(data: LifecycleEmailData): string {
   const greeting = data.firstName?.trim() ? `Hi ${data.firstName.trim()},` : "Hi there,";
-  const phrase = applicationPhrase(data.remaining);
-  const short = applicationShort(data.remaining);
+
+  // Personalised variant
+  if (data.tailorIntentJob) {
+    const { title, company, ctaUrl, hasResume } = data.tailorIntentJob;
+    const resumeLine = hasResume
+      ? "If you're still interested, you can pick up where you left off and Koalapply will help you tailor your application for the role."
+      : "If you're still interested, add your resume and Koalapply will help you tailor your application for the role.";
+    return [
+      greeting,
+      "",
+      `Are you still interested in applying for the ${title} role at ${company}?`,
+      "",
+      "You started preparing your application but didn't quite finish it.",
+      "",
+      resumeLine,
+      "",
+      `Continue your application → ${ctaUrl}`,
+      "",
+      "Good luck!",
+      "",
+      SENDER_NAME,
+      SENDER_TITLE,
+      "",
+      `Unsubscribe from reminder emails: ${data.unsubscribeUrl}`,
+    ].join("\n");
+  }
+
+  // Generic variant
+  const t = data.primaryJobTitle?.trim() || null;
+  const l = data.location?.trim() || null;
+  const firstLine = t && l
+    ? `We found ${t} roles matching what you're looking for in ${l}.`
+    : t
+    ? `We found ${t} roles matching what you're looking for.`
+    : l
+    ? `We found roles matching what you're looking for in ${l}.`
+    : "We found roles matching what you're looking for.";
 
   return [
     greeting,
     "",
-    `Just checking in — you've still got ${phrase} ready to use.`,
+    firstLine,
     "",
-    "If you've spotted a job you're interested in, just paste the job link into Koalapply. We'll check how well you match the role and help tailor your resume and cover letter.",
+    "Pick one you're interested in and Koalapply can help you understand your match and prepare a tailored application.",
     "",
-    `No pressure — your free ${short} will be there when you're ready.`,
+    `See my job matches → ${APP_URL}/`,
     "",
-    `Try Koalapply → ${APP_URL}/`,
-    "",
-    "Good luck with the job search!",
+    "Good luck!",
     "",
     SENDER_NAME,
     SENDER_TITLE,
@@ -202,6 +275,13 @@ function reminder2Text(data: LifecycleEmailData): string {
 
 // ─── Public renderer ──────────────────────────────────────────────────────────
 
+function genericReminder1Subject(title: string | null, location: string | null): string {
+  if (title && location) return `Still looking for a ${title} role in ${location}?`;
+  if (title) return `Still looking for ${title} roles?`;
+  if (location) return `Still looking for roles in ${location}?`;
+  return "Still looking for your next role?";
+}
+
 function toOneClickUrl(unsubscribeUrl: string): string {
   try {
     const url = new URL(unsubscribeUrl);
@@ -216,8 +296,11 @@ function toOneClickUrl(unsubscribeUrl: string): string {
 export function renderLifecycleEmail(data: LifecycleEmailData): RenderedEmail {
   const oneClickUnsubscribeUrl = toOneClickUrl(data.unsubscribeUrl);
   if (data.reminderType === "reminder_1") {
+    const subject = data.tailorIntentJob
+      ? `Still interested in the ${data.tailorIntentJob.title} role?`
+      : genericReminder1Subject(data.primaryJobTitle ?? null, data.location ?? null);
     return {
-      subject: "Still looking for your next role?",
+      subject,
       html: reminder1Html(data),
       text: reminder1Text(data),
       oneClickUnsubscribeUrl,

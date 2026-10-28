@@ -52,22 +52,33 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { title, company, location, salary, jobUrl, description, source } = body;
+  const { title, company, location, salary, jobUrl, description, source, tailor_intent } = body;
+  const isTailorIntent = Boolean(tailor_intent);
 
   if (!title || !company) {
     return NextResponse.json({ error: "title and company are required." }, { status: 400 });
   }
 
-  // Dedup: if this URL is already saved, return the existing application
+  const normalisedUrl = normaliseJobUrl(String(jobUrl ?? ""));
+
+  // Dedup: if this URL is already saved, return the existing application.
+  // For tailor_intent saves, also promote the existing row if it wasn't already
+  // marked as tailor intent (user bookmarked the same job before clicking Tailor).
   if (jobUrl) {
     const { data: existing } = await supabase
       .from("applications")
-      .select("id, jobs!inner(job_url)")
+      .select("id, tailor_intent, jobs!inner(job_url)")
       .eq("user_id", user.id)
       .eq("status", "Saved")
-      .eq("jobs.job_url", String(jobUrl))
+      .eq("jobs.job_url", normalisedUrl)
       .maybeSingle();
     if (existing) {
+      if (isTailorIntent && !(existing as { tailor_intent: boolean }).tailor_intent) {
+        await supabase
+          .from("applications")
+          .update({ tailor_intent: true })
+          .eq("id", existing.id);
+      }
       return NextResponse.json({ applicationId: existing.id });
     }
   }
@@ -80,7 +91,7 @@ export async function POST(request: Request) {
       company: String(company),
       location: String(location ?? ""),
       salary: String(salary ?? ""),
-      job_url: normaliseJobUrl(String(jobUrl ?? "")),
+      job_url: normalisedUrl,
       description: String(description ?? ""),
       source: sanitiseSource(source),
     })
@@ -93,7 +104,7 @@ export async function POST(request: Request) {
 
   const { data: application, error: appError } = await supabase
     .from("applications")
-    .insert({ user_id: user.id, job_id: job.id, status: "Saved" })
+    .insert({ user_id: user.id, job_id: job.id, status: "Saved", tailor_intent: isTailorIntent })
     .select("id")
     .single();
 

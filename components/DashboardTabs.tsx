@@ -21,6 +21,16 @@ import type { GrabResult } from "@/app/api/grab/route";
 import { analytics } from "@/lib/analytics";
 import type { ApplicationWithJob, CachedGrabbedJob } from "@/types/database";
 
+export type TailorIntentApplication = {
+  id: string;
+  jobTitle: string;
+  company: string;
+  jobUrl?: string | null;
+  jobLocation?: string | null;
+  jobSalary?: string | null;
+  jobDescription?: string | null;
+};
+
 type Props = {
   applications: ApplicationWithJob[];
   resumeFileName: string | null;
@@ -37,6 +47,10 @@ type Props = {
     applicationsRemaining: number;
     validUntil: string | null;
   } | null;
+  /** True when the user completed onboarding in the last 10 minutes */
+  isNewUser?: boolean;
+  /** Most recent Tailor-intent saved application with no generation yet */
+  tailorIntentApplication?: TailorIntentApplication | null;
 };
 
 const WORK_TYPE_OPTIONS = [
@@ -110,9 +124,11 @@ function formatAccessDate(value: string | null) {
 function ResumeRequiredModal({
   onSuccess,
   onCancel,
+  enrichingLabel,
 }: {
   onSuccess: () => void;
   onCancel: () => void;
+  enrichingLabel?: string | null;
 }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -140,36 +156,51 @@ function ResumeRequiredModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 backdrop-blur-sm">
       <div className="w-full max-w-sm rounded-[1.75rem] bg-white p-8 shadow-2xl">
-        <h2 className="text-xl font-bold text-slate-900">Upload your resume to tailor this job</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
-          Koalapply needs your master resume to analyse your match and create your tailored resume and cover letter.
-        </p>
-        {error && <p className="mt-3 text-sm text-rose-600">{error}</p>}
-        <div className="mt-6 space-y-3">
-          {/* label approach: native tap → file picker, no programmatic .click() needed */}
-          <label className={`flex w-full cursor-pointer items-center justify-center rounded-full bg-[#2200ff] py-3 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[#1a00cc] ${uploading ? "pointer-events-none opacity-60" : ""}`}>
-            {uploading ? "Uploading…" : "Upload master resume"}
-            <input
-              type="file"
-              accept=".pdf,.docx"
-              className="sr-only"
-              disabled={uploading}
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) void handleFile(f);
-                e.target.value = "";
-              }}
-            />
-          </label>
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={uploading}
-            className="w-full rounded-full border border-slate-200 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
-          >
-            Cancel
-          </button>
-        </div>
+        {enrichingLabel ? (
+          <>
+            <h2 className="text-xl font-bold text-slate-900">Just a moment…</h2>
+            <div className="mt-6 space-y-2 text-sm">
+              <p className="text-slate-600">✓ Resume uploaded</p>
+              <p className="animate-pulse text-slate-500">{enrichingLabel}</p>
+            </div>
+          </>
+        ) : (
+          <>
+            <h2 className="text-xl font-bold text-slate-900">Upload your resume to tailor this job</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Koalapply needs your master resume to analyse your match and create your tailored resume and cover letter.
+            </p>
+            <p className="mt-2 text-sm text-slate-500">
+              Your selected job has been saved — it will be here when you&apos;re ready.
+            </p>
+            {error && <p className="mt-3 text-sm text-rose-600">{error}</p>}
+            <div className="mt-6 space-y-3">
+              {/* label approach: native tap → file picker, no programmatic .click() needed */}
+              <label className={`flex w-full cursor-pointer items-center justify-center rounded-full bg-[#2200ff] py-3 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[#1a00cc] ${uploading ? "pointer-events-none opacity-60" : ""}`}>
+                {uploading ? "Uploading…" : "Upload master resume"}
+                <input
+                  type="file"
+                  accept=".pdf,.docx"
+                  className="sr-only"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) void handleFile(f);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              <button
+                type="button"
+                onClick={onCancel}
+                disabled={uploading}
+                className="w-full rounded-full border border-slate-200 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
+              >
+                I&apos;ll do this later
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -284,6 +315,40 @@ function GrabbedMatchCard({
   );
 }
 
+// ── Continue Your Application banner ─────────────────────────────────────────
+// Shown when a user previously clicked Tailor & Apply on a job but left
+// before uploading their resume.
+
+function ContinueApplicationBanner({
+  application,
+  onUpload,
+}: {
+  application: TailorIntentApplication;
+  onUpload: () => void;
+}) {
+  return (
+    <div className="mb-6 rounded-[1.6rem] border border-[#d4ccff] bg-[#ece8ff] p-4 md:p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#2200ff]">Continue your application</p>
+          <p className="mt-1 truncate font-semibold text-slate-900">
+            {application.jobTitle}
+            <span className="ml-1.5 font-normal text-slate-500">— {application.company}</span>
+          </p>
+          <p className="mt-0.5 text-sm text-slate-600">Upload your resume and Koalapply will tailor your application for this role.</p>
+        </div>
+        <button
+          type="button"
+          onClick={onUpload}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#2200ff] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a00cc]"
+        >
+          Upload resume &amp; continue <ArrowRight className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function DashboardTabs({
   applications,
   resumeFileName,
@@ -295,6 +360,8 @@ export function DashboardTabs({
   grabbedMatchesStale,
   savedByUrl = {},
   accessState,
+  isNewUser = false,
+  tailorIntentApplication = null,
 }: Props) {
   const router = useRouter();
   const name = firstName(userName);
@@ -327,6 +394,23 @@ export function DashboardTabs({
   // Gate state: open when tailoring is attempted without a resume
   const [gateOpen, setGateOpen] = useState(false);
   const [gateContinuation, setGateContinuation] = useState<(() => void) | null>(null);
+  const [gateEnrichingLabel, setGateEnrichingLabel] = useState<string | null>(null);
+
+  // "Continue your application" banner — dismissed once user opens it or uploads
+  const [tailorBannerDismissed, setTailorBannerDismissed] = useState(false);
+  const showTailorBanner =
+    !!tailorIntentApplication &&
+    !tailorBannerDismissed &&
+    !localHasResume;
+
+  // Fire analytics once when the banner is visible
+  const bannerShownRef = useRef(false);
+  useEffect(() => {
+    if (showTailorBanner && !bannerShownRef.current) {
+      bannerShownRef.current = true;
+      analytics.continueApplicationBannerShown({ jobTitle: tailorIntentApplication!.jobTitle });
+    }
+  }, [showTailorBanner, tailorIntentApplication]);
 
   const importedByUrl = useMemo(() => {
     const map: Record<string, string> = {};
@@ -395,9 +479,42 @@ export function DashboardTabs({
     }
   }
 
+  // Save a job with tailor_intent=true before opening the resume gate.
+  // This ensures the job is never lost if the user leaves without uploading.
+  async function saveTailorIntentJob(job: GrabResult): Promise<void> {
+    if (saved[job.jobUrl]) return; // already saved (tailor or normal)
+    try {
+      const response = await fetch("/api/saved", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: job.title,
+          company: job.company,
+          location: job.location,
+          salary: job.salary || formatSalary(job.salaryMin, job.salaryMax),
+          jobUrl: job.jobUrl,
+          description: job.description,
+          source: job.source,
+          tailor_intent: true,
+        }),
+      });
+      const payload = await response.json();
+      if (response.ok && payload.applicationId) {
+        setSaved((prev) => ({ ...prev, [job.jobUrl]: payload.applicationId }));
+        analytics.tailorIntentJobSaved();
+      }
+    } catch {
+      // Non-fatal — the gate still opens; job is visible in the results list
+    }
+  }
+
   async function importJob(job: GrabResult) {
     // Gate: resume is required to begin tailoring — read ref, not state, to avoid stale closure
     if (!hasResumeRef.current) {
+      analytics.tailorApplyClicked();
+      analytics.resumeGateOpened();
+      // Persist the job before showing the gate so it survives a page exit
+      void saveTailorIntentJob(job);
       setGateContinuation(() => () => void importJob(job));
       setGateOpen(true);
       return;
@@ -454,6 +571,7 @@ export function DashboardTabs({
       const payload = await response.json();
       if (response.ok && payload.applicationId) {
         setSaved((prev) => ({ ...prev, [job.jobUrl]: payload.applicationId }));
+        analytics.jobSaved();
       }
     } catch {
       // silently fail — user can retry
@@ -462,13 +580,59 @@ export function DashboardTabs({
     }
   }
 
-  function handleGateSuccess() {
-    hasResumeRef.current = true; // update ref before continuation reads it
+  async function handleGateSuccess() {
+    hasResumeRef.current = true;
     setLocalHasResume(true);
+    setTailorBannerDismissed(true);
+
+    const ti = tailorIntentApplication;
+    // Tailor-intent banner path: no continuation was set; enrich via /api/grab/import then navigate.
+    if (ti && !gateContinuation) {
+      if (ti.jobUrl) {
+        setGateEnrichingLabel("Getting job details…");
+        try {
+          const res = await fetch("/api/grab/import", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: ti.jobTitle,
+              company: ti.company,
+              location: ti.jobLocation ?? "",
+              salary: ti.jobSalary ?? "",
+              jobUrl: ti.jobUrl,
+              description: ti.jobDescription ?? "",
+              matchScore: 0,
+              matchReason: "",
+            }),
+          });
+          const data: { applicationId?: string } = await res.json().catch(() => ({}));
+          const appId = res.ok && data.applicationId ? data.applicationId : ti.id;
+          router.push(`/applications/${appId}?generate=true`);
+        } catch {
+          router.push(`/applications/${ti.id}?generate=true`);
+        }
+      } else {
+        router.push(`/applications/${ti.id}?generate=true`);
+      }
+      return;
+    }
+
+    // Normal gate path: close modal and run stored continuation.
     setGateOpen(false);
+    setGateEnrichingLabel(null);
     const cont = gateContinuation;
     setGateContinuation(null);
     cont?.();
+  }
+
+  // Open the resume gate from the "Continue your application" banner.
+  // The continuation re-runs the import for the saved tailor-intent job.
+  function openGateForTailorIntent() {
+    analytics.continueApplicationBannerClicked({ jobTitle: tailorIntentApplication!.jobTitle });
+    setTailorBannerDismissed(true);
+    setGateContinuation(null); // tailor-intent path uses tailorIntentApplication directly
+    setGateEnrichingLabel(null);
+    setGateOpen(true);
   }
 
   useEffect(() => {
@@ -504,6 +668,11 @@ export function DashboardTabs({
     if (e.key === "Enter" && !loadingMatches) void refreshMatches(true);
   };
 
+  // Section heading text — personalised when the user just finished onboarding
+  const sectionHeading = isNewUser && (loadingMatches || matches.length > 0)
+    ? "Here are jobs matching your profile ✨"
+    : "Or let Koalapply find one for you ✨";
+
   return (
     <div className="mx-auto max-w-[1520px] overflow-x-clip">
       {/* Greeting */}
@@ -537,6 +706,16 @@ export function DashboardTabs({
       </div>
 
       <div className="min-w-0 space-y-4 md:space-y-8">
+
+        {/* "Continue your application" banner — shown to returning users with a
+            pending Tailor-intent save who haven't uploaded a resume yet */}
+        {showTailorBanner && (
+          <ContinueApplicationBanner
+            application={tailorIntentApplication!}
+            onUpload={openGateForTailorIntent}
+          />
+        )}
+
         <QuickApplyForm
           hasResume={localHasResume}
           profileLocation={profileLocation}
@@ -551,7 +730,7 @@ export function DashboardTabs({
           {/* Section heading */}
           <div className="mb-4 px-1">
             <h2 className="text-2xl font-bold tracking-tight text-slate-900">
-              Or let Koalapply find one for you ✨
+              {sectionHeading}
             </h2>
             {(() => {
               const kw = keywordQuery.trim() || profileTargetJobTitles?.[0] || "";
@@ -774,7 +953,9 @@ export function DashboardTabs({
           onCancel={() => {
             setGateOpen(false);
             setGateContinuation(null);
+            setGateEnrichingLabel(null);
           }}
+          enrichingLabel={gateEnrichingLabel}
         />
       )}
     </div>

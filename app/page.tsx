@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Building2 } from "lucide-react";
 import { DashboardTabs } from "@/components/DashboardTabs";
+import type { TailorIntentApplication } from "@/components/DashboardTabs";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { DeferredOnboardingResume } from "@/components/landing/HomepageOnboardingModal";
 import { CandidateOnboarding } from "@/components/CandidateOnboarding";
@@ -15,6 +16,10 @@ import type { ApplicationWithJob, CachedGrabbedJob } from "@/types/database";
 // Hours after onboarding completion within which the Group B opt-in prompt is shown.
 // Matches ONBOARDING_WINDOW_HOURS in lifecycle-eligibility.ts (14 days).
 const PROMPT_WINDOW_HOURS = 336;
+
+// Minutes within which the onboarding is considered "fresh" — triggers the
+// personalised section heading and confirms the auto-refresh was intentional.
+const FRESH_ONBOARDING_MINUTES = 10;
 
 function isStaleGrabCache(matches: CachedGrabbedJob[]) {
   if (matches.length === 0) return true;
@@ -45,10 +50,12 @@ export default async function DashboardPage() {
   let accessState: AccessState | null = null;
   let newsletterSubscribed = false;
   let showReminderPrompt = false;
+  let isNewUser = false;
+  let tailorIntentApplication: TailorIntentApplication | null = null;
 
   if (supabase && user) {
     const admin = createSupabaseAdminClient();
-    const [{ data }, { data: resume }, { data: coverLetter }, { data: profile }, { data: cachedMatches }, { data: savedApps }, access, { data: enterpriseMembership }, lifecyclePref] = await Promise.all([
+    const [{ data }, { data: resume }, { data: coverLetter }, { data: profile }, { data: cachedMatches }, { data: savedApps }, access, { data: enterpriseMembership }, lifecyclePref, { data: tailorIntentApp }] = await Promise.all([
       supabase.from("applications").select("*, jobs(*)").eq("user_id", user.id).neq("status", "Saved").order("created_at", { ascending: false }),
       supabase.from("master_resumes").select("id, file_name").eq("user_id", user.id).not("file_name", "is", null).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("master_cover_letters").select("id, file_name").eq("user_id", user.id).not("file_name", "is", null).order("created_at", { ascending: false }).limit(1).maybeSingle(),
@@ -64,6 +71,18 @@ export default async function DashboardPage() {
       admin
         ? admin.from("email_preferences").select("opted_in").eq("user_id", user.id).eq("preference_type", "lifecycle_marketing").maybeSingle()
         : Promise.resolve({ data: null, error: { message: "admin_unavailable", code: "PGRST_N/A", details: "", hint: "" } }),
+      // Most recent Tailor-intent saved/new application with no generation yet —
+      // used to show the "Continue your application" banner to returning users.
+      supabase
+        .from("applications")
+        .select("id, jobs(title, company, location, salary, job_url, description)")
+        .eq("user_id", user.id)
+        .eq("tailor_intent", true)
+        .in("status", ["Saved", "New"])
+        .is("generated_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
     applications = (data ?? []) as ApplicationWithJob[];
     resumeFileName = resume?.file_name ?? null;
@@ -80,6 +99,37 @@ export default async function DashboardPage() {
         .filter((e): e is [string, string] => Boolean(e[0]))
     );
     accessState = access;
+
+    // isNewUser: onboarding completed within the last N minutes → triggers
+    // personalised section heading and confirms the auto-refresh was intentional.
+    isNewUser = !!candidateOnboardingCompletedAt &&
+      (Date.now() - new Date(candidateOnboardingCompletedAt).getTime()) / 60_000 < FRESH_ONBOARDING_MINUTES;
+
+    // Tailor-intent application for the "Continue your application" banner.
+    if (tailorIntentApp) {
+      const tiApp = tailorIntentApp as unknown as {
+        id: string;
+        jobs: {
+          title: string;
+          company: string;
+          location?: string | null;
+          salary?: string | null;
+          job_url?: string | null;
+          description?: string | null;
+        } | null;
+      };
+      if (tiApp.jobs) {
+        tailorIntentApplication = {
+          id: tiApp.id,
+          jobTitle: tiApp.jobs.title,
+          company: tiApp.jobs.company,
+          jobUrl: tiApp.jobs.job_url ?? null,
+          jobLocation: tiApp.jobs.location ?? null,
+          jobSalary: tiApp.jobs.salary ?? null,
+          jobDescription: tiApp.jobs.description ?? null,
+        };
+      }
+    }
 
     // Show the lifecycle reminder prompt only for Group B users:
     //   • Free plan (paid users are already motivated)
@@ -167,6 +217,8 @@ export default async function DashboardPage() {
         grabbedMatchesStale={isStaleGrabCache(grabbedMatches)}
         savedByUrl={savedByUrl}
         accessState={accessState}
+        isNewUser={isNewUser}
+        tailorIntentApplication={tailorIntentApplication}
       />
     </main>
   );

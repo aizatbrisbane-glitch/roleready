@@ -53,12 +53,12 @@ export function JobDescriptionEditor({ applicationId, initialDescription, hasDoc
   return (
     <section className={`rounded-md border p-4 ${hasDocuments ? "border-slate-200 bg-slate-50" : "border-amber-300 bg-amber-50"}`}>
       <h2 className="font-bold text-slate-900">
-        {hasDocuments ? "Job description is incomplete" : "Paste the full job description to get started"}
+        {hasDocuments ? "Job description is incomplete" : "We need a little more information about this role"}
       </h2>
       <p className={`mt-1 text-sm leading-6 ${hasDocuments ? "text-slate-600" : "text-amber-950"}`}>
         {hasDocuments
-          ? "We only got a snippet — paste the full job ad below and regenerate to get better-tailored documents."
-          : "We only got a snippet from the job site — the AI needs the full ad to tailor your resume and cover letter properly. Paste it below, then generate."}
+          ? "Paste the full job ad below and regenerate to get better-tailored documents."
+          : "Paste the full job description and we'll use it to tailor your application."}
       </p>
       <textarea
         className="field mt-3 min-h-64 bg-white"

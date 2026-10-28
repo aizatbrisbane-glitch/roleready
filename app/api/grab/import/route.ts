@@ -64,36 +64,75 @@ export async function POST(request: Request) {
     // Fall back to the snippet — the application page will prompt the user to paste the full ad
   }
 
-  const { data: job, error: jobError } = await supabase
-    .from("jobs")
-    .insert({
-      user_id: user.id,
-      title: jobDetails.title,
-      company: jobDetails.company,
-      location: jobDetails.location,
-      salary: jobDetails.salary,
-      job_url: normaliseJobUrl(body.jobUrl ?? ""),
-      description: jobDetails.description,
-      source: detectJobSource(body.jobUrl),
-      expires_at: jobDetails.expiresAt,
-    })
-    .select("id")
-    .single();
+  const normalisedUrl = normaliseJobUrl(body.jobUrl ?? "");
 
-  if (jobError || !job) {
-    return NextResponse.json({ error: jobError?.message ?? "Unable to create job." }, { status: 400 });
+  // Check whether a job record already exists for this URL (created by a prior
+  // tailor-intent save). Reuse it to avoid duplicate rows and respect the
+  // UNIQUE (user_id, job_id) constraint on applications.
+  const { data: existingJob } = await supabase
+    .from("jobs")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("job_url", normalisedUrl)
+    .maybeSingle();
+
+  let jobId: string;
+
+  if (existingJob) {
+    jobId = existingJob.id;
+    // Update the job with the better-fetched description (best-effort; do not fail on error).
+    await supabase
+      .from("jobs")
+      .update({
+        title: jobDetails.title,
+        company: jobDetails.company,
+        location: jobDetails.location,
+        salary: jobDetails.salary,
+        description: jobDetails.description,
+        expires_at: jobDetails.expiresAt,
+      })
+      .eq("id", jobId);
+  } else {
+    const { data: newJob, error: jobError } = await supabase
+      .from("jobs")
+      .insert({
+        user_id: user.id,
+        title: jobDetails.title,
+        company: jobDetails.company,
+        location: jobDetails.location,
+        salary: jobDetails.salary,
+        job_url: normalisedUrl,
+        description: jobDetails.description,
+        source: detectJobSource(body.jobUrl),
+        expires_at: jobDetails.expiresAt,
+      })
+      .select("id")
+      .single();
+
+    if (jobError || !newJob) {
+      return NextResponse.json({ error: jobError?.message ?? "Unable to create job." }, { status: 400 });
+    }
+    jobId = newJob.id;
   }
 
+  // Upsert the application — handles both the first-time import and the
+  // tailor-intent resume-gate promotion (Saved → New) without consuming
+  // a duplicate credit or violating the UNIQUE (user_id, job_id) constraint.
+  // tailor_intent is intentionally omitted so it is preserved on conflict
+  // (the column default false applies only on fresh inserts).
   const { data: application, error: applicationError } = await supabase
     .from("applications")
-    .insert({
-      user_id: user.id,
-      job_id: job.id,
-      status: "New",
-      match_score: body.matchScore,
-      match_explanation: body.matchReason,
-      missing_keywords: [],
-    })
+    .upsert(
+      {
+        user_id: user.id,
+        job_id: jobId,
+        status: "New",
+        match_score: body.matchScore ?? null,
+        match_explanation: body.matchReason ?? null,
+        missing_keywords: [],
+      },
+      { onConflict: "user_id,job_id" }
+    )
     .select("id")
     .single();
 
@@ -101,6 +140,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: applicationError?.message ?? "Unable to create application." }, { status: 400 });
   }
 
-  scheduleAnalytics(() => recordGAEvent({ name: "job_added", key: `job:${job.id}`, userId: user.id }));
+  scheduleAnalytics(() => recordGAEvent({ name: "job_added", key: `job:${jobId}`, userId: user.id }));
   return NextResponse.json({ applicationId: application.id });
 }

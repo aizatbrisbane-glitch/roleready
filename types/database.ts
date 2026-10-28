@@ -252,6 +252,7 @@ export type Application = {
   reference_ids: string[];
   include_references_in_cv: boolean;
   interview_questions: InterviewQuestion[] | null;
+  tailor_intent: boolean;
   created_at: string;
   updated_at: string;
 };

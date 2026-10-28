@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { inferCountry, marketLabel } from "@/lib/country-inference";
+import { analytics } from "@/lib/analytics";
 
 type Step = 1 | 2 | 3;
 
@@ -131,6 +132,7 @@ export function CandidateOnboarding({
       setLoading(false);
       return;
     }
+    analytics.onboardingCompleted();
     router.refresh();
   }
 

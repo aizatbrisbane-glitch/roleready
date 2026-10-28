@@ -124,6 +124,38 @@ export const analytics = {
   generationFailed(opts: { reason: GenerationFailureReason }) {
     fireEvent("generation_failed", { failure_reason: opts.reason });
   },
+
+  // ─── Activation experiment events ────────────────────────────────────────────
+
+  /** Candidate completed the 3-step onboarding flow */
+  onboardingCompleted() {
+    fireEvent("onboarding_completed");
+  },
+
+  /** Resume-required gate opened (user clicked Tailor & Apply without a resume) */
+  resumeGateOpened() {
+    fireEvent("resume_gate_opened");
+  },
+
+  /** User clicked the bookmark icon on a job card (normal save — NOT Tailor intent) */
+  jobSaved() {
+    fireEvent("job_saved");
+  },
+
+  /** Job was saved with tailor_intent=true as part of the gate flow */
+  tailorIntentJobSaved() {
+    fireEvent("tailor_intent_job_saved");
+  },
+
+  /** "Continue your application" banner was rendered for a returning user */
+  continueApplicationBannerShown(opts: { jobTitle: string }) {
+    fireEvent("continue_application_banner_shown", { job_title: opts.jobTitle });
+  },
+
+  /** User clicked the "Continue your application" banner */
+  continueApplicationBannerClicked(opts: { jobTitle: string }) {
+    fireEvent("continue_application_banner_clicked", { job_title: opts.jobTitle });
+  },
 };
 
 export type GenerationFailureReason =

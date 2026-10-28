@@ -25,12 +25,54 @@
 import type { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { classifyUser } from "@/lib/lifecycle-eligibility";
 import { renderLifecycleEmail } from "@/lib/lifecycle-email-templates";
+import type { TailorIntentJobContext } from "@/lib/lifecycle-email-templates";
 import type { EligibilityClassification, EligibilitySnapshot } from "@/lib/lifecycle-eligibility";
 import type { LifecycleReminderType } from "@/types/database";
 
 type AdminClient = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
 
 const APP_URL = "https://koalapply.com";
+
+// ─── Tailor-intent job lookup ─────────────────────────────────────────────────
+//
+// Fetch the most recent Tailor-intent saved/new application for a user that
+// has not been generated yet. Used to personalise Reminder 1 emails.
+// Returns null when no qualifying application exists or on query error.
+
+async function fetchTailorIntentJob(
+  admin: AdminClient,
+  userId: string
+): Promise<TailorIntentJobContext | null> {
+  const [appResult, resumeResult] = await Promise.all([
+    admin
+      .from("applications")
+      .select("id, jobs(title, company)")
+      .eq("user_id", userId)
+      .eq("tailor_intent", true)
+      .in("status", ["Saved", "New"])
+      .is("generated_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    admin
+      .from("master_resumes")
+      .select("id")
+      .eq("user_id", userId)
+      .maybeSingle(),
+  ]);
+
+  if (appResult.error || !appResult.data) return null;
+
+  const row = appResult.data as unknown as { id: string; jobs: { title: string; company: string } | null };
+  if (!row.jobs) return null;
+
+  return {
+    title: row.jobs.title,
+    company: row.jobs.company,
+    ctaUrl: `${APP_URL}/`,
+    hasResume: resumeResult.data !== null,
+  };
+}
 
 // ─── Public types ─────────────────────────────────────────────────────────────
 
@@ -148,18 +190,27 @@ async function checkTokenStatus(
 async function fetchProfileBasics(
   admin: AdminClient,
   userId: string
-): Promise<{ firstName: string | null; email: string | null }> {
+): Promise<{ firstName: string | null; email: string | null; primaryJobTitle: string | null; location: string | null }> {
   const { data } = await admin
     .from("profiles")
-    .select("name, email")
+    .select("name, email, target_job_titles, location")
     .eq("id", userId)
     .maybeSingle();
 
-  if (!data) return { firstName: null, email: null };
-  const profile = data as { name?: string | null; email?: string | null };
+  if (!data) return { firstName: null, email: null, primaryJobTitle: null, location: null };
+  const profile = data as {
+    name?: string | null;
+    email?: string | null;
+    target_job_titles?: string[] | null;
+    location?: string | null;
+  };
   const rawName = profile.name ?? null;
   const firstName = rawName ? rawName.trim().split(" ")[0] || null : null;
-  return { firstName, email: profile.email ?? null };
+  const titles = Array.isArray(profile.target_job_titles) ? profile.target_job_titles : [];
+  const primaryJobTitle = titles.length > 0 && titles[0].trim() ? titles[0].trim() : null;
+  const rawLocation = profile.location ?? null;
+  const location = rawLocation ? rawLocation.trim() || null : null;
+  return { firstName, email: profile.email ?? null, primaryJobTitle, location };
 }
 
 // ─── Evaluate a single candidate ─────────────────────────────────────────────
@@ -217,7 +268,10 @@ async function evaluateCandidate(
   }
 
   // Build email preview (synthetic unsubscribe URL — no real token created).
-  const { firstName } = await fetchProfileBasics(admin, userId);
+  const [{ firstName, primaryJobTitle, location }, tailorIntentJob] = await Promise.all([
+    fetchProfileBasics(admin, userId),
+    reminderType === "reminder_1" ? fetchTailorIntentJob(admin, userId) : Promise.resolve(null),
+  ]);
   const syntheticUnsubUrl = `${APP_URL}/unsubscribe/lifecycle?token=DRY_RUN_ONLY`;
 
   const rendered = renderLifecycleEmail({
@@ -225,6 +279,9 @@ async function evaluateCandidate(
     firstName,
     remaining: snapshot.remaining,
     unsubscribeUrl: syntheticUnsubUrl,
+    tailorIntentJob,
+    primaryJobTitle,
+    location,
   });
 
   return {
