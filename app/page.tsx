@@ -219,6 +219,7 @@ export default async function DashboardPage() {
         accessState={accessState}
         isNewUser={isNewUser}
         tailorIntentApplication={tailorIntentApplication}
+        hasCompletedOnboarding={!!candidateOnboardingCompletedAt}
       />
     </main>
   );
