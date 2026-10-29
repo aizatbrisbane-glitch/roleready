@@ -69,7 +69,7 @@ async function fetchTailorIntentJob(
   return {
     title: row.jobs.title,
     company: row.jobs.company,
-    ctaUrl: `${APP_URL}/`,
+    ctaUrl: `${APP_URL}/login?redirect=/`,
     hasResume: resumeResult.data !== null,
   };
 }
@@ -293,7 +293,7 @@ async function evaluateCandidate(
       subject: rendered.subject,
       firstName,
       remaining: snapshot.remaining,
-      ctaUrl: APP_URL + "/",
+      ctaUrl: `${APP_URL}/login?redirect=/`,
     },
     tokenStatus,
     exclusionReason: null,

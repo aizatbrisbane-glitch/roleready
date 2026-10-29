@@ -3,6 +3,7 @@ import { CheckCircle2, Sparkles, Target } from "lucide-react";
 import { AuthPanel } from "@/components/AuthPanel";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isSafeRedirect } from "@/lib/safe-redirect";
 
 const benefits = [
   {
@@ -31,7 +32,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     ? await supabase.auth.getUser()
     : { data: { user: null } };
   const { plan, redirect: redirectParam, message, mode } = await searchParams;
-  const redirectTo = plan ? `/checkout/initiate?plan=${plan}` : (redirectParam ?? "/");
+  const redirectTo = plan ? `/checkout/initiate?plan=${plan}` : (isSafeRedirect(redirectParam) ? redirectParam : "/");
   const initialMode = mode === "signup" ? "signup" : mode === "forgot" ? "forgot" : "signin";
   if (user) redirect(redirectTo);
   return (

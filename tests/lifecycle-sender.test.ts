@@ -10,6 +10,8 @@ const classifyState = vi.hoisted(() => ({
   results: {} as Record<string, Record<string, { classification: EligibilityClassification; snapshot: EligibilitySnapshot }>>,
 }));
 
+const renderCallArgs = vi.hoisted(() => ({ latest: null as unknown }));
+
 vi.mock("../lib/lifecycle-eligibility", () => ({
   classifyUser: async (
     _admin: unknown,
@@ -23,12 +25,16 @@ vi.mock("../lib/lifecycle-eligibility", () => ({
 }));
 
 vi.mock("../lib/lifecycle-email-templates", () => ({
-  renderLifecycleEmail: ({ reminderType, firstName }: { reminderType: string; firstName: string | null }) => ({
-    subject: `Subject: ${reminderType}`,
-    html: `<p>Hi ${firstName ?? "there"}</p>`,
-    text: `Hi ${firstName ?? "there"}`,
-    oneClickUnsubscribeUrl: "https://koalapply.com/api/unsubscribe/lifecycle/one-click?token=DRY",
-  }),
+  renderLifecycleEmail: (args: unknown) => {
+    renderCallArgs.latest = args;
+    const { reminderType, firstName } = args as { reminderType: string; firstName: string | null };
+    return {
+      subject: `Subject: ${reminderType}`,
+      html: `<p>Hi ${firstName ?? "there"}</p>`,
+      text: `Hi ${firstName ?? "there"}`,
+      oneClickUnsubscribeUrl: "https://koalapply.com/api/unsubscribe/lifecycle/one-click?token=DRY",
+    };
+  },
   FROM_ADDRESS: "Aizat at Koalapply <noreply@koalapply.com>",
 }));
 
@@ -96,7 +102,7 @@ type FakeAdminConfig = {
   optedInUsers?: string[];
   pendingLogs?: LifecycleEmailLog[];
   failedLogs?: LifecycleEmailLog[];
-  profiles?: Record<string, { name: string | null; email: string | null }>;
+  profiles?: Record<string, { name: string | null; email: string | null; target_job_titles?: string[] | null; location?: string | null }>;
   claimResult?: LifecycleEmailLog | null;
   insertError?: { code?: string; message: string } | null;
   rpcResults?: Record<string, unknown>;
@@ -109,6 +115,9 @@ interface FakeChain extends PromiseLike<{ data: unknown; error: unknown }> {
   eq: (k: string, v: unknown) => FakeChain;
   lte: (k: string, v: unknown) => FakeChain;
   lt:  (k: string, v: unknown) => FakeChain;
+  in:  (col: string, values: unknown[]) => FakeChain;
+  is:  (col: string, value: unknown) => FakeChain;
+  not: (col: string, op: string, value: unknown) => FakeChain;
   order: (col: string, opts?: unknown) => FakeChain;
   limit: (n: number) => FakeChain;
   update: (data: unknown) => FakeChain;
@@ -130,6 +139,9 @@ function makeFakeAdmin(cfg: FakeAdminConfig = {}) {
       },
       lte: () => chain,
       lt:  () => chain,
+      in:  () => chain,
+      is:  () => chain,
+      not: () => chain,
       order: () => chain,
       limit: () => chain,
       update(data: unknown) {
@@ -184,6 +196,12 @@ function makeFakeAdmin(cfg: FakeAdminConfig = {}) {
           return { eq: (_k: string, _v: unknown) => ({ eq: () => Promise.resolve({ data: null, error: null }) }) };
         },
       };
+    },
+    auth: {
+      admin: {
+        getUserById: (_userId: string) =>
+          Promise.resolve({ data: { user: { email: null } }, error: null }),
+      },
     },
     rpc(fn: string, _args?: Record<string, unknown>) {
       if (fn === "claim_lifecycle_email") {
@@ -730,5 +748,56 @@ describe("runLifecycleEmailJob — report shape", () => {
     expect(report).toHaveProperty("failed");
     expect(report).toHaveProperty("results");
     expect(Array.isArray(report.results)).toBe(true);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION I — Personalisation forwarding
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("runLifecycleEmailJob — personalisation forwarding", () => {
+  beforeEach(() => {
+    renderCallArgs.latest = null;
+  });
+
+  it("reminder_1: primaryJobTitle and location from profile are forwarded to renderLifecycleEmail", async () => {
+    eligible("user-1", "reminder_1");
+    const log = makeLog({ user_id: "user-1", reminder_type: "reminder_1" });
+    const admin = makeFakeAdmin({
+      pendingLogs: [log], claimResult: log,
+      profiles: { "user-1": { name: "Alex", email: "alex@example.com", target_job_titles: ["Teacher"], location: "Sydney" } },
+    });
+    const resend = makeFakeResend();
+
+    await runLifecycleEmailJob(
+      admin as unknown as Parameters<typeof runLifecycleEmailJob>[0],
+      resend as unknown as Parameters<typeof runLifecycleEmailJob>[1],
+      { scheduleBatchSize: 0 }
+    );
+
+    const args = renderCallArgs.latest as Record<string, unknown>;
+    expect(args).not.toBeNull();
+    expect(args.primaryJobTitle).toBe("Teacher");
+    expect(args.location).toBe("Sydney");
+  });
+
+  it("reminder_1: profile without target_job_titles → primaryJobTitle is null", async () => {
+    eligible("user-1", "reminder_1");
+    const log = makeLog({ user_id: "user-1", reminder_type: "reminder_1" });
+    const admin = makeFakeAdmin({
+      pendingLogs: [log], claimResult: log,
+      profiles: { "user-1": { name: null, email: "u@u.com" } },
+    });
+    const resend = makeFakeResend();
+
+    await runLifecycleEmailJob(
+      admin as unknown as Parameters<typeof runLifecycleEmailJob>[0],
+      resend as unknown as Parameters<typeof runLifecycleEmailJob>[1],
+      { scheduleBatchSize: 0 }
+    );
+
+    const args = renderCallArgs.latest as Record<string, unknown>;
+    expect(args.primaryJobTitle).toBeNull();
+    expect(args.location).toBeNull();
   });
 });

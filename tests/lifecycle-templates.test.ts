@@ -39,22 +39,17 @@ describe("Reminder 1 — Still looking for your next role?", () => {
     expect(html).toContain("Hi there,");
   });
 
-  it("HTML: singular grammar with 1 remaining (application, not applications)", () => {
-    const { html } = renderLifecycleEmail(make({ remaining: 1 }));
-    expect(html).toContain("1 free Koalapply application");
-    expect(html).not.toContain("1 free Koalapply applications");
-  });
-
-  it("HTML: plural grammar with 2 remaining", () => {
-    const { html } = renderLifecycleEmail(make({ remaining: 2 }));
-    expect(html).toContain("2 free Koalapply applications");
-  });
-
-  it("HTML: CTA button points to / (no /dashboard route exists)", () => {
+  it("HTML: body contains the Koalapply value proposition", () => {
     const { html } = renderLifecycleEmail(make());
-    expect(html).toContain("https://koalapply.com/");
+    expect(html).toContain("Koalapply can help you understand your match");
+    expect(html).toContain("tailored application");
+  });
+
+  it("HTML: CTA button routes through login for safe logged-out access", () => {
+    const { html } = renderLifecycleEmail(make());
+    expect(html).toContain("https://koalapply.com/login?redirect=/");
     expect(html).not.toContain("https://koalapply.com/dashboard");
-    expect(html).toContain("Try Koalapply");
+    expect(html).toContain("See my job matches");
   });
 
   it("HTML: includes unsubscribe link", () => {
@@ -103,20 +98,14 @@ describe("Reminder 1 — Still looking for your next role?", () => {
     expect(text).toContain("Hi there,");
   });
 
-  it("plain text: includes 1 free application (singular)", () => {
-    const { text } = renderLifecycleEmail(make({ remaining: 1 }));
-    expect(text).toContain("1 free Koalapply application");
-    expect(text).not.toContain("1 free Koalapply applications");
-  });
-
-  it("plain text: includes 2 free applications (plural)", () => {
-    const { text } = renderLifecycleEmail(make({ remaining: 2 }));
-    expect(text).toContain("2 free Koalapply applications");
-  });
-
-  it("plain text: CTA includes root URL (no /dashboard route)", () => {
+  it("plain text: body contains the Koalapply value proposition", () => {
     const { text } = renderLifecycleEmail(make());
-    expect(text).toContain("https://koalapply.com/");
+    expect(text).toContain("Koalapply can help you understand your match");
+  });
+
+  it("plain text: CTA routes through login for logged-out users", () => {
+    const { text } = renderLifecycleEmail(make());
+    expect(text).toContain("https://koalapply.com/login?redirect=/");
     expect(text).not.toContain("https://koalapply.com/dashboard");
   });
 
@@ -138,6 +127,40 @@ describe("Reminder 1 — Still looking for your next role?", () => {
       expect(content.toLowerCase()).not.toContain("always be there");
       expect(content.toLowerCase()).not.toContain("indefinitely");
     }
+  });
+
+  it("subject: includes job title and location when both provided", () => {
+    const { subject } = renderLifecycleEmail(make({ primaryJobTitle: "Teacher", location: "Sydney" }));
+    expect(subject).toBe("Still looking for a Teacher role in Sydney?");
+  });
+
+  it("subject: includes job title only when location absent", () => {
+    const { subject } = renderLifecycleEmail(make({ primaryJobTitle: "Engineer" }));
+    expect(subject).toBe("Still looking for Engineer roles?");
+  });
+
+  it("subject: includes location only when title absent", () => {
+    const { subject } = renderLifecycleEmail(make({ location: "Melbourne" }));
+    expect(subject).toBe("Still looking for roles in Melbourne?");
+  });
+
+  it("HTML: body is personalised with job title and location", () => {
+    const { html } = renderLifecycleEmail(make({ primaryJobTitle: "Teacher", location: "Sydney" }));
+    expect(html).toContain("Teacher");
+    expect(html).toContain("Sydney");
+    expect(html).not.toContain("We found");
+  });
+
+  it("HTML: body does not claim jobs were found when unpersonalised", () => {
+    const { html } = renderLifecycleEmail(make());
+    expect(html).not.toContain("We found");
+  });
+
+  it("plain text: body is personalised with job title and location", () => {
+    const { text } = renderLifecycleEmail(make({ primaryJobTitle: "Nurse", location: "Melbourne" }));
+    expect(text).toContain("Nurse");
+    expect(text).toContain("Melbourne");
+    expect(text).not.toContain("We found");
   });
 });
 
@@ -173,10 +196,10 @@ describe("Reminder 2 — Found another job worth applying for?", () => {
     expect(html).toContain("2 free Koalapply applications");
   });
 
-  it("HTML: CTA button labelled 'Try another job' pointing to /", () => {
+  it("HTML: CTA button labelled 'Try another job' routes through login", () => {
     const { html } = renderLifecycleEmail(make({ reminderType: "reminder_2" }));
     expect(html).toContain("Try another job");
-    expect(html).toContain("https://koalapply.com/");
+    expect(html).toContain("https://koalapply.com/login?redirect=/");
     expect(html).not.toContain("https://koalapply.com/dashboard");
   });
 
@@ -200,9 +223,9 @@ describe("Reminder 2 — Found another job worth applying for?", () => {
     expect(html.toLowerCase()).not.toContain("pricing");
   });
 
-  it("plain text: CTA includes root URL (no /dashboard route)", () => {
+  it("plain text: CTA routes through login for logged-out users", () => {
     const { text } = renderLifecycleEmail(make({ reminderType: "reminder_2" }));
-    expect(text).toContain("https://koalapply.com/");
+    expect(text).toContain("https://koalapply.com/login?redirect=/");
     expect(text).not.toContain("https://koalapply.com/dashboard");
   });
 

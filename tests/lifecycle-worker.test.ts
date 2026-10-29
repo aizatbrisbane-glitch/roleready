@@ -191,6 +191,20 @@ function makeFakeAdmin(config: FakeAdminConfig = {}) {
         };
       }
 
+      // applications + master_resumes — used by fetchTailorIntentJob (returns null = no tailor-intent job)
+      if (table === "applications" || table === "master_resumes") {
+        const chain: Record<string, unknown> = {
+          select: () => chain,
+          eq: () => chain,
+          in: () => chain,
+          is: () => chain,
+          order: () => chain,
+          limit: () => chain,
+          maybeSingle: () => Promise.resolve({ data: null, error: null }),
+        };
+        return chain;
+      }
+
       // Fallback — should not be reached by the dry-run worker
       return {
         select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: null, error: null }) }) }),
@@ -489,7 +503,7 @@ describe("runLifecycleDryRun — report shape", () => {
     setEligible("u1", "reminder_1");
     const admin = makeFakeAdmin({ candidates: ["u1"] });
     const report = await runLifecycleDryRun(admin as unknown as Parameters<typeof runLifecycleDryRun>[0]);
-    expect(report.results[0].emailPreview?.ctaUrl).toBe("https://koalapply.com/");
+    expect(report.results[0].emailPreview?.ctaUrl).toBe("https://koalapply.com/login?redirect=/");
   });
 });
 

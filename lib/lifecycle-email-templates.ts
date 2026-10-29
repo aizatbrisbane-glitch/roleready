@@ -153,18 +153,18 @@ function reminder1Html(data: LifecycleEmailData): string {
   const t = data.primaryJobTitle?.trim() || null;
   const l = data.location?.trim() || null;
   const firstPara = t && l
-    ? `We found <strong>${esc(t)}</strong> roles matching what you're looking for in <strong>${esc(l)}</strong>.`
+    ? `Still looking for <strong>${esc(t)}</strong> roles in <strong>${esc(l)}</strong>?`
     : t
-    ? `We found <strong>${esc(t)}</strong> roles matching what you're looking for.`
+    ? `Still looking for <strong>${esc(t)}</strong> roles?`
     : l
-    ? `We found roles matching what you're looking for in <strong>${esc(l)}</strong>.`
-    : "We found roles matching what you're looking for.";
+    ? `Still looking for roles in <strong>${esc(l)}</strong>?`
+    : "Still looking for your next role?";
 
   const body = `
     ${p(greeting)}
     ${p(firstPara)}
     ${p("Pick one you're interested in and Koalapply can help you understand your match and prepare a tailored application.")}
-    ${ctaButton("See my job matches →", `${APP_URL}/`)}
+    ${ctaButton("See my job matches →", `${APP_URL}/login?redirect=/`)}
     <p style="margin:24px 0 0;font-size:15px;color:#475569">Good luck!<br /><br />${SENDER_NAME}<br /><span style="color:#94a3b8;font-size:13px">${SENDER_TITLE}</span></p>
   `;
 
@@ -204,12 +204,12 @@ function reminder1Text(data: LifecycleEmailData): string {
   const t = data.primaryJobTitle?.trim() || null;
   const l = data.location?.trim() || null;
   const firstLine = t && l
-    ? `We found ${t} roles matching what you're looking for in ${l}.`
+    ? `Still looking for ${t} roles in ${l}?`
     : t
-    ? `We found ${t} roles matching what you're looking for.`
+    ? `Still looking for ${t} roles?`
     : l
-    ? `We found roles matching what you're looking for in ${l}.`
-    : "We found roles matching what you're looking for.";
+    ? `Still looking for roles in ${l}?`
+    : "Still looking for your next role?";
 
   return [
     greeting,
@@ -218,7 +218,7 @@ function reminder1Text(data: LifecycleEmailData): string {
     "",
     "Pick one you're interested in and Koalapply can help you understand your match and prepare a tailored application.",
     "",
-    `See my job matches → ${APP_URL}/`,
+    `See my job matches → ${APP_URL}/login?redirect=/`,
     "",
     "Good luck!",
     "",
@@ -241,7 +241,7 @@ function reminder2Html(data: LifecycleEmailData): string {
     ${p("Hope the job search is going well.")}
     ${p(`You've still got <strong>${esc(phrase)}</strong> left, so if another interesting role has popped up, you can run it through Koalapply too.`)}
     ${p(`Just paste the job and we'll help you check the match and tailor your ${esc(short === "application" ? "application" : "applications")}.`)}
-    ${ctaButton("Try another job →", `${APP_URL}/`)}
+    ${ctaButton("Try another job →", `${APP_URL}/login?redirect=/`)}
     ${signature()}
   `;
 
@@ -262,7 +262,7 @@ function reminder2Text(data: LifecycleEmailData): string {
     "",
     `Just paste the job and we'll help you check the match and tailor your ${short}.`,
     "",
-    `Try another job → ${APP_URL}/`,
+    `Try another job → ${APP_URL}/login?redirect=/`,
     "",
     "Good luck — hope the next one is a great fit.",
     "",

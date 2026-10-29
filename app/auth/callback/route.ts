@@ -4,11 +4,13 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { trackSignupServerSide, type AttributionData } from "@/lib/server-analytics";
 import { gaEnabled, observeSignup } from "@/lib/ga4";
+import { isSafeRedirect } from "@/lib/safe-redirect";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const next = requestUrl.searchParams.get("next") ?? "/";
+  const rawNext = requestUrl.searchParams.get("next");
+  const next = isSafeRedirect(rawNext) ? rawNext : "/";
 
   // Read the attribution cookie immediately from the raw request headers — before any
   // Supabase session work that mutates the cookie store. The cookie is set by
