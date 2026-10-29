@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { renderLifecycleEmail, FROM_ADDRESS } from "@/lib/lifecycle-email-templates";
-import { createUnsubscribeToken, hashUnsubscribeToken } from "@/lib/lifecycle-unsubscribe";
+import type { TailorIntentJobContext } from "@/lib/lifecycle-email-templates";
 import type { LifecycleReminderType } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -11,18 +10,22 @@ export const dynamic = "force-dynamic";
 const APP_URL = "https://koalapply.com";
 const VALID_REMINDER_TYPES: LifecycleReminderType[] = ["reminder_1", "reminder_2"];
 
+// Non-functional placeholder used for the unsubscribe link in test emails.
+// isPlausibleToken() requires exactly 43 base64url chars — this string
+// intentionally fails that check, so clicking the link has no DB effect.
+const TEST_UNSUB_PLACEHOLDER = "test-send-placeholder-not-functional";
+
 // ─── POST /api/admin/lifecycle-email-test-send ────────────────────────────────
 //
 // Sends exactly one lifecycle reminder email to a specified address.
 //
 // Safety properties:
-//   • Admin/founder auth required — cannot be called by anonymous or regular users.
-//   • Target address is always the explicit `to` field — no customer addresses
-//     are ever selected or contacted by this endpoint.
-//   • Unsubscribe token is linked to the calling admin's OWN email_preferences row.
-//     Clicking unsubscribe in the test email updates only that row, not any customer.
-//   • Completely independent of LIFECYCLE_EMAIL_SENDING_ENABLED — the feature flag
-//     guards the batch cron job, not this one-off test endpoint.
+//   • Admin/founder auth required.
+//   • Target address is always the explicit `to` field in the request body.
+//   • Unsubscribe link uses a non-functional placeholder — no DB row is
+//     written, and clicking it affects no account.
+//   • tailorIntentJob.ctaUrl must be a relative path or koalapply.com URL.
+//   • Completely independent of LIFECYCLE_EMAIL_SENDING_ENABLED.
 
 export async function POST(request: Request) {
   // ── Auth: admin/founder only ──────────────────────────────────────────────
@@ -44,13 +47,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 
-  // ── Parse body ────────────────────────────────────────────────────────────
+  // ── Parse and validate body ───────────────────────────────────────────────
   let to: string,
     firstName: string | null,
     remaining: number,
     reminderType: LifecycleReminderType;
+  let primaryJobTitle: string | null = null;
+  let location: string | null = null;
+  let tailorIntentJob: TailorIntentJobContext | null = null;
+
   try {
     const body = (await request.json()) as Record<string, unknown>;
+
     to = typeof body.to === "string" ? body.to.trim() : "";
     firstName =
       typeof body.firstName === "string" ? body.firstName.trim() || null : null;
@@ -62,6 +70,86 @@ export async function POST(request: Request) {
     reminderType = VALID_REMINDER_TYPES.includes(rawType as LifecycleReminderType)
       ? (rawType as LifecycleReminderType)
       : "reminder_1";
+
+    if (typeof body.primaryJobTitle === "string") {
+      const v = body.primaryJobTitle.trim();
+      if (v.length > 200) {
+        return NextResponse.json(
+          { error: "primaryJobTitle exceeds 200 characters." },
+          { status: 400 }
+        );
+      }
+      primaryJobTitle = v || null;
+    }
+
+    if (typeof body.location === "string") {
+      const v = body.location.trim();
+      if (v.length > 200) {
+        return NextResponse.json(
+          { error: "location exceeds 200 characters." },
+          { status: 400 }
+        );
+      }
+      location = v || null;
+    }
+
+    if (body.tailorIntentJob != null) {
+      if (typeof body.tailorIntentJob !== "object" || Array.isArray(body.tailorIntentJob)) {
+        return NextResponse.json(
+          { error: "tailorIntentJob must be an object." },
+          { status: 400 }
+        );
+      }
+      const tj = body.tailorIntentJob as Record<string, unknown>;
+      const title = typeof tj.title === "string" ? tj.title.trim() : "";
+      const company = typeof tj.company === "string" ? tj.company.trim() : "";
+      const ctaUrl = typeof tj.ctaUrl === "string" ? tj.ctaUrl.trim() : "";
+      const hasResume = typeof tj.hasResume === "boolean" ? tj.hasResume : null;
+
+      if (!title) {
+        return NextResponse.json(
+          { error: "tailorIntentJob.title must be a non-empty string." },
+          { status: 400 }
+        );
+      }
+      if (!company) {
+        return NextResponse.json(
+          { error: "tailorIntentJob.company must be a non-empty string." },
+          { status: 400 }
+        );
+      }
+      if (!ctaUrl) {
+        return NextResponse.json(
+          { error: "tailorIntentJob.ctaUrl must be a non-empty string." },
+          { status: 400 }
+        );
+      }
+      if (hasResume === null) {
+        return NextResponse.json(
+          { error: "tailorIntentJob.hasResume must be a boolean." },
+          { status: 400 }
+        );
+      }
+      if (title.length > 200 || company.length > 200) {
+        return NextResponse.json(
+          { error: "tailorIntentJob.title and .company must be ≤ 200 characters." },
+          { status: 400 }
+        );
+      }
+      // ctaUrl must be a safe relative path or point explicitly to koalapply.com.
+      // Inline check avoids type-predicate narrowing issues from isSafeRedirect().
+      const ctaUrlSafe =
+        (ctaUrl.startsWith("/") && !ctaUrl.startsWith("//")) ||
+        ctaUrl.startsWith("https://koalapply.com/");
+      if (!ctaUrlSafe) {
+        return NextResponse.json(
+          { error: "tailorIntentJob.ctaUrl must be a relative path or https://koalapply.com/ URL." },
+          { status: 400 }
+        );
+      }
+
+      tailorIntentJob = { title, company, ctaUrl, hasResume };
+    }
   } catch {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
@@ -75,39 +163,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "RESEND_API_KEY not configured." }, { status: 500 });
   }
 
-  const admin = createSupabaseAdminClient();
-  if (!admin) {
-    return NextResponse.json({ error: "Admin client not configured." }, { status: 500 });
-  }
-
-  // ── Provision unsubscribe token for the admin's own account ──────────────
+  // ── Unsubscribe URL (non-functional placeholder) ──────────────────────────
   //
-  // Upserts an email_preferences row for the calling admin user so the
-  // unsubscribe link in the test email resolves to a real DB row.
-  // Clicking it updates ONLY this admin's row — no customer data is touched.
-  const unsubToken = createUnsubscribeToken();
-  const tokenHash = hashUnsubscribeToken(unsubToken);
-
-  const { error: prefError } = await admin.from("email_preferences").upsert(
-    {
-      user_id: user.id,
-      preference_type: "lifecycle_marketing",
-      opted_in: true,
-      source: "test_send",
-      unsubscribe_token_hash: tokenHash,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id,preference_type" }
-  );
-
-  if (prefError) {
-    return NextResponse.json(
-      { error: `Preference upsert failed: ${prefError.message}` },
-      { status: 500 }
-    );
-  }
-
-  const unsubscribeUrl = `${APP_URL}/unsubscribe/lifecycle?token=${encodeURIComponent(unsubToken)}`;
+  // No real token is generated and no DB row is written. The unsubscribe page
+  // calls isPlausibleToken() which requires exactly 43 base64url chars; the
+  // placeholder fails this check, so clicking the link has no database effect.
+  const unsubscribeUrl = `${APP_URL}/unsubscribe/lifecycle?token=${encodeURIComponent(TEST_UNSUB_PLACEHOLDER)}`;
 
   // ── Render ────────────────────────────────────────────────────────────────
   const rendered = renderLifecycleEmail({
@@ -115,6 +176,9 @@ export async function POST(request: Request) {
     firstName,
     remaining,
     unsubscribeUrl,
+    primaryJobTitle,
+    location,
+    tailorIntentJob,
   });
 
   // ── Send via Resend ───────────────────────────────────────────────────────
