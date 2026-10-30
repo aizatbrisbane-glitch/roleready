@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { htmlToText } from "@/lib/job-ad";
 
 type ExtensionJobPayload = {
   title?: string;
@@ -70,7 +71,7 @@ export async function POST(request: Request) {
         title: payload.title?.trim().slice(0, 300) || "Imported job ad",
         company: payload.company?.trim().slice(0, 300) || "Company from job ad",
         location: payload.location?.trim().slice(0, 300) || "",
-        salary: payload.salary?.trim().slice(0, 300) || "",
+        salary: (payload.salary ? htmlToText(payload.salary).trim() : "").slice(0, 300),
         job_url: payload.url?.trim().slice(0, 1200) || "",
         description: description.slice(0, 30000),
         source: payload.url?.includes("seek.com") ? "SEEK" : payload.url?.includes("linkedin.com") ? "LinkedIn" : "Other"
