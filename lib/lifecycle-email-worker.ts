@@ -207,7 +207,8 @@ async function fetchProfileBasics(
   const rawName = profile.name ?? null;
   const firstName = rawName ? rawName.trim().split(" ")[0] || null : null;
   const titles = Array.isArray(profile.target_job_titles) ? profile.target_job_titles : [];
-  const primaryJobTitle = titles.length > 0 && titles[0].trim() ? titles[0].trim() : null;
+  const t0 = titles[0]?.trim() ?? "";
+  const primaryJobTitle = t0 && t0.toLowerCase() !== "unknown" ? t0 : null;
   const rawLocation = profile.location ?? null;
   const location = rawLocation ? rawLocation.trim() || null : null;
   return { firstName, email: profile.email ?? null, primaryJobTitle, location };
