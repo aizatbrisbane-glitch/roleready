@@ -83,7 +83,8 @@ async function getUserProfile(
   const email = profile?.email?.trim() || authData?.user?.email || null;
   const titles = Array.isArray(profile?.target_job_titles) ? profile!.target_job_titles! : [];
   const t0 = titles[0]?.trim() ?? "";
-  const primaryJobTitle = t0 && t0.toLowerCase() !== "unknown" ? t0 : null;
+  const SENTINEL_TITLES = new Set(["unknown", "anything"]);
+  const primaryJobTitle = t0 && !SENTINEL_TITLES.has(t0.toLowerCase()) ? t0 : null;
   const rawLocation = profile?.location ?? null;
   const location = rawLocation ? rawLocation.trim() || null : null;
   return { email, firstName, primaryJobTitle, location };
