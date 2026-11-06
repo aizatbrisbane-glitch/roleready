@@ -7,6 +7,7 @@ import { headers } from "next/headers";
 import { MobileNav } from "@/components/MobileNav";
 import { Sidebar } from "@/components/Sidebar";
 import { AttributionCapture } from "@/components/AttributionCapture";
+import { AuthHashRedirect } from "@/components/AuthHashRedirect";
 import { AnalyticsIdentity } from "@/components/AnalyticsIdentity";
 import { productionAnalytics, internalUser } from "@/lib/analytics-policy";
 import { SignOutButton } from "@/components/SignOutButton";
@@ -138,6 +139,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             src="https://px.ads.linkedin.com/collect/?pid=9404122&fmt=gif" />
         </noscript>
         <AttributionCapture isAuthenticated={Boolean(user)} />
+        <AuthHashRedirect />
         {authed && (
           <Sidebar
             userName={displayName}
