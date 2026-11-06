@@ -42,17 +42,21 @@ export default function ResetPasswordPage() {
     const refreshToken = hashParams.get("refresh_token");
 
     if (code) {
-      // PKCE flow — exchange code for session
+      // PKCE flow — sign out any existing session first so we don't update the wrong account
       window.history.replaceState({}, "", window.location.pathname);
-      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-        if (error) setExpired(true);
-      });
+      supabase.auth.signOut().then(() =>
+        supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+          if (error) setExpired(true);
+        })
+      );
     } else if (accessToken && refreshToken) {
-      // Implicit flow — set session directly from hash tokens
+      // Implicit flow — sign out any existing session first so we don't update the wrong account
       window.history.replaceState({}, "", window.location.pathname);
-      supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken }).then(({ error }) => {
-        if (error) setExpired(true);
-      });
+      supabase.auth.signOut().then(() =>
+        supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken }).then(({ error }) => {
+          if (error) setExpired(true);
+        })
+      );
     } else {
       // No tokens — check for an existing session
       supabase.auth.getSession().then(({ data: { session } }) => {
@@ -105,8 +109,19 @@ export default function ResetPasswordPage() {
   return (
     <main className="mx-auto flex max-w-6xl justify-center px-4 py-12">
       <div className="w-full max-w-sm rounded-md border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-xl font-bold text-slate-900">Set new password</h1>
-        <p className="mt-1 text-sm text-slate-500">Choose a new password for your account.</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-slate-900">Set new password</h1>
+            <p className="mt-1 text-sm text-slate-500">Choose a new password for your account.</p>
+          </div>
+          <button
+            type="button"
+            className="text-xs text-slate-400 hover:text-slate-600 hover:underline"
+            onClick={() => createSupabaseBrowserClient()?.auth.signOut().then(() => { window.location.href = "/"; })}
+          >
+            Sign out
+          </button>
+        </div>
 
         {done ? (
           <p className="mt-5 text-sm font-semibold text-[#2200ff]">Password updated! Redirecting…</p>
